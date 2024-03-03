@@ -1,0 +1,34 @@
+[gd_scene load_steps=5 format=3 uid="uid://u72fhf8awel2"]
+
+[ext_resource type="PackedScene" uid="uid://cfiw5qxv3027y" path="res://GUI.tscn" id="1_kdw77"]
+[ext_resource type="PackedScene" uid="uid://b226ro6gyacgx" path="res://Prefabs/Crystal.tscn" id="1_m7r4q"]
+[ext_resource type="Environment" uid="uid://7nfjkebtyooe" path="res://Prefabs/Environment.tres" id="2_s2r1g"]
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_hg277"]
+
+[node name="Main" type="Node"]
+
+[node name="GUI" parent="." node_paths=PackedStringArray("camera", "crystalParent", "crystal") instance=ExtResource("1_kdw77")]
+camera = NodePath("../Camera3D")
+crystalParent = NodePath("../CrystalParent")
+crystal = NodePath("../CrystalParent/Crystal")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("2_s2r1g")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.899733, -0.338339, 0.275694, 0.0386735, 0.567397, 0.822536, -0.434724, 0.750725, -0.497421, 3.82342, 3.17909, -0.267141)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, -4)
+environment = ExtResource("2_s2r1g")
+fov = 44.5157
+size = 6.576
+
+[node name="CrystalParent" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="Crystal" parent="CrystalParent" instance=ExtResource("1_m7r4q")]
+mesh = SubResource("ArrayMesh_hg277")
+skeleton = NodePath("../..")
+UseLatticeVectors = true

@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://cs8vuarc3uhj0"]
+
+[node name="SpinBox" type="SpinBox"]
+offset_right = 83.0625
+offset_bottom = 31.0
+min_value = -10.0
+max_value = 10.0
+step = 0.01
+select_all_on_focus = true

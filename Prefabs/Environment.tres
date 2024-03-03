@@ -1,0 +1,15 @@
+[gd_resource type="Environment" load_steps=4 format=3 uid="uid://7nfjkebtyooe"]
+
+[ext_resource type="Texture2D" uid="uid://vxrpwyknmp05" path="res://Assets/1008231038_HDR.jpg" id="1_gxtea"]
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_qlmus"]
+panorama = ExtResource("1_gxtea")
+
+[sub_resource type="Sky" id="Sky_033t1"]
+sky_material = SubResource("PanoramaSkyMaterial_qlmus")
+radiance_size = 4
+
+[resource]
+background_mode = 2
+sky = SubResource("Sky_033t1")
+ambient_light_color = Color(0.533333, 0.533333, 0.533333, 1)

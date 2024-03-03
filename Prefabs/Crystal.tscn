@@ -1,0 +1,49 @@
+[gd_scene load_steps=10 format=3 uid="uid://b226ro6gyacgx"]
+
+[ext_resource type="Script" path="res://Scripts/UnitCrystal.cs" id="1_b016c"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_81ati"]
+frequency = 0.0031
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_ihcdk"]
+noise = SubResource("FastNoiseLite_81ati")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_ikefx"]
+frequency = 0.0011
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_phcrc"]
+noise = SubResource("FastNoiseLite_ikefx")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_v46ww"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_24agq"]
+noise = SubResource("FastNoiseLite_v46ww")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gdl7n"]
+transparency = 1
+shading_mode = 2
+albedo_color = Color(0.145098, 0.552941, 0.431373, 0.870588)
+metallic = 1.0
+roughness = 0.03
+emission = Color(0.145098, 0.552941, 0.431373, 1)
+emission_energy_multiplier = 0.16
+rim_tint = 0.63
+rim_texture = SubResource("NoiseTexture2D_24agq")
+refraction_scale = 0.0
+refraction_texture = SubResource("NoiseTexture2D_phcrc")
+detail_blend_mode = 3
+detail_albedo = SubResource("NoiseTexture2D_ihcdk")
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_jp0wm"]
+
+[node name="Crystal" type="MeshInstance3D"]
+transform = Transform3D(1, 0.5, 0.5, 0, 0.866025, 0.288675, 0, 0, 0.816497, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_gdl7n")
+mesh = SubResource("ArrayMesh_jp0wm")
+script = ExtResource("1_b016c")
+AxisLengths = Vector3(1, 1, 1)
+AlphaBetaGamma = Vector3(60, 60, 60)
+bVector = Vector3(0.5, 0.866025, 0)
+cVector = Vector3(0.5, 0.288675, 0.816497)
+UnitCellVolume = 0.707107
+UpdateTheMesh = true
