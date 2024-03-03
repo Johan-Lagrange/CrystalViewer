@@ -4,6 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 public static class CrystalGenerator
 {
+    /// <summary>
+    /// Generates a mesh from a list of face normals and distances that will be duplicated according to symmetry.
+    /// </summary>
+    /// <param name="initialFaces">The array of normal directions of each symetrically unique face</param>
+    /// <param name="distances">The array of distances per face from crystal center</param>
+    /// <param name="pointGroup">The type of symmetry this crystal has. Dictates which symmetry operations (mirror, rotate) are used</param>
+    /// <returns></returns>
     public static ArrayMesh CreateMesh(Vector3[] initialFaces, float[] distances, SymmetryOperations.PointGroup pointGroup)
     {
         if (distances.Length != initialFaces.Length)
@@ -17,61 +24,23 @@ public static class CrystalGenerator
             normals[i] = SymmetryOperations.CreateCrystalSymmetry(initialFaces[i].Normalized(), pointGroup);//Reflects every normal along the given point group's symmetry.
         }
 
-        List<Plane> planes = new();//Create a plane with distance from center for every generated normal
+        List<Plane> planes = GeneratePlanes(initialFaces, distances, normals);//Create a plane with distance from center for every generated normal
 
-        for (int givenFace = 0; givenFace < initialFaces.Length; givenFace++)
-        {
-            List<Vector3> normalsList = normals[givenFace];
-            List<Plane> planesToRemove = new();
-
-            foreach (Vector3 normal in normalsList)
-            {
-                Plane planeToAdd = new Plane(normal, distances[givenFace]);
-                bool valid = true;
-                foreach (Plane p in planes)
-                {
-                    if (planeToAdd.Normal.Normalized().Dot(p.Normal.Normalized()) > .9999f)//Skip adding duplicate plane
-                    {
-                        //GD.Print("Similar faces" + planeToAdd.Normal + " " + p.Normal);
-                        if (planeToAdd.D >= p.D)
-                        {
-                            valid = false;
-                            break;
-                        }
-                        else
-                        {
-                            planesToRemove.Add(p);
-                        }
-                    }
-                }
-                foreach (Plane pp in planesToRemove)
-                {
-                    planes.Remove(pp);
-                }
-                if (valid)
-                    planes.Add(planeToAdd);
-            }
-        }
-        if (planes.Count < 4)
-        {
-            throw new Exception("Not enough faces are present to build a crystal!");
-        }
-
-        // Vector3[] vertices = Geometry3D.ComputeConvexMeshPoints(new Godot.Collections.Array<Plane>(planes.ToArray()));
-        // ConvexPolygonShape3D shape = new ConvexPolygonShape3D();
-        // shape.Points = vertices;
-        // ArrayMesh mesh = shape.GetDebugMesh().CreateConvexShape(true).GetDebugMesh();
-        // GD.Print(mesh._Surfaces.Count);
-        // var arrays = mesh.SurfaceGetArrays(0);
-        // ArrayMesh mesh2 = new ArrayMesh();
-        // mesh2.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
-        // mesh = mesh2;
-        // SurfaceTool surfaceTool = new SurfaceTool();
-        // surfaceTool.CreateFrom(mesh, 0);
-        // surfaceTool.GenerateNormals();
-        // surfaceTool.GenerateTangents();
-        // mesh = surfaceTool.Commit();
-        // return mesh;
+        /**Vector3[] vertices = Geometry3D.ComputeConvexMeshPoints(new Godot.Collections.Array<Plane>(planes.ToArray()));
+        ConvexPolygonShape3D shape = new ConvexPolygonShape3D();
+        shape.Points = vertices;
+        ArrayMesh mesh = shape.GetDebugMesh().CreateConvexShape(true).GetDebugMesh();
+        GD.Print(mesh._Surfaces.Count);
+        var arrays = mesh.SurfaceGetArrays(0);
+        ArrayMesh mesh2 = new ArrayMesh();
+        mesh2.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
+        mesh = mesh2;
+        SurfaceTool surfaceTool = new SurfaceTool();
+        surfaceTool.CreateFrom(mesh, 0);
+        surfaceTool.GenerateNormals();
+        surfaceTool.GenerateTangents();
+        mesh = surfaceTool.Commit();
+        return mesh;**/
 
         List<Vertex> vertices = GenerateVertices(planes);//Get all valid vertices on the crystal
 
@@ -83,17 +52,17 @@ public static class CrystalGenerator
 
         foreach (Dictionary<Vertex, AdjacentEdges> unorderedFace in faces.Values)
         {
-            if (unorderedFace.Values.Count < 3)
-            {
-                string s = "Face: ";
-                foreach (KeyValuePair<Vertex, AdjacentEdges> edge in unorderedFace)
-                {
-                    s += edge.Key.point;
-                    s += edge.Value.a.point;
-                    s += edge.Value.b.point;
-                }
-                GD.PrintErr("Not enough vertices to make this face!: " + s);
-            }
+            // if (unorderedFace.Values.Count < 3)
+            // {
+            //     string s = "Face: ";
+            //     foreach (KeyValuePair<Vertex, AdjacentEdges> edge in unorderedFace)
+            //     {
+            //         s += edge.Key.point;
+            //         s += edge.Value.a.point;
+            //         s += edge.Value.b.point;
+            //     }
+            //     GD.PrintErr("Not enough vertices to make this face!: " + s);
+            // }
 
             List<Vector3> face = CreateFaceFromEdges(unorderedFace);
             if (face.Count >= 3)
@@ -105,34 +74,28 @@ public static class CrystalGenerator
         ArrayMesh mesh = new ArrayMesh();
         foreach (List<Vector3> face in faceEdges)
         {
-            // string s = "Created face: ";
-            // foreach (Vector3 v in face)
-            // 	s += "(" + v.X + " " + v.Y + " " + v.Z + ")";
-            // GD.Print(s);
+            /**string s = "Created face: ";
+            foreach (Vector3 v in face)
+            	s += "(" + v.X + " " + v.Y + " " + v.Z + ")";
+            GD.Print(s);**/
 
-            Godot.Collections.Array arrays = new();
+            Godot.Collections.Array arrays = new();//Array of surface data
             arrays.Resize((int)Mesh.ArrayType.Max);
-            arrays[(int)Mesh.ArrayType.Vertex] = face.ToArray();
+            arrays[(int)Mesh.ArrayType.Vertex] = face.ToArray();//Note: Different vertex type than the one we use in this class. These are just Vector3s
 
 
 
             Vector3 normal = -(face[1] - face[0]).Cross(face[2] - face[0]).Normalized();
             if (normal.Dot(face[0]) < 0)
                 normal = -normal;
+
             Vector3 tangentVector = (face[1] - face[0]).Normalized();
             float[] tangent = new float[] { tangentVector[0], tangentVector[1], tangentVector[2], 1 };
+
             List<Vector3> meshVertices = new();
             List<Vector3> meshNormals = new();
             List<float> tangents = new();
-            //GD.Print(face.ToString());
-            // for (int i = 0; i < face.Count - 1; i++)//We work two vertices at a time. That's why we do face.count - 1
-            // {
-            // 	arrays[(int)Mesh.ArrayType.Vertex] = new Vector3[] { face[0], face[i], face[i + 1] };
-            // 	arrays[(int)Mesh.ArrayType.Normal] = new Vector3[] { normal, normal, normal };
-            // 	arrays[(int)Mesh.ArrayType.Tangent] = new float[] { tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3] };
 
-            // 	mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
-            // }
             for (int i = 1; i <= face.Count - 2; i++)//We work two vertices at a time. That's why we do face.count - 2
             {
                 meshVertices.AddRange(new Vector3[] { face[0], face[i], face[i + 1] });
@@ -154,42 +117,64 @@ public static class CrystalGenerator
         return mesh;
     }
 
-    private static void DebugPrintVertexAdjacentEdges(Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces)
+    /// <summary>
+    /// Generates the crystal's planes from faces, distances, and normals
+    /// </summary>
+    /// <param name="initialFaces"></param>
+    /// <param name="distances"></param>
+    /// <param name="normals"></param>
+    /// <returns></returns>
+    private static List<Plane> GeneratePlanes(Vector3[] initialFaces, float[] distances, List<Vector3>[] normals)
     {
-        foreach (Plane p in faces.Keys)
+        List<Plane> planes = new();
+        for (int givenFace = 0; givenFace < initialFaces.Length; givenFace++)
         {
-            GD.Print("Plane: " + p.Normal);
-            foreach (Vertex v in faces[p].Keys)
+            List<Vector3> normalsList = normals[givenFace];
+
+            foreach (Vector3 normal in normalsList)//Verify and add planes for each type of normal
             {
-                string a = "", b = "";
-                if (faces[p][v].a != null)
-                    a = faces[p][v].a.point.ToString();
-                if (faces[p][v].b != null)
-                    b = faces[p][v].b.point.ToString();
-                GD.Print("Vertex: " + v.point + ", A: " + a + ", B: " + b);
+                Plane planeToAdd = new Plane(normal, distances[givenFace]);
+                List<Plane> planesToRemove = new();
+                bool valid = true;
+                foreach (Plane p in planes)
+                {
+                    if (planeToAdd.Normal.Normalized().Dot(p.Normal.Normalized()) > .9999f)//Skip adding duplicate plane
+                    {
+                        //GD.Print("Similar faces" + planeToAdd.Normal + " " + p.Normal);
+                        if (planeToAdd.D >= p.D)
+                        {
+                            valid = false;//This face is behind another face so we can skip it
+                            break;
+                        }
+                        else
+                        {
+                            planesToRemove.Add(p);//Another face was behind this so we remove that
+                        }
+                    }
+                }
+                foreach (Plane pp in planesToRemove)
+                {
+                    planes.Remove(pp);//Remove faces that are behind(but same direction) the one we just added
+                }
+                if (valid)
+                    planes.Add(planeToAdd);
             }
         }
+        if (planes.Count < 4)
+        {
+            throw new Exception("Not enough faces are present to build a crystal!");
+        }
+
+        return planes;
     }
 
-    private static void DebugPrintPlanesWithVertices(List<Plane> planes, List<Vertex> vertices)
-    {
-        string s = "Planes: ";
-        foreach (Plane p in planes)
-            s += p.Normal + ", ";
-        GD.Print(s);
-        foreach (Vertex v in vertices)
-        {
-            s = "Vertices: ";
-            s += v.point + ":";
-            foreach (Plane p in v.planes)
-            {
-                s += p.Normal + "; ";
-            }
-            GD.Print(s);
-        }
-    }
+
 
     //https://stackoverflow.com/questions/1988100/how-to-determine-ordering-of-3d-vertices
+    /// <summary>
+    /// Checks if a, b, c, are ordered in clockwise order
+    /// </summary>
+    /// <returns>True if a, b, c are in clockwise order</returns>
     public static bool IsClockwise(Vector3 a, Vector3 b, Vector3 c)
     {
         Vector3 normal = (b - a).Cross(c - a);
@@ -357,7 +342,7 @@ public static class CrystalGenerator
         // }
         // GD.Print(s);
 
-        List<Vector3> edges = new();
+        List<Vector3> edges = new();//list of vertices around the perimeter of the face
         Vertex start = face.First().Key;
         Vertex here = face[start].a;
         Vertex next;
@@ -367,8 +352,7 @@ public static class CrystalGenerator
 
 
         int count = 0;//To avoid infinite loops. Hopefully never needed.
-                      //GD.Print("First:" + previous.point);
-                      //GD.Print("Second:" + here.point);
+
         edges.Add(start.point);
         while (here.point != start.point)
         {
@@ -377,14 +361,10 @@ public static class CrystalGenerator
             previous = here;
             here = next;
             if (here == null)
-            {
                 return edges;
-            }
 
             if (count++ > 20)
-            {
                 throw new Exception("Infinite loop in edge creation!");
-            }
         }
         edges.Add(here.point);
 
@@ -457,18 +437,13 @@ public static class CrystalGenerator
         public Vertex a, b;
         public void AddVertex(Vertex v)
         {
-            if (a != null && a.point.IsEqualApprox(v.point))
-            {
+            if (a != null && a.point.IsEqualApprox(v.point))//if we don't check null and short circuit then we'd get a null reference exception
                 throw new Exception("Was given a point twice!");
-            }
             if (b != null && b.point.IsEqualApprox(v.point))
-            {
                 throw new Exception("Was given a point twice!");
-            }
             if (b != null)
-            {
                 throw new Exception("Was given more than two vertices, this should not happen: " + a.point + " " + b.point + " " + v.point);
-            }
+
             if (a == null)
                 a = v;
             else
@@ -485,6 +460,41 @@ public static class CrystalGenerator
                 return a;
             else
                 return b;
+        }
+    }
+
+    private static void DebugPrintVertexAdjacentEdges(Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces)
+    {
+        foreach (Plane p in faces.Keys)
+        {
+            GD.Print("Plane: " + p.Normal);
+            foreach (Vertex v in faces[p].Keys)
+            {
+                string a = "", b = "";
+                if (faces[p][v].a != null)
+                    a = faces[p][v].a.point.ToString();
+                if (faces[p][v].b != null)
+                    b = faces[p][v].b.point.ToString();
+                GD.Print("Vertex: " + v.point + ", A: " + a + ", B: " + b);
+            }
+        }
+    }
+
+    private static void DebugPrintPlanesWithVertices(List<Plane> planes, List<Vertex> vertices)
+    {
+        string s = "Planes: ";
+        foreach (Plane p in planes)
+            s += p.Normal + ", ";
+        GD.Print(s);
+        foreach (Vertex v in vertices)
+        {
+            s = "Vertices: ";
+            s += v.point + ":";
+            foreach (Plane p in v.planes)
+            {
+                s += p.Normal + "; ";
+            }
+            GD.Print(s);
         }
     }
 }
