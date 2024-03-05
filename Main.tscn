@@ -24,11 +24,13 @@ transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 
 environment = ExtResource("2_s2r1g")
 fov = 44.5157
 size = 6.576
+near = 0.001
 
 [node name="CrystalParent" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
 [node name="Crystal" parent="CrystalParent" instance=ExtResource("1_m7r4q")]
+transform = Transform3D(1, 0.5, 0.5, 0, 0.866025, 0.288675, 0, 0, 0.816497, 0, 0, 0)
 mesh = SubResource("ArrayMesh_hg277")
 skeleton = NodePath("../..")
 UseLatticeVectors = true

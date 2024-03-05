@@ -109,6 +109,7 @@ public partial class GemGUI : Control
 	{//3-20
 		distance = (1 - distance) * (1 - distance) * 13 + 3;
 		this.distance = distance;
+		camera.Far = distance * 2;
 		camera.Position = new(0, 0, -distance);
 		if (camera.Projection == Camera3D.ProjectionType.Orthogonal)
 			camera.SetOrthogonal(distance, .001f, distance * 2);
@@ -133,7 +134,7 @@ public partial class GemGUI : Control
 	{
 		StandardMaterial3D material = (StandardMaterial3D)crystal.MaterialOverride;
 		material.AlbedoColor = color;
-	}//TODO set roughness
+	}
 	public void SetRefraction(double refraction)
 	{
 		StandardMaterial3D material = (StandardMaterial3D)crystal.MaterialOverride;

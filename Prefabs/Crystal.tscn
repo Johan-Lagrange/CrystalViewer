@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://b226ro6gyacgx"]
+[gd_scene load_steps=9 format=3 uid="uid://b226ro6gyacgx"]
 
 [ext_resource type="Script" path="res://Scripts/UnitCrystal.cs" id="1_b016c"]
 
@@ -34,12 +34,9 @@ refraction_texture = SubResource("NoiseTexture2D_phcrc")
 detail_blend_mode = 3
 detail_albedo = SubResource("NoiseTexture2D_ihcdk")
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_jp0wm"]
-
 [node name="Crystal" type="MeshInstance3D"]
 transform = Transform3D(1, 0.5, 0.5, 0, 0.866025, 0.288675, 0, 0, 0.816497, 0, 0, 0)
 material_override = SubResource("StandardMaterial3D_gdl7n")
-mesh = SubResource("ArrayMesh_jp0wm")
 script = ExtResource("1_b016c")
 AxisLengths = Vector3(1, 1, 1)
 AlphaBetaGamma = Vector3(60, 60, 60)
