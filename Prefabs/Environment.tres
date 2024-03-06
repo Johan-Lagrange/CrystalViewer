@@ -12,4 +12,5 @@ radiance_size = 4
 [resource]
 background_mode = 2
 sky = SubResource("Sky_033t1")
+sky_custom_fov = 90.0
 ambient_light_color = Color(0.533333, 0.533333, 0.533333, 1)

@@ -56,6 +56,9 @@ public partial class UnitCrystal : MeshInstance3D
 	SymmetryOperations.PointGroup _pointGroup = SymmetryOperations.PointGroup.BarThreeRhombohedral;
 	Vector3[] _normals = { new(3, 1, 0), new(0, 5, 1), new(-1, -1, -1), new(-2, 0, -1) };
 	float[] _distances = { 1, .9f, 1, 1 };
+	List<Vector3>[] normals;
+	List<Plane> planes;
+	List<List<Vector3>> faceEdges;
 	private bool updatedThisFrame = false;
 	public override void _Ready()
 	{
@@ -91,8 +94,9 @@ public partial class UnitCrystal : MeshInstance3D
 				newDistances[i] = 1;
 			Distances = newDistances;
 		}
-		ArrayMesh mesh = CrystalGenerator.CreateMesh(Normals, Distances, _pointGroup);
+		ArrayMesh mesh = CrystalGenerator.CreateMesh(Normals, Distances, _pointGroup, out normals, out planes, out mesh, out faceEdges);
 		Mesh = mesh;
+		CrystalGenerator.ExportSTL("", mesh);
 	}
 	public void UpdateFromParameters()
 	{

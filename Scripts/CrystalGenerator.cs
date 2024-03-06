@@ -11,12 +11,19 @@ public static class CrystalGenerator
     /// <param name="distances">The array of distances per face from crystal center</param>
     /// <param name="pointGroup">The type of symmetry this crystal has. Dictates which symmetry operations (mirror, rotate) are used</param>
     /// <returns></returns>
-    public static ArrayMesh CreateMesh(Vector3[] initialFaces, float[] distances, SymmetryOperations.PointGroup pointGroup)
+    public static ArrayMesh CreateMesh(
+        Vector3[] initialFaces,
+        float[] distances,
+        SymmetryOperations.PointGroup pointGroup,
+        out List<Vector3>[] normals,
+        out List<Plane> planes,
+        out ArrayMesh mesh,
+        out List<List<Vector3>> faceEdges)
     {
         if (distances.Length != initialFaces.Length)
             throw new ArgumentException("Every initial face must be given a distance!");
 
-        List<Vector3>[] normals = new List<Vector3>[initialFaces.Length];//List of normals for each initial face that was duplicated by the symmetry group
+        normals = new List<Vector3>[initialFaces.Length];//List of normals for each initial face that was duplicated by the symmetry group
 
         //Reflect every given face along the given symmetry group
         for (int i = 0; i < initialFaces.Length; i++)
@@ -24,7 +31,7 @@ public static class CrystalGenerator
             normals[i] = SymmetryOperations.CreateCrystalSymmetry(initialFaces[i].Normalized(), pointGroup);//Reflects every normal along the given point group's symmetry.
         }
 
-        List<Plane> planes = GeneratePlanes(initialFaces, distances, normals);//Create a plane with distance from center for every generated normal
+        planes = GeneratePlanes(initialFaces, distances, normals);//Create a plane with distance from center for every generated normal
 
         /**Vector3[] vertices = Geometry3D.ComputeConvexMeshPoints(new Godot.Collections.Array<Plane>(planes.ToArray()));
         ConvexPolygonShape3D shape = new ConvexPolygonShape3D();
@@ -48,7 +55,7 @@ public static class CrystalGenerator
         Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces = GenerateEdges(vertices);//Create a dictionary that will take a plane and give an unordered list of each edge that makes up the plane's face
         //DebugPrintVertexAdjacentEdges(faces);
 
-        List<List<Vector3>> faceEdges = new();//The final mesh that we are building. Contains the vertices of each face in order.
+        faceEdges = new();//The final mesh that we are building. Contains the vertices of each face in order.
 
         foreach (Dictionary<Vertex, AdjacentEdges> unorderedFace in faces.Values)
         {
@@ -71,7 +78,7 @@ public static class CrystalGenerator
 
         // Create the Mesh.
 
-        ArrayMesh mesh = new ArrayMesh();
+        mesh = new ArrayMesh();
         foreach (List<Vector3> face in faceEdges)
         {
             /**string s = "Created face: ";
@@ -378,6 +385,54 @@ public static class CrystalGenerator
         if (IsClockwise(edges[0], edges[1], edges[2]))
             edges.Reverse();
         return edges;
+    }
+
+    public static void ExportSTL(string fileName, ArrayMesh mesh)
+    {
+        //https://docs.godotengine.org/en/stable/tutorials/io/saving_games.html
+        //using var saveGame = FileAccess.Open("user://savegame.save", FileAccess.ModeFlags.Write);
+        //saveGame.StoreLine(jsonString);
+
+        /*
+        solid [name]
+        facet normal ni nj nk
+            outer loop
+                vertex v1x v1y v1z
+                vertex v2x v2y v2z
+                vertex v3x v3y v3z
+            endloop
+        endfacet
+        endsolid [name]*/
+
+        using FileAccess saveGame = FileAccess.Open(fileName, FileAccess.ModeFlags.Write);
+        GD.Print("solid " + fileName);
+        saveGame.StoreLine("solid " + fileName);
+        int count = mesh.GetSurfaceCount();
+        for (int i = 0; i < count; i++)
+        {
+            Vector3[] face = (Vector3[])mesh.SurfaceGetArrays(i)[(int)Mesh.ArrayType.Vertex];
+            Vector3 normal = ((Vector3[])mesh.SurfaceGetArrays(i)[(int)Mesh.ArrayType.Normal])[0];//Gets the first normal of the face
+
+            for (int j = 1; j <= face.Length - 2; j++)//We work two vertices at a time. That's why we do face.count - 2
+            {
+                GD.Print("facet normal " + normal.X + " " + normal.Y + " " + normal.Z);
+                saveGame.StoreLine("facet normal " + normal.X + " " + normal.Y + " " + normal.Z);
+                GD.Print("\touter loop");
+                saveGame.StoreLine("\touter loop");
+                GD.Print("\t\t vertex " + face[0].X + " " + face[0].Y + " " + face[0].Z);
+                saveGame.StoreLine("\t\t vertex " + face[0].X + " " + face[0].Y + " " + face[0].Z);
+                GD.Print("\t\t vertex " + face[j].X + " " + face[j].Y + " " + face[j].Z);
+                saveGame.StoreLine("\t\t vertex " + face[j].X + " " + face[j].Y + " " + face[j].Z);
+                GD.Print("\t\t vertex " + face[j + 1].X + " " + face[j + 1].Y + " " + face[j + 1].Z);
+                saveGame.StoreLine("\t\t vertex " + face[j + 1].X + " " + face[j + 1].Y + " " + face[j + 1].Z);
+                GD.Print("\tendloop");
+                saveGame.StoreLine("\tendloop");
+                GD.Print("endfacet");
+                saveGame.StoreLine("endfacet");
+            }
+        }
+        GD.Print("endsolid " + fileName);
+        saveGame.StoreLine("endsolid " + fileName);
     }
 
     /// <summary>

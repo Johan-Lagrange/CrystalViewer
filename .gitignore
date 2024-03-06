@@ -1,2 +1,3 @@
 # Godot 4+ specific ignores
 .godot/
+.data_CrystalViewer_windows_x86_64/

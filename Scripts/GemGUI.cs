@@ -13,6 +13,8 @@ public partial class GemGUI : Control
 	OptionButton crystalSystem;
 	[Export]
 	SpinBox[] crystalParams = new SpinBox[6];
+	[Export]
+	FileDialog saveDialog, loadDialog, exportDialog;
 	private bool rotate = false;
 	private bool autoUpdate = true;
 	private bool updatedParamsThisFrame = false;
@@ -56,6 +58,10 @@ public partial class GemGUI : Control
 		updatedNormsThisFrame = false;
 	}
 
+	public void Export(string output)
+	{
+		CrystalGenerator.ExportSTL(output, (ArrayMesh)crystal.Mesh);
+	}
 	public void GetDragInput(InputEvent @event)
 	{
 		if (@event is InputEventMouseMotion mouseEvent && Input.IsMouseButtonPressed(MouseButton.Left))
