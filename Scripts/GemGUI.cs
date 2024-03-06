@@ -60,7 +60,7 @@ public partial class GemGUI : Control
 
 	public void Export(string output)
 	{
-		CrystalGenerator.ExportSTL(output, (ArrayMesh)crystal.Mesh);
+		CrystalGenerator.ExportSTL(output, (ArrayMesh)crystal.Mesh, crystal.Basis);
 	}
 	public void GetDragInput(InputEvent @event)
 	{
@@ -97,16 +97,16 @@ public partial class GemGUI : Control
 		switch (axis)
 		{
 			case "a":
-				crystalParent.LookAt(-crystal.Basis.X + Vector3.Right, crystal.Basis.Y);
+				crystalParent.LookAt(-crystal.Basis.X, crystal.Basis.Y);
 				break;
 			case "b":
-				crystalParent.LookAt(-crystal.Basis.Y + Vector3.Right, crystal.Basis.Z);
+				crystalParent.LookAt(-crystal.Basis.Y, crystal.Basis.Z);
 				break;
 			case "c":
-				crystalParent.LookAt(-crystal.Basis.Z + Vector3.Right, crystal.Basis.Y);
+				crystalParent.LookAt(-crystal.Basis.Z, crystal.Basis.Y);
 				break;
 			case "abc":
-				crystalParent.LookAt(-(crystal.Basis.X + crystal.Basis.Y + crystal.Basis.Z) + Vector3.Right, crystal.Basis.Y);
+				crystalParent.LookAt(-(crystal.Basis.X + crystal.Basis.Y + crystal.Basis.Z), crystal.Basis.Y);
 				break;
 		}
 	}

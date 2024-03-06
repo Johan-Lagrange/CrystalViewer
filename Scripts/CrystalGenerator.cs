@@ -387,7 +387,7 @@ public static class CrystalGenerator
         return edges;
     }
 
-    public static void ExportSTL(string fileName, ArrayMesh mesh)
+    public static void ExportSTL(string fileName, ArrayMesh mesh, Basis basis)
     {
         //https://docs.godotengine.org/en/stable/tutorials/io/saving_games.html
         //using var saveGame = FileAccess.Open("user://savegame.save", FileAccess.ModeFlags.Write);
@@ -405,7 +405,7 @@ public static class CrystalGenerator
         endsolid [name]*/
 
         using FileAccess saveGame = FileAccess.Open(fileName, FileAccess.ModeFlags.Write);
-        GD.Print("solid " + fileName);
+        //GD.Print("solid " + fileName);
         saveGame.StoreLine("solid " + fileName);
         int count = mesh.GetSurfaceCount();
         for (int i = 0; i < count; i++)
@@ -415,23 +415,27 @@ public static class CrystalGenerator
 
             for (int j = 1; j <= face.Length - 2; j++)//We work two vertices at a time. That's why we do face.count - 2
             {
-                GD.Print("facet normal " + normal.X + " " + normal.Y + " " + normal.Z);
+                Vector3 v0 = basis * face[0];
+                Vector3 vj = basis * face[j];
+                Vector3 vj1 = basis * face[j + 1];
+
+                // GD.Print("facet normal " + normal.X + " " + normal.Y + " " + normal.Z);
+                // GD.Print("\touter loop");
+                // GD.Print("\t\t vertex " + v0.X + " " + v0.Y + " " + v0.Z);
+                // GD.Print("\t\t vertex " + vj.X + " " + vj.Y + " " + vj.Z);
+                // GD.Print("\t\t vertex " + vj1.X + " " + vj1.Y + " " + vj1.Z);
+                // GD.Print("\tendloop");
+                // GD.Print("endfacet");
                 saveGame.StoreLine("facet normal " + normal.X + " " + normal.Y + " " + normal.Z);
-                GD.Print("\touter loop");
                 saveGame.StoreLine("\touter loop");
-                GD.Print("\t\t vertex " + face[0].X + " " + face[0].Y + " " + face[0].Z);
-                saveGame.StoreLine("\t\t vertex " + face[0].X + " " + face[0].Y + " " + face[0].Z);
-                GD.Print("\t\t vertex " + face[j].X + " " + face[j].Y + " " + face[j].Z);
-                saveGame.StoreLine("\t\t vertex " + face[j].X + " " + face[j].Y + " " + face[j].Z);
-                GD.Print("\t\t vertex " + face[j + 1].X + " " + face[j + 1].Y + " " + face[j + 1].Z);
-                saveGame.StoreLine("\t\t vertex " + face[j + 1].X + " " + face[j + 1].Y + " " + face[j + 1].Z);
-                GD.Print("\tendloop");
+                saveGame.StoreLine("\t\t vertex " + v0.X + " " + v0.Y + " " + v0.Z);
+                saveGame.StoreLine("\t\t vertex " + vj.X + " " + vj.Y + " " + vj.Z);
+                saveGame.StoreLine("\t\t vertex " + vj1.X + " " + vj1.Y + " " + vj1.Z);
                 saveGame.StoreLine("\tendloop");
-                GD.Print("endfacet");
                 saveGame.StoreLine("endfacet");
             }
         }
-        GD.Print("endsolid " + fileName);
+        //GD.Print("endsolid " + fileName);
         saveGame.StoreLine("endsolid " + fileName);
     }
 
