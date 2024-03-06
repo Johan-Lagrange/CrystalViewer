@@ -55,6 +55,7 @@ layout_mode = 2
 [node name="SymmetryType" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
+tooltip_text = "The list of symmetry operations to apply to the given faces"
 alignment = 1
 
 [node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SymmetryType"]
@@ -63,6 +64,7 @@ text = "Symmetry Type:"
 
 [node name="OptionButton" type="OptionButton" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SymmetryType"]
 layout_mode = 2
+tooltip_text = "The list of symmetry operations to apply to the given faces"
 item_count = 49
 selected = 22
 fit_to_longest_item = false
@@ -180,10 +182,12 @@ alignment = 1
 
 [node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Update"]
 layout_mode = 2
+tooltip_text = "Should this update/re calculate every time a parameter is changed. Can get expensive!"
 text = "Auto Update:"
 
 [node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Update"]
 layout_mode = 2
+tooltip_text = "Should this update/re calculate every time a parameter is changed. Can get expensive!"
 button_pressed = true
 
 [node name="Crystal" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
@@ -202,6 +206,7 @@ layout_mode = 2
 [node name="Color" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
+tooltip_text = "The color/opacity of the crystal"
 alignment = 1
 
 [node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Color"]
@@ -210,12 +215,14 @@ text = "Crystal Color:"
 
 [node name="ColorPickerButton" type="ColorPickerButton" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Color"]
 layout_mode = 2
+tooltip_text = "The color/opacity of the crystal"
 text = "                                     "
 color = Color(0.145098, 0.552941, 0.431373, 0.870588)
 
 [node name="Refraction" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
+tooltip_text = "Amount of refraction shader to apply. Almost certainly not accurate. Middle disables refraction."
 alignment = 1
 
 [node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Refraction"]
@@ -225,6 +232,7 @@ text = "'Refraction' Amount:"
 [node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Refraction"]
 custom_minimum_size = Vector2(160.195, 0)
 layout_mode = 2
+tooltip_text = "Amount of refraction shader to apply. Almost certainly not accurate. Middle disables refraction."
 min_value = -1.0
 max_value = 1.0
 step = 0.1
@@ -234,6 +242,7 @@ ticks_on_borders = true
 [node name="Roughness" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
+tooltip_text = "Amount of roughness shader to apply. "
 alignment = 1
 
 [node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Roughness"]
@@ -243,6 +252,7 @@ text = "Roughness:"
 [node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Roughness"]
 custom_minimum_size = Vector2(160.195, 0)
 layout_mode = 2
+tooltip_text = "Amount of roughness shader to apply. "
 min_value = 0.01
 max_value = 1.0
 step = 0.001
@@ -282,6 +292,7 @@ text = "Load"
 
 [node name="Export" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport"]
 layout_mode = 2
+tooltip_text = "Export this crystal to a .stl file"
 text = "Export"
 
 [node name="Axes" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer"]
@@ -316,6 +327,7 @@ text = "c (z)"
 [node name="A" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/Axes/VBoxContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Length of the x/a axis"
 max_value = 2.0
 step = 0.01
 value = 1.0
@@ -323,6 +335,7 @@ value = 1.0
 [node name="B" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/Axes/VBoxContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Length of the y axis"
 max_value = 2.0
 step = 0.01
 value = 1.0
@@ -330,6 +343,7 @@ value = 1.0
 [node name="C" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/Axes/VBoxContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Length of the z axis"
 max_value = 2.0
 step = 0.01
 value = 1.0
@@ -360,6 +374,7 @@ text = "γ (xy)"
 [node name="Alpha" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/Axes/VBoxContainer/GridContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Angle between the y and z axes"
 max_value = 180.0
 value = 90.0
 suffix = "°"
@@ -367,6 +382,7 @@ suffix = "°"
 [node name="Beta" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/Axes/VBoxContainer/GridContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Angle between the x and z axes"
 max_value = 180.0
 value = 90.0
 suffix = "°"
@@ -374,6 +390,7 @@ suffix = "°"
 [node name="Gamma" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/Axes/VBoxContainer/GridContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Angle between the x and y axes"
 max_value = 180.0
 value = 60.0
 suffix = "°"
@@ -387,6 +404,7 @@ layout_mode = 2
 [node name="Rotate" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
+tooltip_text = "Rotates automatically if checked"
 alignment = 1
 
 [node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Rotate"]
@@ -395,10 +413,12 @@ text = "Auto Rotate:"
 
 [node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Rotate"]
 layout_mode = 2
+tooltip_text = "Rotates automatically if checked"
 
 [node name="Orthogonal" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
+tooltip_text = "Render the crystal without perspective warping"
 alignment = 1
 
 [node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Orthogonal"]
@@ -407,8 +427,10 @@ text = "Orthogonal View:"
 
 [node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Orthogonal"]
 layout_mode = 2
+tooltip_text = "Render the crystal without perspective warping"
 
 [node name="Show Axes" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 8
 alignment = 1
@@ -424,6 +446,7 @@ layout_mode = 2
 [node name="Distance" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
+tooltip_text = "Distance from camera to crystal"
 alignment = 1
 
 [node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Distance"]
@@ -442,6 +465,7 @@ tick_count = 3
 [node name="View" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
+tooltip_text = "View straight down the A/B/C axis of the crystal. Not entirely accurate yet."
 alignment = 1
 
 [node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/View"]
@@ -501,6 +525,7 @@ text = "distance"
 
 [node name="AddNewFace" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer"]
 layout_mode = 2
+tooltip_text = "Add a new face to the crystal"
 text = "+"
 
 [connection signal="file_selected" from="ExportDialog" to="." method="Export"]
