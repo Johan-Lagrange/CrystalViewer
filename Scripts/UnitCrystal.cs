@@ -96,7 +96,6 @@ public partial class UnitCrystal : MeshInstance3D
 		}
 		ArrayMesh mesh = CrystalGenerator.CreateMesh(Normals, Distances, _pointGroup, out normals, out planes, out mesh, out faceEdges);
 		Mesh = mesh;
-		CrystalGenerator.ExportSTL("", mesh);
 	}
 	public void UpdateFromParameters()
 	{
