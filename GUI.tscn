@@ -231,16 +231,16 @@ step = 0.1
 tick_count = 3
 ticks_on_borders = true
 
-[node name="Refraction2" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
+[node name="Roughness" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Refraction2"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Roughness"]
 layout_mode = 2
 text = "Roughness:"
 
-[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Refraction2"]
+[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Roughness"]
 custom_minimum_size = Vector2(160.195, 0)
 layout_mode = 2
 min_value = 0.01
@@ -252,6 +252,7 @@ tick_count = 3
 ticks_on_borders = true
 
 [node name="CullMode" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 8
 alignment = 1
@@ -270,10 +271,12 @@ size_flags_horizontal = 8
 alignment = 1
 
 [node name="Save" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport"]
+visible = false
 layout_mode = 2
 text = "Save"
 
 [node name="Load" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport"]
+visible = false
 layout_mode = 2
 text = "Load"
 
@@ -506,7 +509,7 @@ text = "+"
 [connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Update/CheckBox" to="." method="SetAutoUpdate"]
 [connection signal="color_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Color/ColorPickerButton" to="." method="SetColor"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Refraction/HSlider" to="." method="SetRefraction"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Refraction2/HSlider" to="." method="SetRoughness"]
+[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Roughness/HSlider" to="." method="SetRoughness"]
 [connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/CullMode/CheckBox" to="." method="SetCullBackface"]
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport/Export" to="ExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Axes/VBoxContainer/GridContainer/A" to="." method="SetA"]
