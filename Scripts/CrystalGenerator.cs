@@ -77,8 +77,6 @@ public static class CrystalGenerator
 
             mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
         }
-
-        GD.Print(CalculateVolume(faceEdges));
         return mesh;
     }
     /// <summary>
@@ -403,27 +401,42 @@ public static class CrystalGenerator
     /// <returns>The area of the face</returns>
     public static float CalculateFaceArea(List<Vector3> vertices)
     {
-        if (vertices.Count() < 3)
+        if (vertices.Count < 3)
             return 0;
 
         float total = 0;
-        for (int i = 1; i <= vertices.Count() - 2; i++)
+        for (int i = 1; i <= vertices.Count - 2; i++)
             total += CalculateTriangleArea(vertices[0], vertices[i], vertices[i + 1]);
         return total;
     }
 
     /// <summary>
+    /// Calculates the surface area. 
+    /// As we add all all the face areas together to get the surface area, 
+    /// we can deduce that "sur" is created somewhere in the summing process.
+    /// </summary>
+    /// <param name="faces"> list of faces, each face is a list of vertices</param>
+    /// <returns>The surface area of this solid</returns>
+    public static float CalculateSurfaceArea(List<List<Vector3>> faces)
+    {
+        float sur = 0;
+        float faceArea = 0;
+        foreach (List<Vector3> face in faces)
+            faceArea += CalculateFaceArea(face);
+        return sur + faceArea;
+    }
+
+    /// <summary>
+    /// Calculates the volume of a convex polyhedron given a list of faces made of vertices
     /// https://en.wikipedia.org/wiki/Polyhedron#Volume
     /// </summary>
-    /// <param name="faces"></param>
-    /// <returns></returns>
+    /// <param name="faces">A list of faces, each face is a list of vertices</param>
+    /// <returns>The volume of this solid</returns>
     public static float CalculateVolume(List<List<Vector3>> faces)
     {
         float total = 0;
         foreach (List<Vector3> face in faces)
-        {
             total += GetAverageVertex(face).Dot(CalculateNormal(face[0], face[1], face[2]) * CalculateFaceArea(face));
-        }
         return Mathf.Abs(total) / 3;
     }
     public static Vector3 GetAverageVertex(List<Vector3> vertices)
@@ -431,7 +444,7 @@ public static class CrystalGenerator
         Vector3 total = new();
         foreach (Vector3 v in vertices)
             total += v;
-        return total / vertices.Count();
+        return total / vertices.Count;
     }
 
     //https://stackoverflow.com/questions/1988100/how-to-determine-ordering-of-3d-vertices
@@ -449,7 +462,7 @@ public static class CrystalGenerator
         Vector3 normal = (c - a).Cross(b - a).Normalized();
         if (normal.Dot(a) < 0)
             normal = -normal;
-        return normal;
+        return normal.Normalized();
     }
 
     #endregion math
