@@ -28,7 +28,7 @@ public static class CrystalGenerator
         //Reflect every given face along the given symmetry group
         for (int i = 0; i < initialFaces.Length; i++)
         {
-            normals[i] = SymmetryOperations.CreateCrystalSymmetry(initialFaces[i].Normalized(), pointGroup);//Reflects every normal along the given point group's symmetry.
+            normals[i] = CreateCrystalSymmetry(initialFaces[i].Normalized(), pointGroup);//Reflects every normal along the given point group's symmetry.
         }
 
         planes = GeneratePlanes(initialFaces, distances, normals);//Create a plane with distance from center for every generated normal
@@ -38,9 +38,7 @@ public static class CrystalGenerator
 
         Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces = GenerateEdges(vertices);//Create a dictionary that will take a plane and give an unordered list of each edge that makes up the plane's face
 
-
         faceEdges = new();//The final mesh that we are building. Contains the vertices of each face in order.
-
         foreach (Dictionary<Vertex, AdjacentEdges> unorderedFace in faces.Values)
         {
 
@@ -57,10 +55,7 @@ public static class CrystalGenerator
             Godot.Collections.Array arrays = new();//Array of surface data
             arrays.Resize((int)Mesh.ArrayType.Max);
             arrays[(int)Mesh.ArrayType.Vertex] = face.ToArray();//Note: Different vertex type than the one we use in this class. These are just Vector3s
-
-            Vector3 normal = -(face[1] - face[0]).Cross(face[2] - face[0]).Normalized();
-            if (normal.Dot(face[0]) < 0)
-                normal = -normal;
+            Vector3 normal = GetNormal(face[0], face[1], face[2]);
 
             Vector3 tangentVector = (face[1] - face[0]).Normalized();
             float[] tangent = new float[] { tangentVector[0], tangentVector[1], tangentVector[2], 1 };
@@ -83,6 +78,59 @@ public static class CrystalGenerator
             mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
         }
         return mesh;
+    }
+    /// <summary>
+    /// Takes an initial vector and applies all point group operations on it, 
+    /// returning a list of every vector therein, including the original. (Identity is an operation after all)
+    /// </summary>
+    /// <param name="v">The initial vector to do symmetry stuff on</param>
+    /// <param name="group">The crystal's point group. Used to get a list of operations</param>
+    /// <returns>A list of vectors, including the original, that are made from the symmetry operations</returns>
+    public static List<Vector3> CreateCrystalSymmetry(Vector3 v, SymmetryOperations.PointGroup group)
+    {
+        List<Vector3> vectorList = new() { v };
+
+        foreach (Func<Vector3, Vector3> Operation in SymmetryOperations.PointGroupPositions[(int)group])
+        {
+            ApplyOperation(vectorList, Operation);
+        }
+        return vectorList;
+    }
+    /// <summary>
+    /// Applies a symmetry operation to every vector in a list, and adds every result to the list.
+    /// </summary>
+    /// <param name="vectorList">List of vectors to operate upon and expand</param>
+    /// <param name="symmetryOperation">The symmetry operation to do</param>
+    public static void ApplyOperation(List<Vector3> vectorList, Func<Vector3, Vector3> symmetryOperation)
+    {
+        int count = vectorList.Count;//Get the count before we add to the list so we aren't in an infinite loop
+        for (int i = 0; i < count; i++)
+        {
+            Vector3 v = symmetryOperation(vectorList[i]);
+            v = FormatVector3(v);
+
+            bool valid = true;
+            foreach (Vector3 vl in vectorList)
+            {
+                if (v.IsEqualApprox(vl))
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            if (valid)
+                vectorList.Add(v);
+        }
+    }
+    private static Vector3 GetNormal(Vector3 a, Vector3 b, Vector3 c)
+    {
+        Vector3 normal = (c - a).Cross(b - a).Normalized();
+        if (normal.Dot(a) < 0)
+        {
+            GD.Print("Normal was backwards");
+            normal = -normal;
+        }
+        return normal;
     }
 
     /// <summary>
@@ -120,32 +168,16 @@ public static class CrystalGenerator
                     }
                 }
                 foreach (Plane pp in planesToRemove)
-                {
                     planes.Remove(pp);//Remove faces that are behind(but same direction) the one we just added
-                }
+
                 if (valid)
                     planes.Add(planeToAdd);
             }
         }
         if (planes.Count < 4)
-        {
             throw new Exception("Not enough faces are present to build a crystal!");
-        }
 
         return planes;
-    }
-
-
-
-    //https://stackoverflow.com/questions/1988100/how-to-determine-ordering-of-3d-vertices
-    /// <summary>
-    /// Checks if a, b, c, are ordered in clockwise order
-    /// </summary>
-    /// <returns>True if a, b, c are in clockwise order</returns>
-    public static bool IsClockwise(Vector3 a, Vector3 b, Vector3 c)
-    {
-        Vector3 normal = (b - a).Cross(c - a);
-        return normal.Dot(a) > 0;
     }
 
     /// <summary>
@@ -199,7 +231,7 @@ public static class CrystalGenerator
         if (vertexToVerify.point.IsZeroApprox())
             return false;
 
-        if (IsInMesh(planes, vertexToVerify) == false)
+        if (IsInMesh(planes, vertexToVerify.point) == false)
             return false;
 
         foreach (Vertex v in vertices)
@@ -214,17 +246,6 @@ public static class CrystalGenerator
         return true;
     }
 
-    private static bool IsInMesh(List<Plane> planes, Vertex vertexToVerify)
-    {
-        foreach (Plane p in planes)
-        {
-            if (p.DistanceTo(vertexToVerify.point) > .00001f)//Vertex is in front of a face and therefore not on the crystal. Or it's concave and this is broken.
-            {
-                return false;
-            }
-        }
-        return true;
-    }
 
     /// <summary>
     /// Takes a list of vertices and returns a dictionary that contains each edge (not in order) that lies on a plane.
@@ -342,7 +363,6 @@ public static class CrystalGenerator
                 return edges;
             }
         }
-        edges.Add(here.point);//I forgot why I add the same point twice but it works so
 
         //Some methods of rendering require clockwise orientation
         if (IsClockwise(edges[0], edges[1], edges[2]) != clockwise)
@@ -350,6 +370,79 @@ public static class CrystalGenerator
 
         return edges;
     }
+
+    #region math
+
+    /// <summary>
+    /// Intended to remove -0 from vectors
+    /// </summary>
+    public static Vector3 FormatVector3(Vector3 v, float tolerance = 0.00001f)
+    {
+        float x = v.X * v.X < tolerance ? 0 : v.X;
+        float y = v.Y * v.Y < tolerance ? 0 : v.Y;
+        float z = v.Z * v.Z < tolerance ? 0 : v.Z;
+        return new Vector3(x, y, z);
+    }
+
+    public static bool IsInMesh(List<Plane> planes, Vector3 v, float tolerance = .00001f)
+    {
+        foreach (Plane p in planes)
+        {
+            if (p.DistanceTo(v) > tolerance)//Vertex is in front of a face and therefore not on the crystal. Or it's concave and this is broken.
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Calculates the area between 3 vertices
+    /// https://math.stackexchange.com/questions/128991/how-to-calculate-the-area-of-a-3d-triangle
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <param name="c"></param>
+    /// <returns></returns>
+    public static float CalculateTriangleArea(Vector3 a, Vector3 b, Vector3 c)
+    {
+        return (b - a).Cross(c - a).Length() / 2;
+    }
+
+    /// <summary>
+    /// Calculates the area of a face defined by a list of vertices
+    /// </summary>
+    /// <param name="vertices">The list of vertices that defines the face</param>
+    /// <returns>The area of the face</returns>
+    public static float CalculateFaceArea(Vector3[] vertices)
+    {
+        if (vertices.Length < 3)
+            return 0;
+
+        float total = 0;
+        for (int i = 1; i <= vertices.Length - 2; i++)
+            total += CalculateTriangleArea(vertices[0], vertices[i], vertices[i + 1]);
+        return total;
+    }
+
+    public static Vector3 GetAverageVertex(Vector3[] vertices)
+    {
+        Vector3 total = new();
+        foreach (Vector3 v in vertices)
+            total += v;
+        return total / vertices.Length;
+    }
+
+    //https://stackoverflow.com/questions/1988100/how-to-determine-ordering-of-3d-vertices
+    /// <summary>
+    /// Checks if a, b, c, are ordered in clockwise order
+    /// </summary>
+    /// <returns>True if a, b, c are in clockwise order</returns>
+    public static bool IsClockwise(Vector3 a, Vector3 b, Vector3 c)
+    {
+        Vector3 normal = (b - a).Cross(c - a);
+        return normal.Dot(a) > 0;
+    }
+
+    #endregion math
 
     /// <summary>
     /// Saves the mesh as an STL

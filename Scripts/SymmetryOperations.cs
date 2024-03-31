@@ -17,6 +17,34 @@ public static class SymmetryOperations
 	};
 
 	/// <summary>
+	/// Gets the unit cell perameters from each point group. Numbers are arbitrary, but nice.
+	/// </summary>
+	/// <param name="pointGroup">The point group for which we are getting the matching unit cell parameters</param>
+	/// <returns>A float[6]. [0],[1],[2], are the lengths of a, b, c, and [3],[4],[5] are the interaxial angles alpha, beta, gamma</returns>
+	public static float[] GetParametersForPointGroup(PointGroup pointGroup)
+	{
+		switch ((int)pointGroup)
+		{
+			case 1 or 2:
+				return new float[] { 1, 1.5f, 2, 30, 60, 80 };//Triclinic
+			case 3 or 4 or 5:
+				return new float[] { 1, 2, 1.5f, 90, 60, 90 };//Monoclinic. Again monoclinic as b as the wacky axis
+			case 6 or 7 or 8:
+				return new float[] { 1, 1.5f, 2, 90, 90, 90 };//Orthorhombic
+			case >= 9 and <= 15:
+				return new float[] { 1, 1, 1.5f, 90, 90, 90 }; //Tetragonal
+			case >= 16 and <= 20:
+				return new float[] { 1, 1, 1, 60, 60, 60 };
+			case >= 21 and <= 35:
+				return new float[] { 1, 1, 1.5f, 90, 90, 120 }; //Trigonal and Hexagonal
+			case >= 36 and <= 40:
+				return new float[] { 1, 1, 1, 90, 90, 90 };
+			default:
+				return new float[] { 1, 1, 1, 90, 90, 90 };
+		}
+	}
+
+	/// <summary>
 	/// The list of EVERY POSSIBLE OPERATION within a point group that will yield the same shape back.
 	/// All are callable as functions
 	/// </summary>
@@ -133,85 +161,6 @@ public static class SymmetryOperations
 		new[] {DiZ, DiY, TriXYZPos, DiXY, Inv}, //40 MBarThreeM
 	};
 
-
-	/// <summary>
-	/// Takes an initial vector and applies all point group operations on it, 
-	/// returning a list of every vector therein, including the original. (Identity is an operation after all)
-	/// </summary>
-	/// <param name="v">The initial vector to do symmetry stuff on</param>
-	/// <param name="group">The crystal's point group. Used to get a list of operations</param>
-	/// <returns>A list of vectors, including the original, that are made from the symmetry operations</returns>
-	public static List<Vector3> CreateCrystalSymmetry(Vector3 v, PointGroup group)
-	{
-		List<Vector3> vectorList = new() { v };
-
-		foreach (Func<Vector3, Vector3> Operation in PointGroupPositions[(int)group])
-		{
-			ApplyOperation(vectorList, Operation);
-		}
-		return vectorList;
-	}
-	/// <summary>
-	/// Applies a symmetry operation to every vector in a list, and adds every result to the list.
-	/// </summary>
-	/// <param name="vectorList">List of vectors to operate upon and expand</param>
-	/// <param name="symmetryOperation">The symmetry operation to do</param>
-	public static void ApplyOperation(List<Vector3> vectorList, Func<Vector3, Vector3> symmetryOperation)
-	{
-		int count = vectorList.Count;//Get the count before we add to the list so we aren't in an infinite loop
-		for (int i = 0; i < count; i++)
-		{
-			Vector3 v = symmetryOperation(vectorList[i]);
-			v = FormatVector3(v);
-
-			bool valid = true;
-			foreach (Vector3 vl in vectorList)
-			{
-				if (v.IsEqualApprox(vl))
-				{
-					valid = false;
-					break;
-				}
-			}
-			if (valid)
-				vectorList.Add(v);
-		}
-	}
-
-	/// <summary>
-	/// Gets the unit cell perameters from each point group. Numbers are arbitrary, but nice.
-	/// </summary>
-	/// <param name="pointGroup">The point group for which we are getting the matching unit cell parameters</param>
-	/// <returns>A float[6]. [0],[1],[2], are the lengths of a, b, c, and [3],[4],[5] are the interaxial angles alpha, beta, gamma</returns>
-	public static float[] GetParametersForPointGroup(PointGroup pointGroup)
-	{
-		switch ((int)pointGroup)
-		{
-			case 1 or 2:
-				return new float[] { 1, 1.5f, 2, 30, 60, 80 };//Triclinic
-			case 3 or 4 or 5:
-				return new float[] { 1, 2, 1.5f, 90, 60, 90 };//Monoclinic. Again monoclinic as b as the wacky axis
-			case 6 or 7 or 8:
-				return new float[] { 1, 1.5f, 2, 90, 90, 90 };//Orthorhombic
-			case >= 9 and <= 15:
-				return new float[] { 1, 1, 1.5f, 90, 90, 90 }; //Tetragonal
-			case >= 16 and <= 20:
-				return new float[] { 1, 1, 1, 60, 60, 60 };
-			case >= 21 and <= 35:
-				return new float[] { 1, 1, 1.5f, 90, 90, 120 }; //Trigonal and Hexagonal
-			case >= 36 and <= 40:
-				return new float[] { 1, 1, 1, 90, 90, 90 };
-			default:
-				return new float[] { 1, 1, 1, 90, 90, 90 };
-		}
-	}
-	private static Vector3 FormatVector3(Vector3 v)
-	{
-		float x = v.X * v.X < 0.00001f ? 0 : v.X;
-		float y = v.Y * v.Y < 0.00001f ? 0 : v.Y;
-		float z = v.Z * v.Z < 0.00001f ? 0 : v.Z;
-		return new Vector3(x, y, z);
-	}
 	//#region allows you to specify a collapsable area of code in most editors.
 	#region SymmetryOperations
 	public static Vector3 Identity(Vector3 v) => new(v.X, v.Y, v.Z);//Why would you call this..?
