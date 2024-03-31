@@ -33,10 +33,10 @@ The 32 crystal systems can then be grouped into 6 more general crystal systems:
 //TODO (Images?)
 
 # TODO
-	-Downloadable builds
 	-Miller indices on faces
-	-OBJ export
 	-Saving and loading
 	-Presets?
 	-Resets
  	-Multiple crystals
+	-Data panel
+	-Interpolate panel
