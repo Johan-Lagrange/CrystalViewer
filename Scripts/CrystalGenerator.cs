@@ -33,43 +33,16 @@ public static class CrystalGenerator
 
         planes = GeneratePlanes(initialFaces, distances, normals);//Create a plane with distance from center for every generated normal
 
-        /**Vector3[] vertices = Geometry3D.ComputeConvexMeshPoints(new Godot.Collections.Array<Plane>(planes.ToArray()));
-        ConvexPolygonShape3D shape = new ConvexPolygonShape3D();
-        shape.Points = vertices;
-        ArrayMesh mesh = shape.GetDebugMesh().CreateConvexShape(true).GetDebugMesh();
-        GD.Print(mesh._Surfaces.Count);
-        var arrays = mesh.SurfaceGetArrays(0);
-        ArrayMesh mesh2 = new ArrayMesh();
-        mesh2.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
-        mesh = mesh2;
-        SurfaceTool surfaceTool = new SurfaceTool();
-        surfaceTool.CreateFrom(mesh, 0);
-        surfaceTool.GenerateNormals();
-        surfaceTool.GenerateTangents();
-        mesh = surfaceTool.Commit();
-        return mesh;**/
 
         List<Vertex> vertices = GenerateVertices(planes);//Get all valid vertices on the crystal
 
-        //DebugPrintPlanesWithVertices(planes, vertices);
         Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces = GenerateEdges(vertices);//Create a dictionary that will take a plane and give an unordered list of each edge that makes up the plane's face
-        //DebugPrintVertexAdjacentEdges(faces);
+
 
         faceEdges = new();//The final mesh that we are building. Contains the vertices of each face in order.
 
         foreach (Dictionary<Vertex, AdjacentEdges> unorderedFace in faces.Values)
         {
-            // if (unorderedFace.Values.Count < 3)
-            // {
-            //     string s = "Face: ";
-            //     foreach (KeyValuePair<Vertex, AdjacentEdges> edge in unorderedFace)
-            //     {
-            //         s += edge.Key.point;
-            //         s += edge.Value.a.point;
-            //         s += edge.Value.b.point;
-            //     }
-            //     GD.PrintErr("Not enough vertices to make this face!: " + s);
-            // }
 
             List<Vector3> face = CreateFaceFromEdges(unorderedFace);
             if (face.Count >= 3)
@@ -77,20 +50,13 @@ public static class CrystalGenerator
         }
 
         // Create the Mesh.
-
         mesh = new ArrayMesh();
         foreach (List<Vector3> face in faceEdges)
         {
-            /**string s = "Created face: ";
-            foreach (Vector3 v in face)
-            	s += "(" + v.X + " " + v.Y + " " + v.Z + ")";
-            GD.Print(s);**/
 
             Godot.Collections.Array arrays = new();//Array of surface data
             arrays.Resize((int)Mesh.ArrayType.Max);
             arrays[(int)Mesh.ArrayType.Vertex] = face.ToArray();//Note: Different vertex type than the one we use in this class. These are just Vector3s
-
-
 
             Vector3 normal = -(face[1] - face[0]).Cross(face[2] - face[0]).Normalized();
             if (normal.Dot(face[0]) < 0)
@@ -109,11 +75,6 @@ public static class CrystalGenerator
                 meshNormals.AddRange(new Vector3[] { normal, normal, normal });
                 tangents.AddRange(new float[] { tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3] });
             }
-
-            // string s = "Created face: ";
-            // foreach (Vector3 v in vertices)
-            // 	s += "(" + v.X + " " + v.Y + " " + v.Z + ")";
-            // GD.Print(s);
 
             arrays[(int)Mesh.ArrayType.Vertex] = meshVertices.ToArray();
             arrays[(int)Mesh.ArrayType.Normal] = meshNormals.ToArray();
@@ -147,7 +108,6 @@ public static class CrystalGenerator
                 {
                     if (planeToAdd.Normal.Normalized().Dot(p.Normal.Normalized()) > .9999f)//Skip adding duplicate plane
                     {
-                        //GD.Print("Similar faces" + planeToAdd.Normal + " " + p.Normal);
                         if (planeToAdd.D >= p.D)
                         {
                             valid = false;//This face is behind another face so we can skip it
@@ -239,20 +199,28 @@ public static class CrystalGenerator
         if (vertexToVerify.point.IsZeroApprox())
             return false;
 
+        if (IsInMesh(planes, vertexToVerify) == false)
+            return false;
+
+        foreach (Vertex v in vertices)
+        {
+            if ((v.point - vertexToVerify.point).LengthSquared() < .00001f)
+            {
+                //GD.Print("Merging point " + v.point + " with " + vertexToVerify.point);
+                v.MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
+                return false;//So we add the extra faces to one point and discard the other.
+            }
+        }
+        return true;
+    }
+
+    private static bool IsInMesh(List<Plane> planes, Vertex vertexToVerify)
+    {
         foreach (Plane p in planes)
         {
             if (p.DistanceTo(vertexToVerify.point) > .00001f)//Vertex is in front of a face and therefore not on the crystal. Or it's concave and this is broken.
             {
                 return false;
-            }
-        }
-        foreach (Vertex v in vertices)
-        {
-            if ((v.point - vertexToVerify.point).LengthSquared() < .000000001f)
-            {
-                //GD.Print("Merging point " + v.point + " with " + vertexToVerify.point);
-                v.MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
-                return false;//So we add the extra faces to one point and discard the other.
             }
         }
         return true;
@@ -271,8 +239,9 @@ public static class CrystalGenerator
         {
             for (int j = i + 1; j < vertices.Count; j++)//For every pair of vertices
             {
-                if (vertices[i].point.IsEqualApprox(vertices[j].point))
+                if (vertices[i].point.IsEqualApprox(vertices[j].point))//Don't create an edge between a point and itself
                     continue;
+
                 List<Plane> sharedFaces = vertices[i].SharedFaces(vertices[j]);//Check for shared faces
                 if (sharedFaces.Count > 2)
                     GD.PrintErr("Vertices share more than two faces!");
@@ -303,10 +272,10 @@ public static class CrystalGenerator
                     }
                     catch (Exception e)
                     {
-                        // GD.Print("Plane 1: " + p1.Normal);
-                        // GD.Print("Plane 2: " + p2.Normal);
-                        // GD.Print("Vertex 1: " + v1.point);
-                        // GD.Print("Vertex 2: " + v2.point);
+                        GD.Print("Plane 1: " + p1.Normal);
+                        GD.Print("Plane 2: " + p2.Normal);
+                        GD.Print("Vertex 1: " + v1.point);
+                        GD.Print("Vertex 2: " + v2.point);
                         GD.PrintErr(e.GetType() + e.Message);
                         foreach (Plane p in faces.Keys)
                         {
@@ -326,11 +295,14 @@ public static class CrystalGenerator
             }
         }
 
+        List<Plane> facesToRemove = new();
         foreach (Plane p in faces.Keys)
         {
             if (faces[p].Count < 3)//Generated an invalid polygon
-                faces.Remove(p);//So we remove it
+                facesToRemove.Add(p);//So we remove it later
         }
+        foreach (Plane p in facesToRemove)
+            faces.Remove(p);
         return faces;
     }
 
@@ -339,60 +311,55 @@ public static class CrystalGenerator
     /// </summary>
     /// <param name="face">The list of vertices and adjacents that make up the face</param>
     /// <returns>The list of vertices in order around a face</returns>
-    private static List<Vector3> CreateFaceFromEdges(Dictionary<Vertex, AdjacentEdges> face)
+    private static List<Vector3> CreateFaceFromEdges(Dictionary<Vertex, AdjacentEdges> face, bool clockwise = false)
     {
-        // Debug stuff.
-        // string s = "Face: ";
-        // foreach (KeyValuePair<Vertex, AdjacentEdges> edge in face)
-        // {
-        //     s += edge.Key.point + " " + edge.Value.a.point + " " + edge.Value.b.point;
-        // }
-        // GD.Print(s);
-
         List<Vector3> edges = new();//list of vertices around the perimeter of the face
-        Vertex start = face.First().Key;
-        Vertex here = face[start].a;
-        Vertex next;
-        Vertex previous = start;
+        Vertex start = face.First().Key;//Arbitrary first vertex
+        Vertex here = face[start].a;//Arbitrary vertex adjacent to first vertex
+        Vertex tmpNext;
+        Vertex previous = start;//Keep track of previous because vertices store adjacent ones out of order. We dont want to backtrack.
         if (here == null)
-            return edges;
+            return edges;//Was given empty face
 
-
-        int count = 0;//To avoid infinite loops. Hopefully never needed.
+        int count = 0;//To avoid infinite loops. Hopefully never needed. (Is still needed.)
 
         edges.Add(start.point);
         while (here.point != start.point)
         {
-            edges.Add(here.point);
-            next = face[here].GetNext(previous);
+            edges.Add(here.point);//Add current point to list
+            tmpNext = face[here].GetNext(previous);//Get next point without backtracking
             previous = here;
-            here = next;
+            here = tmpNext;
+
             if (here == null)
+            {
+                GD.PrintErr("Hit broken edge");
                 return edges;
-
+            }
             if (count++ > 20)
-                throw new Exception("Infinite loop in edge creation!");
+            {
+                GD.PrintErr("Infinite loop in edge creation");
+                return edges;
+            }
         }
-        edges.Add(here.point);
+        edges.Add(here.point);//I forgot why I add the same point twice but it works so
 
-        // s = "FaceFromEdges: ";
-        // foreach (Vector3 point in edges)
-        // {
-        //     s += point + " ";
-        // }
-        // GD.Print(s);
-
-        if (IsClockwise(edges[0], edges[1], edges[2]))
+        //Some methods of rendering require clockwise orientation
+        if (IsClockwise(edges[0], edges[1], edges[2]) != clockwise)
             edges.Reverse();
+
         return edges;
     }
 
+    /// <summary>
+    /// Saves the mesh as an STL
+    /// </summary>
+    /// <param name="fileName">Name of the file to save to</param>
+    /// <param name="mesh">Crystal mesh, not transformed by any crystal parameters</param>
+    /// <param name="basis">Crystal parameters to transform the mesh by</param>
     public static void ExportSTL(string fileName, ArrayMesh mesh, Basis basis)
     {
         //https://docs.godotengine.org/en/stable/tutorials/io/saving_games.html
-        //using var saveGame = FileAccess.Open("user://savegame.save", FileAccess.ModeFlags.Write);
-        //saveGame.StoreLine(jsonString);
-
         /*
         solid [name]
         facet normal ni nj nk
@@ -404,9 +371,12 @@ public static class CrystalGenerator
         endfacet
         endsolid [name]*/
 
-        using FileAccess saveGame = FileAccess.Open(fileName, FileAccess.ModeFlags.Write);
-        //GD.Print("solid " + fileName);
-        saveGame.StoreLine("solid " + fileName);
+        if (fileName.EndsWith(".stl") == false)
+            fileName += ".stl";
+
+        using FileAccess file = FileAccess.Open(fileName, FileAccess.ModeFlags.Write);
+
+        file.StoreLine("solid " + fileName);
         int count = mesh.GetSurfaceCount();
         for (int i = 0; i < count; i++)
         {
@@ -419,24 +389,16 @@ public static class CrystalGenerator
                 Vector3 vj = basis * face[j];
                 Vector3 vj1 = basis * face[j + 1];
 
-                // GD.Print("facet normal " + normal.X + " " + normal.Y + " " + normal.Z);
-                // GD.Print("\touter loop");
-                // GD.Print("\t\t vertex " + v0.X + " " + v0.Y + " " + v0.Z);
-                // GD.Print("\t\t vertex " + vj.X + " " + vj.Y + " " + vj.Z);
-                // GD.Print("\t\t vertex " + vj1.X + " " + vj1.Y + " " + vj1.Z);
-                // GD.Print("\tendloop");
-                // GD.Print("endfacet");
-                saveGame.StoreLine("facet normal " + normal.X + " " + normal.Y + " " + normal.Z);
-                saveGame.StoreLine("\touter loop");
-                saveGame.StoreLine("\t\t vertex " + v0.X + " " + v0.Y + " " + v0.Z);
-                saveGame.StoreLine("\t\t vertex " + vj.X + " " + vj.Y + " " + vj.Z);
-                saveGame.StoreLine("\t\t vertex " + vj1.X + " " + vj1.Y + " " + vj1.Z);
-                saveGame.StoreLine("\tendloop");
-                saveGame.StoreLine("endfacet");
+                file.StoreLine("facet normal " + normal.X + " " + normal.Y + " " + normal.Z);
+                file.StoreLine("\touter loop");
+                file.StoreLine("\t\t vertex " + v0.X + " " + v0.Y + " " + v0.Z);
+                file.StoreLine("\t\t vertex " + vj.X + " " + vj.Y + " " + vj.Z);
+                file.StoreLine("\t\t vertex " + vj1.X + " " + vj1.Y + " " + vj1.Z);
+                file.StoreLine("\tendloop");
+                file.StoreLine("endfacet");
             }
         }
-        //GD.Print("endsolid " + fileName);
-        saveGame.StoreLine("endsolid " + fileName);
+        file.StoreLine("endsolid " + fileName);
     }
 
     /// <summary>
@@ -522,6 +484,7 @@ public static class CrystalGenerator
         }
     }
 
+    #region debug
     private static void DebugPrintVertexAdjacentEdges(Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces)
     {
         foreach (Plane p in faces.Keys)
@@ -556,4 +519,5 @@ public static class CrystalGenerator
             GD.Print(s);
         }
     }
+    #endregion debug
 }

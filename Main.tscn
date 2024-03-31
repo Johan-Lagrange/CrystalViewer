@@ -28,7 +28,6 @@ near = 0.001
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 
 [node name="Crystal" parent="CrystalParent" instance=ExtResource("1_m7r4q")]
-transform = Transform3D(1, 0.5, 0.5, 0, 0.866025, 0.288675, 0, 0, 0.816497, 0, 0, 0)
 skeleton = NodePath("../..")
 UseLatticeVectors = true
 Distances = PackedFloat32Array(1, 0.965, 1, 1)
