@@ -10,6 +10,8 @@ public partial class GemGUI : Control
 	[Export]
 	UnitCrystal crystal;
 	[Export]
+	Label dataText;
+	[Export]
 	OptionButton crystalSystem;
 	[Export]
 	SpinBox[] crystalParams = new SpinBox[6];
@@ -70,9 +72,6 @@ public partial class GemGUI : Control
 			mouseDir *= Mathf.Pi / 360f;
 			crystalParent.RotateY(mouseDir.X);//Left/right
 			crystalParent.RotateX(-mouseDir.Y);//Up/Down
-											   // crystalParent.Rotation = new Vector3(
-											   // 	Mathf.Clamp(crystalParent.Rotation.X, Mathf.DegToRad(-89), Mathf.DegToRad(89)),
-											   // 	crystalParent.Rotation.Y, crystalParent.Rotation.Z);
 		}
 	}
 
@@ -152,19 +151,30 @@ public partial class GemGUI : Control
 		StandardMaterial3D material = (StandardMaterial3D)crystal.MaterialOverride;
 		material.Roughness = (float)roughness;
 	}
+	public void UpdateCrystalData()
+	{
+		dataText.Text = "Shape class: " + crystal.GetShapeClass() + "\n" +
+						"Volume: " + crystal.GetVolume() + "\n" +
+						"Surface Area: " + crystal.GetSurfaceArea() + "\n" +
+						"Number of surfaces: " + crystal.GetSurfaceCount();
+	}
 	private void CheckParamUpdate()
 	{
 		if (autoUpdate == false || updatedParamsThisFrame)
 			return;
 		updatedParamsThisFrame = true;
+
 		crystal.CallDeferred("UpdateFromParameters");
+		CallDeferred("UpdateCrystalData");
 	}
 	private void CheckNormUpdate()
 	{
 		if (autoUpdate == false || updatedNormsThisFrame)
 			return;
 		updatedNormsThisFrame = true;
+
 		crystal.CallDeferred("UpdateMesh");
+		CallDeferred("UpdateCrystalData");
 	}
 	public void SetA(float a) { crystal.aLength = a; CheckParamUpdate(); }
 	public void SetB(float b) { crystal.bLength = b; CheckParamUpdate(); }

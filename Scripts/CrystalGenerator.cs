@@ -55,7 +55,7 @@ public static class CrystalGenerator
             Godot.Collections.Array arrays = new();//Array of surface data
             arrays.Resize((int)Mesh.ArrayType.Max);
             arrays[(int)Mesh.ArrayType.Vertex] = face.ToArray();//Note: Different vertex type than the one we use in this class. These are just Vector3s
-            Vector3 normal = CalculateNormal(face[0], face[1], face[2]);
+            Vector3 normal = CalculateNormal(face[0], face[1], face[2], Basis.Identity);
 
             Vector3 tangentVector = (face[1] - face[0]).Normalized();
             float[] tangent = new float[] { tangentVector[0], tangentVector[1], tangentVector[2], 1 };
@@ -399,14 +399,14 @@ public static class CrystalGenerator
     /// </summary>
     /// <param name="vertices">The list of vertices that defines the face</param>
     /// <returns>The area of the face</returns>
-    public static float CalculateFaceArea(List<Vector3> vertices)
+    public static float CalculateFaceArea(List<Vector3> vertices, Basis b)
     {
         if (vertices.Count < 3)
             return 0;
 
         float total = 0;
         for (int i = 1; i <= vertices.Count - 2; i++)
-            total += CalculateTriangleArea(vertices[0], vertices[i], vertices[i + 1]);
+            total += CalculateTriangleArea(b * vertices[0], b * vertices[i], b * vertices[i + 1]);
         return total;
     }
 
@@ -417,12 +417,12 @@ public static class CrystalGenerator
     /// </summary>
     /// <param name="faces"> list of faces, each face is a list of vertices</param>
     /// <returns>The surface area of this solid</returns>
-    public static float CalculateSurfaceArea(List<List<Vector3>> faces)
+    public static float CalculateSurfaceArea(List<List<Vector3>> faces, Basis b)
     {
         float sur = 0;
         float faceArea = 0;
         foreach (List<Vector3> face in faces)
-            faceArea += CalculateFaceArea(face);
+            faceArea += CalculateFaceArea(face, b);
         return sur + faceArea;
     }
 
@@ -432,11 +432,11 @@ public static class CrystalGenerator
     /// </summary>
     /// <param name="faces">A list of faces, each face is a list of vertices</param>
     /// <returns>The volume of this solid</returns>
-    public static float CalculateVolume(List<List<Vector3>> faces)
+    public static float CalculateVolume(List<List<Vector3>> faces, Basis b)//TODO multiply all vectors by basis
     {
         float total = 0;
         foreach (List<Vector3> face in faces)
-            total += GetAverageVertex(face).Dot(CalculateNormal(face[0], face[1], face[2]) * CalculateFaceArea(face));
+            total += (b * GetAverageVertex(face)).Dot(CalculateNormal(face[0], face[1], face[2], b) * CalculateFaceArea(face, b));
         return Mathf.Abs(total) / 3;
     }
     public static Vector3 GetAverageVertex(List<Vector3> vertices)
@@ -457,8 +457,11 @@ public static class CrystalGenerator
         Vector3 normal = (b - a).Cross(c - a);
         return normal.Dot(a) > 0;
     }
-    public static Vector3 CalculateNormal(Vector3 a, Vector3 b, Vector3 c)
+    public static Vector3 CalculateNormal(Vector3 a, Vector3 b, Vector3 c, Basis basis)
     {
+        a = basis * a;
+        b = basis * b;
+        c = basis * c;
         Vector3 normal = (c - a).Cross(b - a).Normalized();
         if (normal.Dot(a) < 0)
             normal = -normal;

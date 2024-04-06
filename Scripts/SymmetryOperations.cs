@@ -25,7 +25,7 @@ public static class SymmetryOperations
 	{
 		switch ((int)pointGroup)
 		{
-			case 1 or 2:
+			case 0 or 1 or 2:
 				return new float[] { 1, 1.5f, 2, 30, 60, 80 };//Triclinic
 			case 3 or 4 or 5:
 				return new float[] { 1, 2, 1.5f, 90, 60, 90 };//Monoclinic. Again monoclinic as b as the wacky axis
@@ -41,6 +41,74 @@ public static class SymmetryOperations
 				return new float[] { 1, 1, 1, 90, 90, 90 };
 			default:
 				return new float[] { 1, 1, 1, 90, 90, 90 };
+		}
+	}
+
+	public static string GetNameOfSymmetryClass(PointGroup group)
+	{
+		switch (group)
+		{
+			//Just good practice
+			case PointGroup.None: return "Pedial";
+
+			//Triclinic
+			case PointGroup.One: return "Pedial";
+			case PointGroup.BarOne: return "Pinacoidal";
+
+			//Monoclinic
+			case PointGroup.Two: return "Sphenoidal";
+			case PointGroup.M: return "Domatic";
+			case PointGroup.TwoSlashM: return "Prismatic";
+
+			//Orthorhombic
+			case PointGroup.TwoTwoTwo: return "Rhombic-disphenoidal";
+			case PointGroup.MMTwo: return "Rhombic-pyramidal";
+			case PointGroup.MMM: return "Rhombic-dipyramidal";
+
+			//Tetragonal
+			case PointGroup.Four: return "Tetragonal-Pyramidal";
+			case PointGroup.BarFour: return "Tetragonal-disphenoidal";
+			case PointGroup.FourSlashM: return "Tetragonal-dipyramidal";
+			case PointGroup.FourTwoTwo: return "Tetragonal-trapezohedral";
+			case PointGroup.FourMM: return "Ditetragonal-pyramidal";
+			case PointGroup.BarFourTwoM: return "Tetragonal-scalenohedral";
+			case PointGroup.FourSlashMMM: return "Ditetragonal-dipyramidal";
+
+			//Hexagonal with rhombohedral axes
+			case PointGroup.ThreeRhombohedral: return "Trigonal-pyramidal";
+			case PointGroup.BarThreeRhombohedral: return "Rhombohedral";
+			case PointGroup.ThreeTwoRhombohedral: return "Trigonal-trapezohedral";
+			case PointGroup.ThreeMRhombohedral: return "Ditrigonal-pyramidal";
+			case PointGroup.BarThreeMRhombohedral: return "Hexagonal-scalenohedral";
+
+			//Hexagonal with hexagonal axes
+			case PointGroup.ThreeHexagonal: return "Trigonal-pyramidal";
+			case PointGroup.BarThreeHexagonal: return "Rhombohedral";
+			case PointGroup.ThreeOneTwoHexagonal: return "Trigonal-trapezohedral";
+			case PointGroup.ThreeTwoOneHexagonal: return "Trigonal-trapezohedral";
+			case PointGroup.ThreeMOneHexagonal: return "Ditrigonal-pyramidal";
+			case PointGroup.ThreeOneMHexagonal: return "Ditrigonal-pyramidal";
+			case PointGroup.BarThreeOneMHexagonal: return "Hexagonal-scalenohedral";
+			case PointGroup.BarThreeMOneHexagonal: return "Hexagonal-scalenohedral";
+
+			//Hexagonal
+			case PointGroup.Six: return "Hexagonal-pyramidal";
+			case PointGroup.BarSix: return "Trigonal-dipyramidal";
+			case PointGroup.SixSlashM: return "Hexagonal-dipyramidal";
+			case PointGroup.SixTwoTwo: return "Hexagonal-trapezohedral";
+			case PointGroup.SixMM: return "Dihexagonal-pyramidal";
+			case PointGroup.BarSixMTwo: return "Ditrigonal-dipyramidal";
+			case PointGroup.SixSlashMMM: return "Dihexagonal-dipyramidal";
+
+			//Cubic
+			case PointGroup.TwoThree: return "Tetaroidal";
+			case PointGroup.MBarThree: return "Diploidal";
+			case PointGroup.FourThreeTwo: return "Gyroidal";
+			case PointGroup.BarFourThreeM: return "Hextetrahedral";
+			case PointGroup.MBarThreeM: return "Hexoctahedral";
+
+			//More good practice
+			default: return "";
 		}
 	}
 

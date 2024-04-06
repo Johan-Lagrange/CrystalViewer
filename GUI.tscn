@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://Scripts/GemGUI.cs" id="1_agdt7"]
 [ext_resource type="PackedScene" uid="uid://cs8vuarc3uhj0" path="res://Prefabs/CrystalFaceSpinBox.tscn" id="2_r18ld"]
 
-[node name="GUI" type="Control" node_paths=PackedStringArray("crystalSystem", "crystalParams", "exportDialog", "vectorList")]
+[node name="GUI" type="Control" node_paths=PackedStringArray("dataText", "crystalSystem", "crystalParams", "exportDialog", "vectorList")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,6 +11,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_agdt7")
+dataText = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/DataText")
 crystalSystem = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/SymmetryType/OptionButton")
 crystalParams = [NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/A"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/B"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/C"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Alpha"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Beta"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Gamma")]
 exportDialog = NodePath("ExportDialog")
@@ -405,222 +406,12 @@ layout_mode = 2
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data"]
 layout_mode = 2
 
-[node name="SymmetryType" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer"]
+[node name="DataText" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer"]
 layout_mode = 2
-size_flags_horizontal = 8
-tooltip_text = "The list of symmetry operations to apply to the given faces"
-alignment = 1
-
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/SymmetryType"]
-layout_mode = 2
-text = "Symmetry Type:"
-
-[node name="OptionButton" type="OptionButton" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/SymmetryType"]
-layout_mode = 2
-tooltip_text = "The list of symmetry operations to apply to the given faces"
-item_count = 49
-selected = 22
-fit_to_longest_item = false
-popup/item_0/text = "None"
-popup/item_0/id = 0
-popup/item_1/text = "Triclinic"
-popup/item_1/id = 1
-popup/item_1/separator = true
-popup/item_2/text = "1"
-popup/item_2/id = 10
-popup/item_3/text = "-1"
-popup/item_3/id = 20
-popup/item_4/text = "Monoclinic"
-popup/item_4/id = 21
-popup/item_4/separator = true
-popup/item_5/text = "2"
-popup/item_5/id = 30
-popup/item_6/text = "m"
-popup/item_6/id = 40
-popup/item_7/text = "2/m"
-popup/item_7/id = 50
-popup/item_8/text = "Orthorhombic"
-popup/item_8/id = 51
-popup/item_8/separator = true
-popup/item_9/text = "222"
-popup/item_9/id = 60
-popup/item_10/text = "mm2"
-popup/item_10/id = 70
-popup/item_11/text = "mmm"
-popup/item_11/id = 80
-popup/item_12/text = "Tetragonal"
-popup/item_12/id = 90
-popup/item_12/separator = true
-popup/item_13/text = "4"
-popup/item_13/id = 90
-popup/item_14/text = "-4"
-popup/item_14/id = 100
-popup/item_15/text = "4/m"
-popup/item_15/id = 110
-popup/item_16/text = "422"
-popup/item_16/id = 120
-popup/item_17/text = "4mm"
-popup/item_17/id = 130
-popup/item_18/text = "-42m"
-popup/item_18/id = 140
-popup/item_19/text = "4/mmm"
-popup/item_19/id = 150
-popup/item_20/text = "Rhombohedral"
-popup/item_20/id = 160
-popup/item_20/separator = true
-popup/item_21/text = "3 rhomb"
-popup/item_21/id = 160
-popup/item_22/text = "-3 rhomb"
-popup/item_22/id = 170
-popup/item_23/text = "32 rhomb"
-popup/item_23/id = 180
-popup/item_24/text = "3m rhomb"
-popup/item_24/id = 190
-popup/item_25/text = "-3m rhomb"
-popup/item_25/id = 200
-popup/item_26/text = "Trigonal"
-popup/item_26/id = 210
-popup/item_26/separator = true
-popup/item_27/text = "3 hex"
-popup/item_27/id = 210
-popup/item_28/text = "-3 hex"
-popup/item_28/id = 220
-popup/item_29/text = "312 hex"
-popup/item_29/id = 230
-popup/item_30/text = "321 hex"
-popup/item_30/id = 240
-popup/item_31/text = "3m1 hex"
-popup/item_31/id = 250
-popup/item_32/text = "31m hex"
-popup/item_32/id = 260
-popup/item_33/text = "-31m hex"
-popup/item_33/id = 270
-popup/item_34/text = "-3m1 hex"
-popup/item_34/id = 280
-popup/item_35/text = "Hexagonal"
-popup/item_35/id = 290
-popup/item_35/separator = true
-popup/item_36/text = "6"
-popup/item_36/id = 290
-popup/item_37/text = "-6"
-popup/item_37/id = 300
-popup/item_38/text = "6/m"
-popup/item_38/id = 310
-popup/item_39/text = "622"
-popup/item_39/id = 320
-popup/item_40/text = "6mm"
-popup/item_40/id = 330
-popup/item_41/text = "-6m2"
-popup/item_41/id = 340
-popup/item_42/text = "6/mmm"
-popup/item_42/id = 350
-popup/item_43/text = "Cubic"
-popup/item_43/id = 351
-popup/item_43/separator = true
-popup/item_44/text = "23"
-popup/item_44/id = 360
-popup/item_45/text = "-3m"
-popup/item_45/id = 370
-popup/item_46/text = "432"
-popup/item_46/id = 380
-popup/item_47/text = "-43m"
-popup/item_47/id = 390
-popup/item_48/text = "m-3m"
-popup/item_48/id = 400
-
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer"]
-layout_mode = 2
-text = "Axis Lengths (Å):"
-
-[node name="GridContainer" type="GridContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer"]
-layout_mode = 2
-columns = 3
-
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "a (x)"
-
-[node name="Label2" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "b (y)"
-
-[node name="Label3" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "c (z)"
-
-[node name="A" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-tooltip_text = "Length of the x/a axis"
-max_value = 2.0
-step = 0.01
-value = 1.0
-
-[node name="B" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-tooltip_text = "Length of the y axis"
-max_value = 2.0
-step = 0.01
-value = 1.0
-
-[node name="C" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-tooltip_text = "Length of the z axis"
-max_value = 2.0
-step = 0.01
-value = 1.0
-
-[node name="Label2" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer"]
-layout_mode = 2
-text = "Interaxial Angles (°):"
-
-[node name="GridContainer2" type="GridContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer"]
-layout_mode = 2
-columns = 3
-
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer2"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = " α (yz)"
-
-[node name="Label2" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer2"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = " β (xz)"
-
-[node name="Label3" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer2"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "γ (xy)"
-
-[node name="Alpha" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer2"]
-layout_mode = 2
-size_flags_horizontal = 3
-tooltip_text = "Angle between the y and z axes"
-max_value = 180.0
-value = 90.0
-suffix = "°"
-
-[node name="Beta" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer2"]
-layout_mode = 2
-size_flags_horizontal = 3
-tooltip_text = "Angle between the x and z axes"
-max_value = 180.0
-value = 90.0
-suffix = "°"
-
-[node name="Gamma" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer2"]
-layout_mode = 2
-size_flags_horizontal = 3
-tooltip_text = "Angle between the x and y axes"
-max_value = 180.0
-value = 60.0
-suffix = "°"
+text = "Shape class:
+Volume:
+Surface Area:
+Number of surfaces:"
 
 [node name="CameraSettings" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -770,13 +561,6 @@ text = "+"
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Alpha" to="." method="SetAlpha"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Beta" to="." method="SetBeta"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Gamma" to="." method="SetGamma"]
-[connection signal="item_selected" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/SymmetryType/OptionButton" to="." method="SetCrystalSystem"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer/A" to="." method="SetA"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer/B" to="." method="SetB"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer/C" to="." method="SetC"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer2/Alpha" to="." method="SetAlpha"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer2/Beta" to="." method="SetBeta"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/GridContainer2/Gamma" to="." method="SetGamma"]
 [connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Rotate/CheckBox" to="." method="SetAutoRotate"]
 [connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Orthogonal/CheckBox" to="." method="SetCameraOrthogonal"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Distance/HSlider" to="." method="SetCameraDistance"]

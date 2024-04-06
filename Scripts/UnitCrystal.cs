@@ -70,6 +70,23 @@ public partial class UnitCrystal : MeshInstance3D
 		updatedThisFrame = false;
 	}
 
+	public string GetShapeClass()
+	{
+		return SymmetryOperations.GetNameOfSymmetryClass(PointGroup);
+	}
+	public float GetSurfaceCount()
+	{
+		return faceEdges.Count;
+	}
+	public float GetSurfaceArea()
+	{
+		return CrystalGenerator.CalculateSurfaceArea(faceEdges, Basis);
+	}
+	public float GetVolume()
+	{
+		return CrystalGenerator.CalculateVolume(faceEdges, Basis);
+	}
+
 	private void UpdateLatticeVectors()
 	{
 		if (usingLatticeVectors)

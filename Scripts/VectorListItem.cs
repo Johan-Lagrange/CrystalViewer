@@ -1,5 +1,10 @@
 using Godot;
 
+/// <summary>
+/// Used to keep track of face values in a list where entries can be added or removed.
+/// Has h, j, k values for x, y, z, and distance for magnitude.
+/// Has spin boxes for each value that have a callback when changed, as well as an x to delete the entry.
+/// </summary>
 public partial class VectorListItem : Node
 {
 	[Signal]
