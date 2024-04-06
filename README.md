@@ -1,7 +1,7 @@
 # What is this?
 Crystal viewer is a program to generate models of crystals from a few parameters: Namely symmetry group, axial lengths and angles, and miller indices.  
 For information on what those are, look futher ahead in this.  
-It also has display option like color, transparency, opacity, and roughness.  
+It also has display options like color, transparency, opacity, and roughness.  
 
 # How do I use it?
 -Select symmetry group  
