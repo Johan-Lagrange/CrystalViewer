@@ -191,8 +191,8 @@ public partial class GemGUI : Control
 		listItems.Add(listItem);
 
 		SpinBox h = (SpinBox)spinBox.Instantiate();
-		SpinBox j = (SpinBox)spinBox.Instantiate();
 		SpinBox k = (SpinBox)spinBox.Instantiate();
+		SpinBox l = (SpinBox)spinBox.Instantiate();
 		SpinBox d = (SpinBox)spinBox.Instantiate();
 		d.MinValue = 0.01f;
 		d.MaxValue = 2;
@@ -200,8 +200,8 @@ public partial class GemGUI : Control
 		x.Text = "X";
 
 		listItem.boxes[0] = h;
-		listItem.boxes[1] = j;
-		listItem.boxes[2] = k;
+		listItem.boxes[1] = k;
+		listItem.boxes[2] = l;
 		listItem.boxes[3] = d;
 		listItem.button = x;
 
@@ -209,8 +209,8 @@ public partial class GemGUI : Control
 		SetNormals(listItem.index, listItem.vector, listItem.distance);
 
 		h.ValueChanged += listItem.SetX;
-		j.ValueChanged += listItem.SetY;
-		k.ValueChanged += listItem.SetZ;
+		k.ValueChanged += listItem.SetY;
+		l.ValueChanged += listItem.SetZ;
 		d.ValueChanged += listItem.SetDistance;
 		x.Pressed += listItem.Remove;
 
@@ -218,8 +218,8 @@ public partial class GemGUI : Control
 		listItem.Delet += RemoveNormals;
 
 		vectorList.AddChild(h);
-		vectorList.AddChild(j);
 		vectorList.AddChild(k);
+		vectorList.AddChild(l);
 		vectorList.AddChild(d);
 		vectorList.AddChild(x);
 	}

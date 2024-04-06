@@ -538,12 +538,12 @@ text = "h (x)"
 [node name="Label2" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "j (y)"
+text = "k (y)"
 
 [node name="Label3" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "k (z)"
+text = "l (z)"
 
 [node name="Label4" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer"]
 layout_mode = 2
