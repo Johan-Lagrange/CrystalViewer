@@ -151,8 +151,10 @@ public partial class GemGUI : Control
 		StandardMaterial3D material = (StandardMaterial3D)crystal.MaterialOverride;
 		material.Roughness = (float)roughness;
 	}
-	public void UpdateCrystalData()
+	public void UpdateCrystalData(int param = -1)//1 = data tab. We call this from the tab menu sometimes
 	{
+		if (param != 1 && dataText.IsVisibleInTree() == false)//These calculations can be expensive so we don't do it if we don't need to.
+			return;//We call this method manually when the data tab is switched onto so that the data is always fresh when visible. After that we auto update.
 		dataText.Text = "Shape class: " + crystal.GetShapeClass() + "\n" +
 						"Volume: " + crystal.GetVolume() + "\n" +
 						"Surface Area: " + crystal.GetSurfaceArea() + "\n" +
@@ -165,7 +167,7 @@ public partial class GemGUI : Control
 		updatedParamsThisFrame = true;
 
 		crystal.CallDeferred("UpdateFromParameters");
-		CallDeferred("UpdateCrystalData");
+		CallDeferred("UpdateCrystalData", 0);
 	}
 	private void CheckNormUpdate()
 	{
@@ -174,7 +176,7 @@ public partial class GemGUI : Control
 		updatedNormsThisFrame = true;
 
 		crystal.CallDeferred("UpdateMesh");
-		CallDeferred("UpdateCrystalData");
+		CallDeferred("UpdateCrystalData", 0);
 	}
 	public void SetA(float a) { crystal.aLength = a; CheckParamUpdate(); }
 	public void SetB(float b) { crystal.bLength = b; CheckParamUpdate(); }

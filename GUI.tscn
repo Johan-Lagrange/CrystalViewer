@@ -174,10 +174,8 @@ text = "Export"
 
 [node name="TabContainer" type="TabContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
-current_tab = 1
 
 [node name="Axes" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer"]
-visible = false
 layout_mode = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes"]
@@ -333,14 +331,17 @@ text = "c (z)"
 layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Length of the x/a axis"
+min_value = 0.01
 max_value = 2.0
 step = 0.01
 value = 1.0
+select_all_on_focus = true
 
 [node name="B" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Length of the y axis"
+min_value = 0.01
 max_value = 2.0
 step = 0.01
 value = 1.0
@@ -349,6 +350,7 @@ value = 1.0
 layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Length of the z axis"
+min_value = 0.01
 max_value = 2.0
 step = 0.01
 value = 1.0
@@ -380,27 +382,34 @@ text = "γ (xy)"
 layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Angle between the y and z axes"
-max_value = 180.0
+min_value = 1.0
+max_value = 179.0
 value = 90.0
 suffix = "°"
+select_all_on_focus = true
 
 [node name="Beta" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Angle between the x and z axes"
-max_value = 180.0
+min_value = 1.0
+max_value = 179.0
 value = 90.0
 suffix = "°"
+select_all_on_focus = true
 
 [node name="Gamma" type="SpinBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Angle between the x and y axes"
-max_value = 180.0
+min_value = 1.0
+max_value = 179.0
 value = 60.0
 suffix = "°"
+select_all_on_focus = true
 
 [node name="Data" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer"]
+visible = false
 layout_mode = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data"]
@@ -554,6 +563,7 @@ text = "+"
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Roughness/HSlider" to="." method="SetRoughness"]
 [connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/CullMode/CheckBox" to="." method="SetCullBackface"]
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport/Export" to="ExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
+[connection signal="tab_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer" to="." method="UpdateCrystalData"]
 [connection signal="item_selected" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/SymmetryType/OptionButton" to="." method="SetCrystalSystem"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/A" to="." method="SetA"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/B" to="." method="SetB"]
