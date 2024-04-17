@@ -71,6 +71,13 @@ public static class CrystalGenerator
                 tangents.AddRange(new float[] { tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3] });
             }
 
+            /*
+            How to make a single surface from polyhedron faces
+            Make undirected graph of faces that connect to other faces, with 2 vertices that form the edge
+            perform depth-first traversal until we hit every face, keeping track of edges traversed
+            create triangle strip from first 2 vertices to last 2 vertices for each face visited
+            And finally... Is this worth it? Should I actually implement this?
+            */
             arrays[(int)Mesh.ArrayType.Vertex] = meshVertices.ToArray();
             arrays[(int)Mesh.ArrayType.Normal] = meshNormals.ToArray();
             arrays[(int)Mesh.ArrayType.Tangent] = tangents.ToArray();

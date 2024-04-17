@@ -6,7 +6,7 @@ public partial class GemGUI : Control
 	[Export]
 	Camera3D camera;
 	[Export]
-	Node3D crystalParent;
+	Node3D crystalParent, axes;
 	[Export]
 	UnitCrystal crystal;
 	[Export]
@@ -29,7 +29,7 @@ public partial class GemGUI : Control
 	public PackedScene spinBox;
 	private List<VectorListItem> listItems = new List<VectorListItem>();
 
-
+	//TODO controller support
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -89,7 +89,7 @@ public partial class GemGUI : Control
 		if (ortho == true)
 		{
 			camera.SetOrthogonal(distance, .001f, distance * 2);
-		}
+		}//TODO figure out rotation for orthogonal or maybe just move it
 	}
 	public void SetCameraRotation(string axis)
 	{
@@ -102,15 +102,16 @@ public partial class GemGUI : Control
 				crystalParent.LookAt(-crystal.Basis.Y, crystal.Basis.Z);
 				break;
 			case "c":
-				crystalParent.LookAt(-crystal.Basis.Z, crystal.Basis.Y);
+				crystalParent.LookAt(crystal.Basis.Z, crystal.Basis.Y);
 				break;
-			case "abc":
+			case "abc"://TODO this doesn't work correctly
 				crystalParent.LookAt(-(crystal.Basis.X + crystal.Basis.Y + crystal.Basis.Z), crystal.Basis.Y);
 				break;
 		}
 	}
 
-	public void SetCameraDistance(float distance)
+	public void SetScale(float scale) { crystal.Scale = Vector3.One * scale; }
+	public void SetCameraDistance(float distance)//TODO maybe set crystal scale instead?
 	{//3-20
 		distance = (1 - distance) * (1 - distance) * 13 + 3;
 		this.distance = distance;
@@ -119,7 +120,8 @@ public partial class GemGUI : Control
 		if (camera.Projection == Camera3D.ProjectionType.Orthogonal)
 			camera.SetOrthogonal(distance, .001f, distance * 2);
 	}
-
+	public void SetAxisVisibility(bool visible) { axes.Visible = visible; }
+	public void SetAxisScale(float scale) { axes.Scale = Vector3.One * scale; }
 	public void SetCrystalSystem(int num)
 	{
 		crystal.PointGroup = (SymmetryOperations.PointGroup)(crystalSystem.GetItemId(num) / 10);

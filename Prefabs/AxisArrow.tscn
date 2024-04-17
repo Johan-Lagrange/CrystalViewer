@@ -1,0 +1,34 @@
+[gd_scene load_steps=4 format=3 uid="uid://x33tjj1pcrt7"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_7vg35"]
+size = Vector3(0.1, 0.1, 2.5)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_st1bu"]
+top_radius = 0.0
+bottom_radius = 0.2
+height = 0.4
+radial_segments = 4
+rings = 1
+
+[sub_resource type="BoxMesh" id="BoxMesh_afd2u"]
+size = Vector3(0.05, 0.05, 2.5)
+
+[node name="X" type="Node3D"]
+
+[node name="MainRod" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 1.49012e-07, 5.96046e-08, 0, 0.999999, -8.9407e-08, 0, 0, 0.999999, 0, 0, 1.25)
+mesh = SubResource("BoxMesh_7vg35")
+
+[node name="Arrow" type="MeshInstance3D" parent="."]
+transform = Transform3D(-3.55271e-15, 2.98023e-08, -1, -1, -1.03316e-07, -2.98023e-08, -8.9407e-08, 1, 0, 0, 0, 2.5)
+mesh = SubResource("CylinderMesh_st1bu")
+
+[node name="Text" type="Label3D" parent="."]
+transform = Transform3D(1, 5.96046e-08, 2.98023e-08, 0, 1, -2.98023e-08, 0, 0, 1, 0, 0, 2.959)
+billboard = 1
+text = "C"
+font_size = 96
+
+[node name="BackRod" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.999999, 2.08616e-07, 8.9407e-08, 0, 0.999999, -1.49012e-07, 0, 0, 0.999999, 0, 0, -1.25)
+mesh = SubResource("BoxMesh_afd2u")

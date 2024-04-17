@@ -174,8 +174,10 @@ text = "Export"
 
 [node name="TabContainer" type="TabContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
+current_tab = 2
 
 [node name="Axes" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer"]
+visible = false
 layout_mode = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes"]
@@ -422,65 +424,84 @@ Volume:
 Surface Area:
 Number of surfaces:"
 
-[node name="CameraSettings" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="Camera" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings"]
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera"]
 layout_mode = 2
 
-[node name="Rotate" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer"]
+[node name="Rotate" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
 tooltip_text = "Rotates automatically if checked"
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Rotate"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Rotate"]
 layout_mode = 2
 text = "Auto Rotate:"
 
-[node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Rotate"]
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Rotate"]
 layout_mode = 2
 tooltip_text = "Rotates automatically if checked"
 
-[node name="Orthogonal" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer"]
+[node name="Orthogonal" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
 tooltip_text = "Render the crystal without perspective warping"
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Orthogonal"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Orthogonal"]
 layout_mode = 2
 text = "Orthogonal View:"
 
-[node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Orthogonal"]
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Orthogonal"]
 layout_mode = 2
 tooltip_text = "Render the crystal without perspective warping"
 
-[node name="Show Axes" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer"]
-visible = false
+[node name="Show Axes" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Show Axes"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Show Axes"]
 layout_mode = 2
 text = "Show Axes:
 "
 
-[node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Show Axes"]
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Show Axes"]
 layout_mode = 2
 
-[node name="Distance" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer"]
+[node name="AxisScale" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
 tooltip_text = "Distance from camera to crystal"
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Distance"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/AxisScale"]
+layout_mode = 2
+text = "Size of Axes:"
+
+[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/AxisScale"]
+custom_minimum_size = Vector2(160.195, 0)
+layout_mode = 2
+min_value = 0.2
+max_value = 4.0
+step = 0.01
+value = 0.6
+exp_edit = true
+tick_count = 3
+
+[node name="Distance" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+tooltip_text = "Distance from camera to crystal"
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Distance"]
 layout_mode = 2
 text = "Camera Distance:"
 
-[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Distance"]
+[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Distance"]
 custom_minimum_size = Vector2(160.195, 0)
 layout_mode = 2
 min_value = 0.01
@@ -489,31 +510,50 @@ step = 0.01
 value = 0.72
 tick_count = 3
 
-[node name="View" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer"]
+[node name="View" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
 tooltip_text = "View straight down the A/B/C axis of the crystal. Not entirely accurate yet."
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/View"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View"]
 layout_mode = 2
 text = "View Along:"
 
-[node name="A" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/View"]
+[node name="A" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View"]
 layout_mode = 2
 text = "a"
 
-[node name="B" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/View"]
+[node name="B" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View"]
 layout_mode = 2
 text = "b"
 
-[node name="C" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/View"]
+[node name="C" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View"]
 layout_mode = 2
 text = "c"
 
-[node name="ABC" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/View"]
+[node name="ABC" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View"]
 layout_mode = 2
 text = "abc"
+
+[node name="Distance2" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+tooltip_text = "Distance from camera to crystal"
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Distance2"]
+layout_mode = 2
+text = "Crystal size: TODO"
+
+[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Distance2"]
+custom_minimum_size = Vector2(160.195, 0)
+layout_mode = 2
+min_value = 0.25
+max_value = 2.0
+step = 0.01
+value = 1.0
+tick_count = 3
 
 [node name="Normals" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -571,11 +611,14 @@ text = "+"
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Alpha" to="." method="SetAlpha"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Beta" to="." method="SetBeta"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Gamma" to="." method="SetGamma"]
-[connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Rotate/CheckBox" to="." method="SetAutoRotate"]
-[connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Orthogonal/CheckBox" to="." method="SetCameraOrthogonal"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/Distance/HSlider" to="." method="SetCameraDistance"]
-[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/View/A" to="." method="SetCameraRotation" binds= ["a"]]
-[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/View/B" to="." method="SetCameraRotation" binds= ["b"]]
-[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/View/C" to="." method="SetCameraRotation" binds= ["c"]]
-[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/CameraSettings/VBoxContainer/View/ABC" to="." method="SetCameraRotation" binds= ["abc"]]
+[connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Rotate/CheckBox" to="." method="SetAutoRotate"]
+[connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Orthogonal/CheckBox" to="." method="SetCameraOrthogonal"]
+[connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Show Axes/CheckBox" to="." method="SetAxisVisibility"]
+[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/AxisScale/HSlider" to="." method="SetAxisScale"]
+[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Distance/HSlider" to="." method="SetCameraDistance"]
+[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View/A" to="." method="SetCameraRotation" binds= ["a"]]
+[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View/B" to="." method="SetCameraRotation" binds= ["b"]]
+[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View/C" to="." method="SetCameraRotation" binds= ["c"]]
+[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View/ABC" to="." method="SetCameraRotation" binds= ["abc"]]
+[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Distance2/HSlider" to="." method="SetScale"]
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer/AddNewFace" to="." method="AddNewNormal"]
