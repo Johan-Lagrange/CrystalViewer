@@ -466,9 +466,10 @@ public static class CrystalGenerator
     }
     public static Vector3 CalculateNormal(Vector3 a, Vector3 b, Vector3 c, Basis basis)
     {
-        a = basis * a;
-        b = basis * b;
-        c = basis * c;
+        return CalculateNormal(basis * a, basis * b, basis * c);
+    }
+    public static Vector3 CalculateNormal(Vector3 a, Vector3 b, Vector3 c)
+    {
         Vector3 normal = (c - a).Cross(b - a).Normalized();
         if (normal.Dot(a) < 0)
             normal = -normal;
@@ -502,29 +503,109 @@ public static class CrystalGenerator
 
         using FileAccess file = FileAccess.Open(fileName, FileAccess.ModeFlags.Write);
 
-        file.StoreLine("solid " + fileName);
-        int count = mesh.GetSurfaceCount();
-        for (int i = 0; i < count; i++)
+        Vector3[] faces = mesh.GetFaces();//Every 3 vertices is a new tri
+
+        for (int i = 0; i < faces.Length; i++)
+            faces[i] = basis * faces[i];
+
+
+        file.StoreLine("solid " + fileName.Substring(0, fileName.Length - 4));//Trim out .stl tag
+        for (int i = 0; i < faces.Length - 2; i += 3)
         {
-            Vector3[] face = (Vector3[])mesh.SurfaceGetArrays(i)[(int)Mesh.ArrayType.Vertex];
-            Vector3 normal = ((Vector3[])mesh.SurfaceGetArrays(i)[(int)Mesh.ArrayType.Normal])[0];//Gets the first normal of the face
+            Vector3 v1 = faces[i];
+            Vector3 v2 = faces[i + 1];
+            Vector3 v3 = faces[i + 2];//these 3 are one tri in the mesh
 
-            for (int j = 1; j <= face.Length - 2; j++)//We work two vertices at a time. That's why we do face.count - 2
-            {
-                Vector3 v0 = basis * face[0];
-                Vector3 vj = basis * face[j];
-                Vector3 vj1 = basis * face[j + 1];
+            Vector3 normal = CalculateNormal(v1, v2, v3);
 
-                file.StoreLine("facet normal " + normal.X + " " + normal.Y + " " + normal.Z);
-                file.StoreLine("\touter loop");
-                file.StoreLine("\t\t vertex " + v0.X + " " + v0.Y + " " + v0.Z);
-                file.StoreLine("\t\t vertex " + vj.X + " " + vj.Y + " " + vj.Z);
-                file.StoreLine("\t\t vertex " + vj1.X + " " + vj1.Y + " " + vj1.Z);
-                file.StoreLine("\tendloop");
-                file.StoreLine("endfacet");
-            }
+            file.StoreLine("facet normal " + normal.X + " " + normal.Y + " " + normal.Z);
+            file.StoreLine("\touter loop");
+            file.StoreLine("\t\t vertex " + v1.X + " " + v1.Y + " " + v1.Z);
+            file.StoreLine("\t\t vertex " + v2.X + " " + v2.Y + " " + v2.Z);
+            file.StoreLine("\t\t vertex " + v3.X + " " + v3.Y + " " + v3.Z);
+            file.StoreLine("\tendloop");
+            file.StoreLine("endfacet");
         }
         file.StoreLine("endsolid " + fileName);
+    }
+
+    /// <summary>
+    /// Saves the mesh as an OBJ
+    /// </summary>
+    /// <param name="fileName">Name of the file to save to</param>
+    /// <param name="mesh">Crystal mesh, not transformed by any crystal parameters</param>
+    /// <param name="basis">Crystal parameters to transform the mesh by</param>
+    public static void ExportOBJ(string fileName, ArrayMesh mesh, Basis basis)
+    {
+        //https://docs.godotengine.org/en/stable/tutorials/io/saving_games.html
+        //https://en.wikipedia.org/wiki/Wavefront_.obj_file
+        /*
+        o (name)
+        v x y z
+        n x y z
+        f v1 v2 v3 v4... <- mesh.GetFaces() only does tris so we export 3 at a time
+        f v1/uv1/n1 v2/uv2/n2 v3/uv3/n3
+        f v1//n1 v2//n2 v3//n3 <- we use normals but not UVs so we we use this
+        */
+
+        if (fileName.EndsWith(".obj") == false)
+            fileName += ".obj";
+
+        using FileAccess file = FileAccess.Open(fileName, FileAccess.ModeFlags.Write);
+
+        Vector3[] faces = mesh.GetFaces();//Every 3 vertices is a new tri
+
+        for (int i = 0; i < faces.Length; i++)
+            faces[i] = basis * faces[i];
+
+        //Index each vertex and normal
+        int vertexIndex = 1, normalIndex = 1;
+        Dictionary<Vector3, int> vertexDict = new Dictionary<Vector3, int>();
+        Dictionary<Vector3, int> normalDict = new Dictionary<Vector3, int>();
+        foreach (Vector3 v in faces)
+        {
+            if (vertexDict.ContainsKey(v) == false)
+                vertexDict.Add(v, vertexIndex++);
+        }
+        //Creates an alias for each normal. We go by 3 since every 3 vertices is a surface triangle
+        for (int i = 0; i < faces.Length - 2; i += 3)
+        {
+            Vector3 normal = CalculateNormal(faces[i], faces[i + 1], faces[i + 2]);
+
+            if (normalDict.ContainsKey(normal) == false)
+                normalDict.Add(normal, normalIndex++);
+        }
+
+
+        file.StoreLine("o " + fileName.Substring(0, fileName.Length - 4));//Trim out .obj tag
+
+        //Create list of vertices and normals in file
+        foreach (Vector3 v in vertexDict.Keys)
+            file.StoreLine($"v {v.X} {v.Y} {v.Z} #v{vertexDict[v]}");
+        foreach (Vector3 n in normalDict.Keys)
+            file.StoreLine($"vn {n.X} {n.Y} {n.Z} #v{normalDict[n]}");
+
+        file.StoreLine("s " + 0);//Surface number 0
+
+        for (int i = 0; i < faces.Length - 2; i += 3)
+        {
+            //Yes this is redundant. But we have to create an alias for each vertex before we use it
+            Vector3 v1 = faces[i];
+            Vector3 v2 = faces[i + 1];
+            Vector3 v3 = faces[i + 2];//these 3 are one tri in the mesh
+
+            Vector3 normal = CalculateNormal(v1, v2, v3);
+            if (normal == Vector3.Zero)
+                GD.Print($"v1: {v1} v2: {v2} v3: {v3} norm: {normal} i: {i} count: {faces.Length}");
+            int n = normalDict[normal];
+
+            //A .obj face is structured like this:
+            //f vertex1/texturecoords1/normal1 vertex2...
+            //We skip texturecoords by doing vertex1//normal1
+            //we COULD add more vertices per face instead of just building tris
+            //But "mesh.GetFaces" only returns tris and I dont want to find like surfaces.
+            file.StoreLine($"f {vertexDict[v1]}//{n} {vertexDict[v2]}//{n} {vertexDict[v3]}//{n}");
+        }
     }
 
     /// <summary>

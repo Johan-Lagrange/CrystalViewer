@@ -60,9 +60,13 @@ public partial class GemGUI : Control
 		updatedNormsThisFrame = false;
 	}
 
-	public void Export(string output)
+	public void ExportSTL(string output)
 	{
 		CrystalGenerator.ExportSTL(output, (ArrayMesh)crystal.Mesh, crystal.Basis);
+	}
+	public void ExportOBJ(string output)
+	{
+		CrystalGenerator.ExportOBJ(output, (ArrayMesh)crystal.Mesh, crystal.Basis);
 	}
 	public void GetDragInput(InputEvent @event)
 	{
@@ -105,7 +109,7 @@ public partial class GemGUI : Control
 				crystalParent.LookAt(crystal.Basis.Z, crystal.Basis.Y);
 				break;
 			case "abc"://TODO this doesn't work correctly
-				crystalParent.LookAt(-(crystal.Basis.X + crystal.Basis.Y + crystal.Basis.Z), crystal.Basis.Y);
+				crystalParent.LookAt(-(crystal.Basis.X + crystal.Basis.Y - crystal.Basis.Z), crystal.Basis.Y);
 				break;
 		}
 	}

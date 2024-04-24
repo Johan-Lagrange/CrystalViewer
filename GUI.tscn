@@ -14,11 +14,18 @@ script = ExtResource("1_agdt7")
 dataText = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/DataText")
 crystalSystem = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/SymmetryType/OptionButton")
 crystalParams = [NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/A"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/B"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/C"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Alpha"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Beta"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Gamma")]
-exportDialog = NodePath("ExportDialog")
+exportDialog = NodePath("StlExportDialog")
 vectorList = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer")
 spinBox = ExtResource("2_r18ld")
 
-[node name="ExportDialog" type="FileDialog" parent="."]
+[node name="ObjExportDialog" type="FileDialog" parent="."]
+position = Vector2i(0, 36)
+size = Vector2i(844, 159)
+access = 2
+filters = PackedStringArray(".obj")
+use_native_dialog = true
+
+[node name="StlExportDialog" type="FileDialog" parent="."]
 position = Vector2i(0, 36)
 size = Vector2i(844, 159)
 access = 2
@@ -167,10 +174,16 @@ visible = false
 layout_mode = 2
 text = "Load"
 
-[node name="Export" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport"]
+[node name="ExportStl" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport"]
 layout_mode = 2
 tooltip_text = "Export this crystal to a .stl file"
-text = "Export"
+text = "Export .stl"
+
+[node name="ExportObj" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport"]
+layout_mode = 2
+tooltip_text = "Export this crystal to a .stl file"
+text = "Export .obj
+"
 
 [node name="TabContainer" type="TabContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -595,14 +608,16 @@ layout_mode = 2
 tooltip_text = "Add a new face to the crystal"
 text = "+"
 
-[connection signal="file_selected" from="ExportDialog" to="." method="Export"]
+[connection signal="file_selected" from="ObjExportDialog" to="." method="ExportOBJ"]
+[connection signal="file_selected" from="StlExportDialog" to="." method="ExportSTL"]
 [connection signal="gui_input" from="HBoxContainer/DragArea" to="." method="GetDragInput"]
 [connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Update/CheckBox" to="." method="SetAutoUpdate"]
 [connection signal="color_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Color/ColorPickerButton" to="." method="SetColor"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Refraction/HSlider" to="." method="SetRefraction"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Roughness/HSlider" to="." method="SetRoughness"]
 [connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/CullMode/CheckBox" to="." method="SetCullBackface"]
-[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport/Export" to="ExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
+[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport/ExportStl" to="StlExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
+[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport/ExportObj" to="ObjExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
 [connection signal="tab_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer" to="." method="UpdateCrystalData"]
 [connection signal="item_selected" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/SymmetryType/OptionButton" to="." method="SetCrystalSystem"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/A" to="." method="SetA"]
