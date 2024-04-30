@@ -4,7 +4,7 @@ For information on what those are, look futher ahead in this.
 It also has display options like color, transparency, opacity, and roughness.  
 
 # Special thanks and credits
-I want to thank Mark Holtkamp specifically, whose help and direction are what made this project possible. Below are two resources linked from him that were invaluable in this project.
+I want to thank Mark Holtkamp (who runs a site with similar function, [smorf.nl](https://smorf.nl)) specifically, whose help and direction are what made this project possible. Below are two resources linked from him that were invaluable in this project. His viewer has more features than this, and runs in the browser.
 The project primarily uses this algorithm from ["Computing and drawing crystal shapes"(1979) by Eric Dowty](http://www.minsocam.org/ammin/AM65/AM65_465.pdf)
 Functions for symmetry groups are from here: https://www.cryst.ehu.es/cryst/get_point_genpos.html
 

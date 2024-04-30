@@ -125,7 +125,7 @@ public partial class GemGUI : Control
 	}
 
 	public void SetScale(float scale) { crystalParent.Scale = Vector3.One * scale; }
-	public void SetCameraDistance(float distance)//TODO maybe set crystal scale instead?
+	public void SetCameraDistance(float distance)//Unused- We set scale now.
 	{//3-20
 		distance = (1 - distance) * (1 - distance) * 13 + 3;
 		this.distance = distance;
