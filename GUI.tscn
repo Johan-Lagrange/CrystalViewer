@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://Scripts/GemGUI.cs" id="1_agdt7"]
 [ext_resource type="PackedScene" uid="uid://cs8vuarc3uhj0" path="res://Prefabs/CrystalFaceSpinBox.tscn" id="2_r18ld"]
 
-[node name="GUI" type="Control" node_paths=PackedStringArray("dataText", "crystalSystem", "crystalParams", "exportDialog", "vectorList")]
+[node name="GUI" type="Control" node_paths=PackedStringArray("dataText", "crystalSystem", "crystalParams", "scaleSlider", "vectorList")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -14,7 +14,7 @@ script = ExtResource("1_agdt7")
 dataText = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/DataText")
 crystalSystem = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/SymmetryType/OptionButton")
 crystalParams = [NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/A"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/B"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/C"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Alpha"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Beta"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Gamma")]
-exportDialog = NodePath("StlExportDialog")
+scaleSlider = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Size/HSlider")
 vectorList = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer")
 spinBox = ExtResource("2_r18ld")
 
@@ -212,6 +212,7 @@ tooltip_text = "The list of symmetry operations to apply to the given faces"
 item_count = 49
 selected = 22
 fit_to_longest_item = false
+allow_reselect = true
 popup/item_0/text = "None"
 popup/item_0/id = 0
 popup/item_1/text = "Triclinic"
@@ -504,23 +505,24 @@ value = 0.6
 exp_edit = true
 tick_count = 3
 
-[node name="Distance" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
+[node name="Size" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
 tooltip_text = "Distance from camera to crystal"
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Distance"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Size"]
 layout_mode = 2
-text = "Camera Distance:"
+text = "View Size: "
 
-[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Distance"]
+[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Size"]
 custom_minimum_size = Vector2(160.195, 0)
 layout_mode = 2
-min_value = 0.01
-max_value = 1.0
+tooltip_text = "Size on screen. DOES NOT affect volume or surface area calculations"
+min_value = 0.25
+max_value = 2.0
 step = 0.01
-value = 0.72
+value = 1.0
 tick_count = 3
 
 [node name="View" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
@@ -548,25 +550,6 @@ text = "c"
 [node name="ABC" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View"]
 layout_mode = 2
 text = "abc"
-
-[node name="Distance2" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 8
-tooltip_text = "Distance from camera to crystal"
-alignment = 1
-
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Distance2"]
-layout_mode = 2
-text = "Crystal size: TODO"
-
-[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Distance2"]
-custom_minimum_size = Vector2(160.195, 0)
-layout_mode = 2
-min_value = 0.25
-max_value = 2.0
-step = 0.01
-value = 1.0
-tick_count = 3
 
 [node name="Normals" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -630,10 +613,9 @@ text = "+"
 [connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Orthogonal/CheckBox" to="." method="SetCameraOrthogonal"]
 [connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Show Axes/CheckBox" to="." method="SetAxisVisibility"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/AxisScale/HSlider" to="." method="SetAxisScale"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Distance/HSlider" to="." method="SetCameraDistance"]
+[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Size/HSlider" to="." method="SetScale"]
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View/A" to="." method="SetCameraRotation" binds= ["a"]]
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View/B" to="." method="SetCameraRotation" binds= ["b"]]
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View/C" to="." method="SetCameraRotation" binds= ["c"]]
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/View/ABC" to="." method="SetCameraRotation" binds= ["abc"]]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Distance2/HSlider" to="." method="SetScale"]
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer/AddNewFace" to="." method="AddNewNormal"]

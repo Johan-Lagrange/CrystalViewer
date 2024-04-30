@@ -16,7 +16,7 @@ public partial class GemGUI : Control
 	[Export]
 	SpinBox[] crystalParams = new SpinBox[6];
 	[Export]
-	FileDialog saveDialog, loadDialog, exportDialog;
+	Range scaleSlider;
 	private bool rotate = false;
 	private bool autoUpdate = true;
 	private bool updatedParamsThisFrame = false;
@@ -77,6 +77,16 @@ public partial class GemGUI : Control
 			crystalParent.RotateY(mouseDir.X);//Left/right
 			crystalParent.RotateX(-mouseDir.Y);//Up/Down
 		}
+		if (@event is InputEventMouseButton mouseButton && mouseButton.Pressed)
+		{
+			float dif = 0;
+			if (mouseButton.ButtonIndex == MouseButton.WheelUp)
+				dif = .1f;
+			if (mouseButton.ButtonIndex == MouseButton.WheelDown)
+				dif = -.1f;
+			scaleSlider.Value += dif;
+		}
+
 	}
 
 	public void SetAutoUpdate(bool update)
@@ -114,7 +124,7 @@ public partial class GemGUI : Control
 		}
 	}
 
-	public void SetScale(float scale) { crystal.Scale = Vector3.One * scale; }
+	public void SetScale(float scale) { crystalParent.Scale = Vector3.One * scale; }
 	public void SetCameraDistance(float distance)//TODO maybe set crystal scale instead?
 	{//3-20
 		distance = (1 - distance) * (1 - distance) * 13 + 3;
