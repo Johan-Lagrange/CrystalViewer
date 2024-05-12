@@ -5,12 +5,32 @@ using System.Linq;
 public static class CrystalGenerator
 {
     /// <summary>
-    /// Generates a mesh from a list of face normals and distances that will be duplicated according to symmetry.
+    /// Generates a mesh from a list of face normals and distances that will be duplicated according to symmetry. Generates a convex hull using halfspaces
     /// </summary>
     /// <param name="initialFaces">The array of normal directions of each symetrically unique face</param>
     /// <param name="distances">The array of distances per face from crystal center</param>
     /// <param name="pointGroup">The type of symmetry this crystal has. Dictates which symmetry operations (mirror, rotate) are used</param>
     /// <returns></returns>
+    /// <remarks>
+    /// The way this algorithm generates a crystal is:
+    /// 1. Acquire a list of symmetry operations (reflections, rotations, retroinversions) from the given point group
+    /// 2. For every given face vector, apply every combination of symmetry operations in the list to it.
+    ///     As an example, to make a 2D square with starting vector (1, 0), operation 1 would be mirror over y,
+    ///     after which the list is (1, 0) and (-1, 0), and operation 2 would rotate 90 degrees, which we apply to both items
+    ///     for a result of (1, 0), (-1, 0), (0, -1), (0, 1).
+    /// 2a. if a plane is in front of another (parallel and has a greater or equal distance) it is redundant and can be removed.
+    /// 3. Generate a list of vertices by intersecting every trio of planes.
+    ///     Vertices keep track of which planes they are a part of. This is imporant.
+    /// 3a. Remove any vertex that is in front of a plane, since that lies outside of the crystal.
+    /// 3b. Combine any two vertices that are in the same spot, otherwise vertices would only ever keep track of 3 faces
+    /// 4. Create an unordered linked list of every edge on the face by comparing every pair of vertices creating an edge if they share 2 faces
+    ///     The AdjacentEdges type is there to keep track of which vertices are adjacent to which edges. We use this to traverse a face's edges
+    /// 4a. A vertex on a face should only have neighboring vertices on that face. If there are more, we know the face is malformed and can disregard it
+    ///     This tends to happen with a face of zero area (Think of an octagon where the corners shrink to a square)
+    /// 5. Create a clockwise-ordered array of vertices that make up the face by traversing the linked list, making sure we don't backtrack.
+    /// 5a. Check the first couple vertices to see if they are clockwise, and if not, reverse the array to make it clockwise.
+    /// 6. Generate normals, tangents, and tris for each trio of vertices, and use Godot's mesh builder to create a mesh from there.
+    ///  </remarks>
     public static ArrayMesh CreateMesh(
         Vector3[] initialFaces,
         float[] distances,
@@ -18,11 +38,12 @@ public static class CrystalGenerator
         out List<Vector3>[] normals,
         out List<Plane> planes,
         out ArrayMesh mesh,
-        out List<List<Vector3>> faceEdges)
+        out List<List<Vector3>> faceEdges)//TODO just make this an object at this point
     {
         if (distances.Length != initialFaces.Length)
             throw new ArgumentException("Every initial face must be given a distance!");
 
+        //TODO instead of JUST doing normals, also keep track of which original face they are a part of with a 2d array.
         normals = new List<Vector3>[initialFaces.Length];//List of normals for each initial face that was duplicated by the symmetry group
 
         //Reflect every given face along the given symmetry group
@@ -33,7 +54,6 @@ public static class CrystalGenerator
 
         planes = GeneratePlanes(initialFaces, distances, normals);//Create a plane with distance from center for every generated normal
 
-
         List<Vertex> vertices = GenerateVertices(planes);//Get all valid vertices on the crystal
 
         Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces = GenerateEdges(vertices);//Create a dictionary that will take a plane and give an unordered list of each edge that makes up the plane's face
@@ -41,7 +61,6 @@ public static class CrystalGenerator
         faceEdges = new();//The final mesh that we are building. Contains the vertices of each face in order.
         foreach (Dictionary<Vertex, AdjacentEdges> unorderedFace in faces.Values)
         {
-
             List<Vector3> face = CreateFaceFromEdges(unorderedFace);
             if (face.Count >= 3)
                 faceEdges.Add(face);
@@ -71,13 +90,6 @@ public static class CrystalGenerator
                 tangents.AddRange(new float[] { tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3] });
             }
 
-            /*
-            How to make a single surface from polyhedron faces
-            Make undirected graph of faces that connect to other faces, with 2 vertices that form the edge
-            perform depth-first traversal until we hit every face, keeping track of edges traversed
-            create triangle strip from first 2 vertices to last 2 vertices for each face visited
-            And finally... Is this worth it? Should I actually implement this?
-            */
             arrays[(int)Mesh.ArrayType.Vertex] = meshVertices.ToArray();
             arrays[(int)Mesh.ArrayType.Normal] = meshNormals.ToArray();
             arrays[(int)Mesh.ArrayType.Tangent] = tangents.ToArray();
@@ -100,6 +112,20 @@ public static class CrystalGenerator
         foreach (Func<Vector3, Vector3> Operation in SymmetryOperations.PointGroupPositions[(int)group])
         {
             ApplyOperation(vectorList, Operation);
+        }
+
+        /*Hexagonal crystals don't render correctly unless we do this.
+        I think it has to do with -Z being forward in Godot. 
+        It's strange that no other shape groups have this isssue though,
+        May be because this is the only one that includes X and Y in one component.
+        And yes I have tried messing around with the function and swapping variables, didn't work.*/
+        if ((int)group >= 21 && (int)group <= 35)//Point groups that use the hexagonal method.
+        {
+            for (int j = 0; j < vectorList.Count; j++)
+            {
+                Vector3 v2 = vectorList[j];
+                vectorList[j] = new Vector3(v2.X, -v2.Y, v2.Z);
+            }
         }
         return vectorList;
     }
