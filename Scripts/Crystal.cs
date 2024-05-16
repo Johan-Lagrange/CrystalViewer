@@ -2,8 +2,12 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-public static class CrystalGenerator
+public class Crystal
 {
+    public readonly List<Vector3>[] normals;
+    public readonly List<Plane> planes;
+    public readonly ArrayMesh mesh;
+    public readonly List<List<Vector3>> faceEdges;
     /// <summary>
     /// Generates a mesh from a list of face normals and distances that will be duplicated according to symmetry. Generates a convex hull using halfspaces
     /// </summary>
@@ -31,14 +35,10 @@ public static class CrystalGenerator
     /// 5a. Check the first couple vertices to see if they are clockwise, and if not, reverse the array to make it clockwise.
     /// 6. Generate normals, tangents, and tris for each trio of vertices, and use Godot's mesh builder to create a mesh from there.
     ///  </remarks>
-    public static ArrayMesh CreateMesh(
+    public Crystal(
         Vector3[] initialFaces,
         float[] distances,
-        SymmetryOperations.PointGroup pointGroup,
-        out List<Vector3>[] normals,
-        out List<Plane> planes,
-        out ArrayMesh mesh,
-        out List<List<Vector3>> faceEdges)//TODO just make this an object at this point
+        SymmetryOperations.PointGroup pointGroup)
     {
         if (distances.Length != initialFaces.Length)
             throw new ArgumentException("Every initial face must be given a distance!");
@@ -65,38 +65,6 @@ public static class CrystalGenerator
             if (face.Count >= 3)
                 faceEdges.Add(face);
         }
-
-        // Create the Mesh.
-        mesh = new ArrayMesh();
-        foreach (List<Vector3> face in faceEdges)
-        {
-
-            Godot.Collections.Array arrays = new();//Array of surface data
-            arrays.Resize((int)Mesh.ArrayType.Max);
-            arrays[(int)Mesh.ArrayType.Vertex] = face.ToArray();//Note: Different vertex type than the one we use in this class. These are just Vector3s
-            Vector3 normal = CalculateNormal(face[0], face[1], face[2], Basis.Identity);
-
-            Vector3 tangentVector = (face[1] - face[0]).Normalized();
-            float[] tangent = new float[] { tangentVector[0], tangentVector[1], tangentVector[2], 1 };
-
-            List<Vector3> meshVertices = new();
-            List<Vector3> meshNormals = new();
-            List<float> tangents = new();
-
-            for (int i = 1; i <= face.Count - 2; i++)//We work two vertices at a time. That's why we do face.count - 2
-            {
-                meshVertices.AddRange(new Vector3[] { face[0], face[i], face[i + 1] });
-                meshNormals.AddRange(new Vector3[] { normal, normal, normal });
-                tangents.AddRange(new float[] { tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3] });
-            }
-
-            arrays[(int)Mesh.ArrayType.Vertex] = meshVertices.ToArray();
-            arrays[(int)Mesh.ArrayType.Normal] = meshNormals.ToArray();
-            arrays[(int)Mesh.ArrayType.Tangent] = tangents.ToArray();
-
-            mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
-        }
-        return mesh;
     }
     /// <summary>
     /// Takes an initial vector and applies all point group operations on it, 
@@ -186,7 +154,7 @@ public static class CrystalGenerator
                         }
                         else
                         {
-                            planesToRemove.Add(p);//Another face was behind this so we remove that
+                            planesToRemove.Add(p);//Another face was behind this so we remove this
                         }
                     }
                 }

@@ -3,7 +3,7 @@ using Godot.NativeInterop;
 using System.Collections.Generic;
 
 [Tool]
-public partial class UnitCrystal : MeshInstance3D
+public partial class CrystalGameObject : MeshInstance3D
 {
 	ArrayMesh mesh;
 	[ExportGroup("Crystal Parameters")]
@@ -56,9 +56,8 @@ public partial class UnitCrystal : MeshInstance3D
 	SymmetryOperations.PointGroup _pointGroup = SymmetryOperations.PointGroup.BarThreeRhombohedral;
 	Vector3[] _normals = { new(3, 1, 0), new(0, 5, 1), new(-1, -1, -1), new(-2, 0, -1) };
 	float[] _distances = { 1, .9f, 1, 1 };
-	List<Vector3>[] normals;
-	List<Plane> planes;
-	List<List<Vector3>> faceEdges;
+	Crystal c;
+
 	private bool updatedThisFrame = false;
 	public override void _Ready()
 	{
@@ -76,15 +75,15 @@ public partial class UnitCrystal : MeshInstance3D
 	}
 	public float GetSurfaceCount()
 	{
-		return faceEdges.Count;
+		return c.faceEdges.Count;
 	}
 	public float GetSurfaceArea()
 	{
-		return CrystalGenerator.CalculateSurfaceArea(faceEdges, Basis);
+		return Crystal.CalculateSurfaceArea(c.faceEdges, Basis);
 	}
 	public float GetVolume()
 	{
-		return CrystalGenerator.CalculateVolume(faceEdges, Basis);
+		return Crystal.CalculateVolume(c.faceEdges, Basis);
 	}
 
 	private void UpdateLatticeVectors()
@@ -93,6 +92,40 @@ public partial class UnitCrystal : MeshInstance3D
 			Basis = new Basis(aVector, bVector, cVector);
 		else
 			Basis = new Basis(Vector3.Right, Vector3.Up, Vector3.Forward);
+	}
+	private ArrayMesh CreateArrayMeshFromCrystal(Crystal c)
+	{
+		// Create the Mesh.
+		mesh = new ArrayMesh();
+		foreach (List<Vector3> face in c.faceEdges)
+		{
+
+			Godot.Collections.Array arrays = new();//Array of surface data
+			arrays.Resize((int)Mesh.ArrayType.Max);
+			arrays[(int)Mesh.ArrayType.Vertex] = face.ToArray();//Note: Different vertex type than the one we use in this class. These are just Vector3s
+			Vector3 normal = Crystal.CalculateNormal(face[0], face[1], face[2], Basis.Identity);
+
+			Vector3 tangentVector = (face[1] - face[0]).Normalized();
+			float[] tangent = new float[] { tangentVector[0], tangentVector[1], tangentVector[2], 1 };
+
+			List<Vector3> meshVertices = new();
+			List<Vector3> meshNormals = new();
+			List<float> tangents = new();
+
+			for (int i = 1; i <= face.Count - 2; i++)//We work two vertices at a time. That's why we do face.count - 2
+			{
+				meshVertices.AddRange(new Vector3[] { face[0], face[i], face[i + 1] });
+				meshNormals.AddRange(new Vector3[] { normal, normal, normal });
+				tangents.AddRange(new float[] { tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3] });
+			}
+
+			arrays[(int)Mesh.ArrayType.Vertex] = meshVertices.ToArray();
+			arrays[(int)Mesh.ArrayType.Normal] = meshNormals.ToArray();
+			arrays[(int)Mesh.ArrayType.Tangent] = tangents.ToArray();
+
+			mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
+		}
+		return mesh;
 	}
 	public void UpdateMesh()
 	{
@@ -111,7 +144,8 @@ public partial class UnitCrystal : MeshInstance3D
 				newDistances[i] = 1;
 			Distances = newDistances;
 		}
-		ArrayMesh mesh = CrystalGenerator.CreateMesh(Normals, Distances, _pointGroup, out normals, out planes, out mesh, out faceEdges);
+		c = new Crystal(Normals, Distances, _pointGroup);
+		ArrayMesh mesh = CreateArrayMeshFromCrystal(c);
 		Mesh = mesh;
 	}
 	public void UpdateFromParameters()

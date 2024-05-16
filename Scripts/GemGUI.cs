@@ -8,7 +8,7 @@ public partial class GemGUI : Control
 	[Export]
 	Node3D crystalParent, axes;
 	[Export]
-	UnitCrystal crystal;
+	CrystalGameObject crystal;
 	[Export]
 	Label dataText;
 	[Export]
@@ -62,11 +62,11 @@ public partial class GemGUI : Control
 
 	public void ExportSTL(string output)
 	{
-		CrystalGenerator.ExportSTL(output, (ArrayMesh)crystal.Mesh, crystal.Basis);
+		Crystal.ExportSTL(output, (ArrayMesh)crystal.Mesh, crystal.Basis);
 	}
 	public void ExportOBJ(string output)
 	{
-		CrystalGenerator.ExportOBJ(output, (ArrayMesh)crystal.Mesh, crystal.Basis);
+		Crystal.ExportOBJ(output, (ArrayMesh)crystal.Mesh, crystal.Basis);
 	}
 	public void GetDragInput(InputEvent @event)
 	{

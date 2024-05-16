@@ -1,6 +1,6 @@
 [gd_scene load_steps=11 format=3 uid="uid://b226ro6gyacgx"]
 
-[ext_resource type="Script" path="res://Scripts/UnitCrystal.cs" id="1_b016c"]
+[ext_resource type="Script" path="res://Scripts/CrystalGameObject.cs" id="1_b016c"]
 [ext_resource type="PackedScene" uid="uid://x33tjj1pcrt7" path="res://Prefabs/AxisArrow.tscn" id="2_7uuxe"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_81ati"]
