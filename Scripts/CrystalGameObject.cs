@@ -79,11 +79,11 @@ public partial class CrystalGameObject : MeshInstance3D
 	}
 	public float GetSurfaceArea()
 	{
-		return Crystal.CalculateSurfaceArea(c.faceEdges, Basis);
+		return (float)Crystal.CalculateSurfaceArea(c.faceEdges, GodotCompatability.BasisToMatrix(Basis));
 	}
 	public float GetVolume()
 	{
-		return Crystal.CalculateVolume(c.faceEdges, Basis);
+		return (float)Crystal.CalculateVolume(c.faceEdges, GodotCompatability.BasisToMatrix(Basis));
 	}
 
 	private void UpdateLatticeVectors()
@@ -97,13 +97,16 @@ public partial class CrystalGameObject : MeshInstance3D
 	{
 		// Create the Mesh.
 		mesh = new ArrayMesh();
-		foreach (List<Vector3> face in c.faceEdges)
+		foreach (List<Vector3d> faced in c.faceEdges)
 		{
+			List<Vector3> face = new List<Vector3>();
+			foreach (Vector3d vd in faced)
+				face.Add(GodotCompatability.DoubleToGD(vd));
 
 			Godot.Collections.Array arrays = new();//Array of surface data
 			arrays.Resize((int)Mesh.ArrayType.Max);
 			arrays[(int)Mesh.ArrayType.Vertex] = face.ToArray();//Note: Different vertex type than the one we use in this class. These are just Vector3s
-			Vector3 normal = Crystal.CalculateNormal(face[0], face[1], face[2], Basis.Identity);
+			Vector3 normal = GodotCompatability.CalculateNormal(face[0], face[1], face[2]);
 
 			Vector3 tangentVector = (face[1] - face[0]).Normalized();
 			float[] tangent = new float[] { tangentVector[0], tangentVector[1], tangentVector[2], 1 };
@@ -144,7 +147,12 @@ public partial class CrystalGameObject : MeshInstance3D
 				newDistances[i] = 1;
 			Distances = newDistances;
 		}
-		c = new Crystal(Normals, Distances, _pointGroup);
+
+		List<Vector3d> Normalsd = new List<Vector3d>();
+		foreach (Vector3 n in Normals)
+			Normalsd.Add(GodotCompatability.GDToDouble(n));
+
+		c = new Crystal(Normalsd.ToArray(), Distances, _pointGroup);
 		ArrayMesh mesh = CreateArrayMeshFromCrystal(c);
 		Mesh = mesh;
 	}
@@ -153,6 +161,7 @@ public partial class CrystalGameObject : MeshInstance3D
 		UpdateTrig();
 		//http://www.gisaxs.com/index.php/Unit_cell
 		aVector = new(aLength, 0, 0);
+
 		bVector = new(bLength * cosGamma, bLength * sinGamma, 0);
 		float cYComponent = (cosAlpha - cosBeta * cosGamma) / sinGamma;
 		cVector = new(cLength * cosBeta,
