@@ -23,7 +23,6 @@ position = Vector2i(0, 36)
 size = Vector2i(844, 159)
 access = 2
 filters = PackedStringArray(".obj")
-show_hidden_files = false
 use_native_dialog = true
 
 [node name="StlExportDialog" type="FileDialog" parent="."]
@@ -31,7 +30,6 @@ position = Vector2i(0, 36)
 size = Vector2i(844, 159)
 access = 2
 filters = PackedStringArray(".stl")
-show_hidden_files = false
 use_native_dialog = true
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]

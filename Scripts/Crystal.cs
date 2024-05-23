@@ -504,26 +504,26 @@ public class Crystal
 
         using System.IO.StreamWriter writer = new System.IO.StreamWriter(fileName);
 
-        List<Vector3d> faces = new List<Vector3d>();//Every 3 vertices is a new tri
+        List<Vector3d> transformedFaces = new List<Vector3d>();//Every 3 vertices is a new tri
         foreach (List<Vector3d> face in this.faces)
         {
-            for (int i = 1; i < face.Count - 2; i++)
+            for (int i = 1; i < face.Count - 1; i++)
             {
-                faces.Add(face[0]);
-                faces.Add(face[i]);
-                faces.Add(face[i + 1]);
+                transformedFaces.Add(face[0]);
+                transformedFaces.Add(face[i]);
+                transformedFaces.Add(face[i + 1]);
             }
         }
-        for (int i = 0; i < faces.Count; i++)
-            faces[i] = m * faces[i];
+        for (int i = 0; i < transformedFaces.Count; i++)
+            transformedFaces[i] = m * transformedFaces[i];
 
 
         writer.WriteLine("solid " + fileName.Substring(0, fileName.Length - 4));//Trim out .stl tag
-        for (int i = 0; i < faces.Count - 2; i += 3)
+        for (int i = 0; i < transformedFaces.Count - 1; i += 3)
         {
-            Vector3d v1 = faces[i];
-            Vector3d v2 = faces[i + 1];
-            Vector3d v3 = faces[i + 2];//these 3 are one tri in the mesh
+            Vector3d v1 = transformedFaces[i];
+            Vector3d v2 = transformedFaces[i + 1];
+            Vector3d v3 = transformedFaces[i + 2];//these 3 are one tri in the mesh
 
             Vector3d normal = CalculateNormal(v1, v2, v3);
 
@@ -562,21 +562,21 @@ public class Crystal
 
         using System.IO.StreamWriter writer = new System.IO.StreamWriter(fileName);
 
-        List<List<Vector3d>> faces = new List<List<Vector3d>>();
+        List<List<Vector3d>> transformedFaces = new List<List<Vector3d>>();
 
         foreach (List<Vector3d> face in faces)
         {
             List<Vector3d> newFace = new List<Vector3d>();
             foreach (Vector3d v in face)
                 newFace.Add(m * v);//Apply matrix transform while adding
-            faces.Add(newFace);
+            transformedFaces.Add(newFace);
         }
 
         //Index each vertex and normal
         int vertexIndex = 1, normalIndex = 1;
         Dictionary<Vector3d, int> vertexDict = new Dictionary<Vector3d, int>();
         Dictionary<Vector3d, int> normalDict = new Dictionary<Vector3d, int>();
-        foreach (List<Vector3d> face in faces)
+        foreach (List<Vector3d> face in transformedFaces)
         {
             foreach (Vector3d v in face)
             {
@@ -585,7 +585,7 @@ public class Crystal
             }
         }
         //Creates an alias for each normal. We go by 3 since every 3 vertices is a surface triangle
-        foreach (List<Vector3d> face in faces)
+        foreach (List<Vector3d> face in transformedFaces)
         {
             Vector3d normal = CalculateNormal(face[0], face[1], face[2]);
 
@@ -604,7 +604,7 @@ public class Crystal
 
         writer.WriteLine("s " + 0);//Surface number 0
 
-        foreach (List<Vector3d> face in faces)
+        foreach (List<Vector3d> face in transformedFaces)
         {
             //Yes this is redundant. But we have to create an alias for each vertex before we use it
             Vector3d v1 = face[0];
