@@ -1,5 +1,4 @@
 using Godot;
-using Godot.NativeInterop;
 using System.Collections.Generic;
 
 [Tool]
@@ -56,12 +55,9 @@ public partial class CrystalGameObject : MeshInstance3D
 	SymmetryOperations.PointGroup _pointGroup = SymmetryOperations.PointGroup.BarThreeRhombohedral;
 	Vector3[] _normals = { new(3, 1, 0), new(0, 5, 1), new(-1, -1, -1), new(-2, 0, -1) };
 	float[] _distances = { 1, .9f, 1, 1 };
-	Crystal c;
+	private Crystal crystal;
 
 	private bool updatedThisFrame = false;
-	public override void _Ready()
-	{
-	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
@@ -69,21 +65,15 @@ public partial class CrystalGameObject : MeshInstance3D
 		updatedThisFrame = false;
 	}
 
-	public string GetShapeClass()
-	{
-		return SymmetryOperations.GetNameOfSymmetryClass(PointGroup);
-	}
-	public float GetSurfaceCount()
-	{
-		return c.faceEdges.Count;
-	}
+	public string GetShapeClass() => SymmetryOperations.GetNameOfSymmetryClass(PointGroup);
+	public float GetSurfaceCount() => crystal.faces.Count;
 	public float GetSurfaceArea()
 	{
-		return Crystal.CalculateSurfaceArea(c.faceEdges, Basis);
+		return (float)Crystal.CalculateSurfaceArea(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
 	}
 	public float GetVolume()
 	{
-		return Crystal.CalculateVolume(c.faceEdges, Basis);
+		return (float)Crystal.CalculateVolume(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
 	}
 
 	private void UpdateLatticeVectors()
@@ -93,17 +83,28 @@ public partial class CrystalGameObject : MeshInstance3D
 		else
 			Basis = new Basis(Vector3.Right, Vector3.Up, Vector3.Forward);
 	}
+	public void ExportSTL(string filename)
+	{
+		crystal.ExportSTL(filename, GodotCompatability.BasisToMatrix(this.Basis));
+	}
+	public void ExportOBJ(string filename)
+	{
+		crystal.ExportOBJ(filename, GodotCompatability.BasisToMatrix(this.Basis));
+	}
 	private ArrayMesh CreateArrayMeshFromCrystal(Crystal c)
 	{
 		// Create the Mesh.
 		mesh = new ArrayMesh();
-		foreach (List<Vector3> face in c.faceEdges)
+		foreach (List<Vector3d> faced in c.faces)
 		{
+			List<Vector3> face = new List<Vector3>();
+			foreach (Vector3d vd in faced)
+				face.Add(GodotCompatability.DoubleToGD(vd));//Convert our bespoke double based vectors to GD's float ones
 
 			Godot.Collections.Array arrays = new();//Array of surface data
 			arrays.Resize((int)Mesh.ArrayType.Max);
-			arrays[(int)Mesh.ArrayType.Vertex] = face.ToArray();//Note: Different vertex type than the one we use in this class. These are just Vector3s
-			Vector3 normal = Crystal.CalculateNormal(face[0], face[1], face[2], Basis.Identity);
+			arrays[(int)Mesh.ArrayType.Vertex] = face.ToArray();
+			Vector3 normal = GodotCompatability.CalculateNormal(face[0], face[1], face[2]);
 
 			Vector3 tangentVector = (face[1] - face[0]).Normalized();
 			float[] tangent = new float[] { tangentVector[0], tangentVector[1], tangentVector[2], 1 };
@@ -127,6 +128,7 @@ public partial class CrystalGameObject : MeshInstance3D
 		}
 		return mesh;
 	}
+
 	public void UpdateMesh()
 	{
 		if (updatedThisFrame)
@@ -144,8 +146,13 @@ public partial class CrystalGameObject : MeshInstance3D
 				newDistances[i] = 1;
 			Distances = newDistances;
 		}
-		c = new Crystal(Normals, Distances, _pointGroup);
-		ArrayMesh mesh = CreateArrayMeshFromCrystal(c);
+
+		List<Vector3d> Normalsd = new List<Vector3d>();//List of our bespoke double vector type
+		foreach (Vector3 n in Normals)
+			Normalsd.Add(GodotCompatability.GDToDouble(n));
+
+		crystal = new Crystal(Normalsd.ToArray(), Distances, _pointGroup);
+		ArrayMesh mesh = CreateArrayMeshFromCrystal(crystal);
 		Mesh = mesh;
 	}
 	public void UpdateFromParameters()
@@ -153,6 +160,7 @@ public partial class CrystalGameObject : MeshInstance3D
 		UpdateTrig();
 		//http://www.gisaxs.com/index.php/Unit_cell
 		aVector = new(aLength, 0, 0);
+
 		bVector = new(bLength * cosGamma, bLength * sinGamma, 0);
 		float cYComponent = (cosAlpha - cosBeta * cosGamma) / sinGamma;
 		cVector = new(cLength * cosBeta,

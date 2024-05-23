@@ -1,4 +1,3 @@
-using Godot;
 using System;
 using System.Collections.Generic;
 public static class SymmetryOperations
@@ -117,7 +116,7 @@ public static class SymmetryOperations
 	/// All are callable as functions
 	/// </summary>
 	/// <value></value>
-	public static readonly Func<Vector3, Vector3>[][] PointGroupPositions =
+	public static readonly Func<Vector3d, Vector3d>[][] PointGroupPositions =
 	{
 		new[] {Identity}, //Null
 
@@ -176,7 +175,7 @@ public static class SymmetryOperations
 	/// Yields the same result as PointGroupPositions with far fewer operations, as most can be redundant.
 	/// </summary>
 	/// <value></value>
-	public static readonly Func<Vector3, Vector3>[][] PointGroupOperations =
+	public static readonly Func<Vector3d, Vector3d>[][] PointGroupOperations =
 	{
 		new[] {Identity},//0
 
@@ -231,92 +230,92 @@ public static class SymmetryOperations
 
 	//#region allows you to specify a collapsable area of code in most editors.
 	#region SymmetryOperations
-	public static Vector3 Identity(Vector3 v) => new(v.X, v.Y, v.Z);//Why would you call this..?
-	public static Vector3 DiX(Vector3 v) => new(v.X, -v.Y, -v.Z);//Diad along X Axis
-	public static Vector3 DiY(Vector3 v) => new(-v.X, v.Y, -v.Z);
-	public static Vector3 DiZ(Vector3 v) => new(-v.X, -v.Y, v.Z);
-	public static Vector3 DiXY(Vector3 v) => new(v.Y, v.X, -v.Z);
-	public static Vector3 DiX_Y(Vector3 v) => new(-v.Y, -v.X, -v.Z);
-	public static Vector3 DiXZ(Vector3 v) => new(v.Z, -v.Y, v.X);//Seitz 2(1 0 1)
-	public static Vector3 Di_XZ(Vector3 v) => new(-v.Z, -v.Y, -v.X);//Seitz 2(-1 0 1)
-	public static Vector3 DiYZ(Vector3 v) => new(-v.X, v.Z, v.Y);
-	public static Vector3 DiY_Z(Vector3 v) => new(-v.X, -v.Z, -v.Y);
-	public static Vector3 DiXXY(Vector3 v) => new(v.X, v.X - v.Y, -v.Z);//Seitz 2(2 1 0)
-	public static Vector3 DiXYY(Vector3 v) => new(-v.X + v.Y, v.Y, -v.Z);//Seitz 2(1 2 0)
+	public static Vector3d Identity(Vector3d v) => new(v.X, v.Y, v.Z);//Why would you call this..?
+	public static Vector3d DiX(Vector3d v) => new(v.X, -v.Y, -v.Z);//Diad along X Axis
+	public static Vector3d DiY(Vector3d v) => new(-v.X, v.Y, -v.Z);
+	public static Vector3d DiZ(Vector3d v) => new(-v.X, -v.Y, v.Z);
+	public static Vector3d DiXY(Vector3d v) => new(v.Y, v.X, -v.Z);
+	public static Vector3d DiX_Y(Vector3d v) => new(-v.Y, -v.X, -v.Z);
+	public static Vector3d DiXZ(Vector3d v) => new(v.Z, -v.Y, v.X);//Seitz 2(1 0 1)
+	public static Vector3d Di_XZ(Vector3d v) => new(-v.Z, -v.Y, -v.X);//Seitz 2(-1 0 1)
+	public static Vector3d DiYZ(Vector3d v) => new(-v.X, v.Z, v.Y);
+	public static Vector3d DiY_Z(Vector3d v) => new(-v.X, -v.Z, -v.Y);
+	public static Vector3d DiXXY(Vector3d v) => new(v.X, v.X - v.Y, -v.Z);//Seitz 2(2 1 0)
+	public static Vector3d DiXYY(Vector3d v) => new(-v.X + v.Y, v.Y, -v.Z);//Seitz 2(1 2 0)
 
-	// public static Vector3 TriXPos(Vector3 v) => new(v.X, -v.Z, v.Y - v.Z);
-	// public static Vector3 TriXNeg(Vector3 v) => new(v.X, -v.Y + v.Z, -v.Y);
+	// public static Vector3d TriXPos(Vector3d v) => new(v.X, -v.Z, v.Y - v.Z);
+	// public static Vector3d TriXNeg(Vector3d v) => new(v.X, -v.Y + v.Z, -v.Y);
 
-	// public static Vector3 TriYPos(Vector3 v) => new(v.X - v.Z, v.Y, -v.Z);
-	// public static Vector3 TriYNeg(Vector3 v) => new(-v.X, v.Y, -v.X + v.Y);
+	// public static Vector3d TriYPos(Vector3d v) => new(v.X - v.Z, v.Y, -v.Z);
+	// public static Vector3d TriYNeg(Vector3d v) => new(-v.X, v.Y, -v.X + v.Y);
 
-	public static Vector3 TriZPos(Vector3 v) => new(-v.Y, v.X - v.Y, v.Z);
-	public static Vector3 TriZNeg(Vector3 v) => new(-v.X + v.Y, -v.X, v.Z);
+	public static Vector3d TriZPos(Vector3d v) => new(-v.Y, v.X - v.Y, v.Z);
+	public static Vector3d TriZNeg(Vector3d v) => new(-v.X + v.Y, -v.X, v.Z);
 
-	public static Vector3 TriXYZPos(Vector3 v) => new(v.Z, v.X, v.Y);//Tri along 1, 1, 1
-	public static Vector3 TriXYZNeg(Vector3 v) => new(v.Y, v.Z, v.X);
+	public static Vector3d TriXYZPos(Vector3d v) => new(v.Z, v.X, v.Y);//Tri along 1, 1, 1
+	public static Vector3d TriXYZNeg(Vector3d v) => new(v.Y, v.Z, v.X);
 
-	public static Vector3 TriX_Y_ZPos(Vector3 v) => new(-v.Z, -v.X, v.Y);//Tri along 1, -1, -1
-	public static Vector3 TriX_Y_ZNeg(Vector3 v) => new(-v.Y, v.Z, -v.X);
+	public static Vector3d TriX_Y_ZPos(Vector3d v) => new(-v.Z, -v.X, v.Y);//Tri along 1, -1, -1
+	public static Vector3d TriX_Y_ZNeg(Vector3d v) => new(-v.Y, v.Z, -v.X);
 
-	public static Vector3 Tri_XY_ZPos(Vector3 v) => new(v.Z, -v.X, -v.Y);//Tri along -1, 1, -1
-	public static Vector3 Tri_XY_ZNeg(Vector3 v) => new(-v.Y, -v.Z, v.X);
+	public static Vector3d Tri_XY_ZPos(Vector3d v) => new(v.Z, -v.X, -v.Y);//Tri along -1, 1, -1
+	public static Vector3d Tri_XY_ZNeg(Vector3d v) => new(-v.Y, -v.Z, v.X);
 
-	public static Vector3 Tri_X_YZPos(Vector3 v) => new(-v.Z, v.X, -v.Y);//Tri along -1, -1, 1
-	public static Vector3 Tri_X_YZNeg(Vector3 v) => new(v.Y, -v.Z, -v.X);
-
-
-	public static Vector3 TetXPos(Vector3 v) => new(v.X, -v.Z, v.Y);
-	public static Vector3 TetXNeg(Vector3 v) => new(v.X, v.Z, -v.Y);
-	public static Vector3 TetYPos(Vector3 v) => new(v.Z, v.Y, -v.X);
-	public static Vector3 TetYNeg(Vector3 v) => new(-v.Z, v.Y, v.X);
-	public static Vector3 TetZPos(Vector3 v) => new(-v.Y, v.X, v.Z);
-	public static Vector3 TetZNeg(Vector3 v) => new(v.Y, -v.X, v.Z);
-
-	public static Vector3 HexZPos(Vector3 v) => new(v.X - v.Y, v.X, v.Z);
-	public static Vector3 HexZNeg(Vector3 v) => new(v.Y, -v.X + v.Y, v.Z);
-
-	public static Vector3 MirX(Vector3 v) => new(-v.X, v.Y, v.Z);
-	public static Vector3 MirY(Vector3 v) => new(v.X, -v.Y, v.Z);
-	public static Vector3 MirZ(Vector3 v) => new(v.X, v.Y, -v.Z);
-	public static Vector3 MirXY(Vector3 v) => new(-v.Y, -v.X, v.Z);
-	public static Vector3 MirX_Y(Vector3 v) => new(v.Y, v.X, v.Z);
-	public static Vector3 MirXZ(Vector3 v) => new(-v.Z, v.Y, -v.X);
-	public static Vector3 Mir_XZ(Vector3 v) => new(v.Z, v.Y, v.X);
-	public static Vector3 MirYZ(Vector3 v) => new(v.X, -v.Z, -v.Y);
-	public static Vector3 MirY_Z(Vector3 v) => new(v.X, v.Z, v.Y);
-	public static Vector3 MirXXY(Vector3 v) => new(v.X - v.Y, -v.Y, v.Z);//Seitz m(2 1 0)
-	public static Vector3 MirXYY(Vector3 v) => new(-v.X, -v.X + v.Y, v.Z);//Seitz m(1 2 0)
-
-	public static Vector3 Inv(Vector3 v) => new(-v.X, -v.Y, -v.Z);
-	// public static Vector3 InvTriXPos(Vector3 v) => new(-v.X, v.Z, -v.Y + v.Z); Unused
-	// public static Vector3 InvTriXNeg(Vector3 v) => new(-v.X, v.Y - v.Z, v.Y);
-	// public static Vector3 InvTriYPos(Vector3 v) => new(-v.X + v.Z, -v.Y, v.Z);
-	// public static Vector3 InvTriYNeg(Vector3 v) => new(v.X, -v.Y, v.X - v.Z);
-	public static Vector3 InvTriZPos(Vector3 v) => new(v.Y, -v.X + v.Y, -v.Z);
-	public static Vector3 InvTriZNeg(Vector3 v) => new(v.X - v.Y, v.X, -v.Z);
-
-	public static Vector3 InvTriXYZPos(Vector3 v) => new(-v.Z, -v.X, -v.Y);//Tri along 1, 1, 1
-	public static Vector3 InvTriXYZNeg(Vector3 v) => new(-v.Y, -v.Z, -v.X);
-
-	public static Vector3 InvTriX_Y_ZPos(Vector3 v) => new(v.Z, v.X, -v.Y);//Tri along 1, -1, -1
-	public static Vector3 InvTriX_Y_ZNeg(Vector3 v) => new(v.Y, -v.Z, v.X);
-
-	public static Vector3 InvTri_XY_ZPos(Vector3 v) => new(-v.Z, v.X, v.Y);//Tri along -1, 1, -1
-	public static Vector3 InvTri_XY_ZNeg(Vector3 v) => new(v.Y, v.Z, -v.X);
-
-	public static Vector3 InvTri_X_YZPos(Vector3 v) => new(v.Z, -v.X, v.Y);//Tri along -1, -1, 1
-	public static Vector3 InvTri_X_YZNeg(Vector3 v) => new(-v.Y, v.Z, v.X);
+	public static Vector3d Tri_X_YZPos(Vector3d v) => new(-v.Z, v.X, -v.Y);//Tri along -1, -1, 1
+	public static Vector3d Tri_X_YZNeg(Vector3d v) => new(v.Y, -v.Z, -v.X);
 
 
-	public static Vector3 InvTetXPos(Vector3 v) => new(-v.X, v.Z, -v.Y);
-	public static Vector3 InvTetXNeg(Vector3 v) => new(-v.X, -v.Z, v.Y);
-	public static Vector3 InvTetYPos(Vector3 v) => new(-v.Z, -v.Y, v.X);
-	public static Vector3 InvTetYNeg(Vector3 v) => new(v.Z, -v.Y, -v.X);
-	public static Vector3 InvTetZPos(Vector3 v) => new(v.Y, -v.X, -v.Z);
-	public static Vector3 InvTetZNeg(Vector3 v) => new(-v.Y, v.X, -v.Z);
+	public static Vector3d TetXPos(Vector3d v) => new(v.X, -v.Z, v.Y);
+	public static Vector3d TetXNeg(Vector3d v) => new(v.X, v.Z, -v.Y);
+	public static Vector3d TetYPos(Vector3d v) => new(v.Z, v.Y, -v.X);
+	public static Vector3d TetYNeg(Vector3d v) => new(-v.Z, v.Y, v.X);
+	public static Vector3d TetZPos(Vector3d v) => new(-v.Y, v.X, v.Z);
+	public static Vector3d TetZNeg(Vector3d v) => new(v.Y, -v.X, v.Z);
 
-	public static Vector3 InvHexZPos(Vector3 v) => new(-v.Y, v.X - v.Y, -v.Z);
-	public static Vector3 InvHexZNeg(Vector3 v) => new(-v.X + v.Y, -v.X, -v.Z);
+	public static Vector3d HexZPos(Vector3d v) => new(v.X - v.Y, v.X, v.Z);
+	public static Vector3d HexZNeg(Vector3d v) => new(v.Y, -v.X + v.Y, v.Z);
+
+	public static Vector3d MirX(Vector3d v) => new(-v.X, v.Y, v.Z);
+	public static Vector3d MirY(Vector3d v) => new(v.X, -v.Y, v.Z);
+	public static Vector3d MirZ(Vector3d v) => new(v.X, v.Y, -v.Z);
+	public static Vector3d MirXY(Vector3d v) => new(-v.Y, -v.X, v.Z);
+	public static Vector3d MirX_Y(Vector3d v) => new(v.Y, v.X, v.Z);
+	public static Vector3d MirXZ(Vector3d v) => new(-v.Z, v.Y, -v.X);
+	public static Vector3d Mir_XZ(Vector3d v) => new(v.Z, v.Y, v.X);
+	public static Vector3d MirYZ(Vector3d v) => new(v.X, -v.Z, -v.Y);
+	public static Vector3d MirY_Z(Vector3d v) => new(v.X, v.Z, v.Y);
+	public static Vector3d MirXXY(Vector3d v) => new(v.X - v.Y, -v.Y, v.Z);//Seitz m(2 1 0)
+	public static Vector3d MirXYY(Vector3d v) => new(-v.X, -v.X + v.Y, v.Z);//Seitz m(1 2 0)
+
+	public static Vector3d Inv(Vector3d v) => new(-v.X, -v.Y, -v.Z);
+	// public static Vector3d InvTriXPos(Vector3d v) => new(-v.X, v.Z, -v.Y + v.Z); Unused
+	// public static Vector3d InvTriXNeg(Vector3d v) => new(-v.X, v.Y - v.Z, v.Y);
+	// public static Vector3d InvTriYPos(Vector3d v) => new(-v.X + v.Z, -v.Y, v.Z);
+	// public static Vector3d InvTriYNeg(Vector3d v) => new(v.X, -v.Y, v.X - v.Z);
+	public static Vector3d InvTriZPos(Vector3d v) => new(v.Y, -v.X + v.Y, -v.Z);
+	public static Vector3d InvTriZNeg(Vector3d v) => new(v.X - v.Y, v.X, -v.Z);
+
+	public static Vector3d InvTriXYZPos(Vector3d v) => new(-v.Z, -v.X, -v.Y);//Tri along 1, 1, 1
+	public static Vector3d InvTriXYZNeg(Vector3d v) => new(-v.Y, -v.Z, -v.X);
+
+	public static Vector3d InvTriX_Y_ZPos(Vector3d v) => new(v.Z, v.X, -v.Y);//Tri along 1, -1, -1
+	public static Vector3d InvTriX_Y_ZNeg(Vector3d v) => new(v.Y, -v.Z, v.X);
+
+	public static Vector3d InvTri_XY_ZPos(Vector3d v) => new(-v.Z, v.X, v.Y);//Tri along -1, 1, -1
+	public static Vector3d InvTri_XY_ZNeg(Vector3d v) => new(v.Y, v.Z, -v.X);
+
+	public static Vector3d InvTri_X_YZPos(Vector3d v) => new(v.Z, -v.X, v.Y);//Tri along -1, -1, 1
+	public static Vector3d InvTri_X_YZNeg(Vector3d v) => new(-v.Y, v.Z, v.X);
+
+
+	public static Vector3d InvTetXPos(Vector3d v) => new(-v.X, v.Z, -v.Y);
+	public static Vector3d InvTetXNeg(Vector3d v) => new(-v.X, -v.Z, v.Y);
+	public static Vector3d InvTetYPos(Vector3d v) => new(-v.Z, -v.Y, v.X);
+	public static Vector3d InvTetYNeg(Vector3d v) => new(v.Z, -v.Y, -v.X);
+	public static Vector3d InvTetZPos(Vector3d v) => new(v.Y, -v.X, -v.Z);
+	public static Vector3d InvTetZNeg(Vector3d v) => new(-v.Y, v.X, -v.Z);
+
+	public static Vector3d InvHexZPos(Vector3d v) => new(-v.Y, v.X - v.Y, -v.Z);
+	public static Vector3d InvHexZNeg(Vector3d v) => new(-v.X + v.Y, -v.X, -v.Z);
 	#endregion
 }

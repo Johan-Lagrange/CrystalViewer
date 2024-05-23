@@ -1,13 +1,12 @@
-using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 public class Crystal
 {
-    public readonly List<Vector3>[] normals;
-    public readonly List<Plane> planes;
-    public readonly ArrayMesh mesh;
-    public readonly List<List<Vector3>> faceEdges;
+    public readonly List<Vector3d>[] normals;
+    public readonly List<Planed> planes;
+    public readonly List<List<Vector3d>> faces;
     /// <summary>
     /// Generates a mesh from a list of face normals and distances that will be duplicated according to symmetry. Generates a convex hull using halfspaces
     /// </summary>
@@ -36,7 +35,7 @@ public class Crystal
     /// 6. Generate normals, tangents, and tris for each trio of vertices, and use Godot's mesh builder to create a mesh from there.
     ///  </remarks>
     public Crystal(
-        Vector3[] initialFaces,
+        Vector3d[] initialFaces,
         float[] distances,
         SymmetryOperations.PointGroup pointGroup)
     {
@@ -44,8 +43,7 @@ public class Crystal
             throw new ArgumentException("Every initial face must be given a distance!");
 
         //TODO instead of JUST doing normals, also keep track of which original face they are a part of with a 2d array.
-        normals = new List<Vector3>[initialFaces.Length];//List of normals for each initial face that was duplicated by the symmetry group
-
+        normals = new List<Vector3d>[initialFaces.Length];//List of normals for each initial face that was duplicated by the symmetry group
         //Reflect every given face along the given symmetry group
         for (int i = 0; i < initialFaces.Length; i++)
         {
@@ -56,15 +54,16 @@ public class Crystal
 
         List<Vertex> vertices = GenerateVertices(planes);//Get all valid vertices on the crystal
 
-        Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces = GenerateEdges(vertices);//Create a dictionary that will take a plane and give an unordered list of each edge that makes up the plane's face
+        Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> edges = GenerateEdges(vertices);//Create a dictionary that will take a plane and give an unordered list of each edge that makes up the plane's face
 
-        faceEdges = new();//The final mesh that we are building. Contains the vertices of each face in order.
-        foreach (Dictionary<Vertex, AdjacentEdges> unorderedFace in faces.Values)
+        faces = new();//The final mesh that we are building. Contains the vertices of each face in order.
+        foreach (Dictionary<Vertex, AdjacentEdges> unorderedFace in edges.Values)
         {
-            List<Vector3> face = CreateFaceFromEdges(unorderedFace);
+            List<Vector3d> face = CreateFaceFromEdges(unorderedFace);
             if (face.Count >= 3)
-                faceEdges.Add(face);
+                faces.Add(face);
         }
+
     }
     /// <summary>
     /// Takes an initial vector and applies all point group operations on it, 
@@ -73,11 +72,10 @@ public class Crystal
     /// <param name="v">The initial vector to do symmetry stuff on</param>
     /// <param name="group">The crystal's point group. Used to get a list of operations</param>
     /// <returns>A list of vectors, including the original, that are made from the symmetry operations</returns>
-    public static List<Vector3> CreateCrystalSymmetry(Vector3 v, SymmetryOperations.PointGroup group)
+    public static List<Vector3d> CreateCrystalSymmetry(Vector3d v, SymmetryOperations.PointGroup group)
     {
-        List<Vector3> vectorList = new() { v };
-
-        foreach (Func<Vector3, Vector3> Operation in SymmetryOperations.PointGroupPositions[(int)group])
+        List<Vector3d> vectorList = new() { v };
+        foreach (Func<Vector3d, Vector3d> Operation in SymmetryOperations.PointGroupPositions[(int)group])
         {
             ApplyOperation(vectorList, Operation);
         }
@@ -91,8 +89,8 @@ public class Crystal
         {
             for (int j = 0; j < vectorList.Count; j++)
             {
-                Vector3 v2 = vectorList[j];
-                vectorList[j] = new Vector3(v2.X, -v2.Y, v2.Z);
+                Vector3d v2 = vectorList[j];
+                vectorList[j] = new Vector3d(v2.x, -v2.y, v2.z);
             }
         }
         return vectorList;
@@ -102,16 +100,16 @@ public class Crystal
     /// </summary>
     /// <param name="vectorList">List of vectors to operate upon and expand</param>
     /// <param name="symmetryOperation">The symmetry operation to do</param>
-    public static void ApplyOperation(List<Vector3> vectorList, Func<Vector3, Vector3> symmetryOperation)
+    public static void ApplyOperation(List<Vector3d> vectorList, Func<Vector3d, Vector3d> symmetryOperation)
     {
         int count = vectorList.Count;//Get the count before we add to the list so we aren't in an infinite loop
         for (int i = 0; i < count; i++)
         {
-            Vector3 v = symmetryOperation(vectorList[i]);
-            v = FormatVector3(v);
+            Vector3d v = symmetryOperation(vectorList[i]);
+            v = FormatVector3d(v);
 
             bool valid = true;
-            foreach (Vector3 vl in vectorList)
+            foreach (Vector3d vl in vectorList)
             {
                 if (v.IsEqualApprox(vl))
                 {
@@ -131,19 +129,19 @@ public class Crystal
     /// <param name="distances"></param>
     /// <param name="normals"></param>
     /// <returns></returns>
-    private static List<Plane> GeneratePlanes(Vector3[] initialFaces, float[] distances, List<Vector3>[] normals)
+    private static List<Planed> GeneratePlanes(Vector3d[] initialFaces, float[] distances, List<Vector3d>[] normals)
     {
-        List<Plane> planes = new();
+        List<Planed> planes = new();
         for (int givenFace = 0; givenFace < initialFaces.Length; givenFace++)
         {
-            List<Vector3> normalsList = normals[givenFace];
+            List<Vector3d> normalsList = normals[givenFace];
 
-            foreach (Vector3 normal in normalsList)//Verify and add planes for each type of normal
+            foreach (Vector3d normal in normalsList)//Verify and add planes for each type of normal
             {
-                Plane planeToAdd = new Plane(normal, distances[givenFace]);
-                List<Plane> planesToRemove = new();
+                Planed planeToAdd = new Planed(normal, distances[givenFace]);
+                List<Planed> planesToRemove = new();
                 bool valid = true;
-                foreach (Plane p in planes)
+                foreach (Planed p in planes)
                 {
                     if (planeToAdd.Normal.Normalized().Dot(p.Normal.Normalized()) > .9999f)//Skip adding duplicate plane
                     {
@@ -158,7 +156,7 @@ public class Crystal
                         }
                     }
                 }
-                foreach (Plane pp in planesToRemove)
+                foreach (Planed pp in planesToRemove)
                     planes.Remove(pp);//Remove faces that are behind(but same direction) the one we just added
 
                 if (valid)
@@ -176,7 +174,7 @@ public class Crystal
     /// </summary>
     /// <param name="planes">The planes to find the intersection points of.</param>
     /// <returns>A list of vertices with position and list of planes that intersect at that point. Can be more than three planes.</returns>
-    private static List<Vertex> GenerateVertices(List<Plane> planes)
+    private static List<Vertex> GenerateVertices(List<Planed> planes)
     {
         List<Vertex> vertices = new();//Create a vertex from every plane triplet and verify it is on the crystal
         for (int i = 0; i < planes.Count - 2; i++)
@@ -190,13 +188,13 @@ public class Crystal
                     || planes[j].Normal.Dot(-planes[k].Normal) > .9999f)
                         continue;
 
-                    Vector3? intersection = planes[i].Intersect3(planes[j], planes[k]);
+                    Vector3d? intersection = planes[i].Intersect3(planes[j], planes[k]);
 
                     if (intersection == null)//Only happens if two faces are parallel
                         continue;
-                    //intersection = FormatVector3((Vector3)intersection);
+                    //intersection = FormatVector3d((Vector3d)intersection);
 
-                    Vertex vertexToVerify = new((Vector3)intersection, planes[i], planes[j], planes[k]);
+                    Vertex vertexToVerify = new((Vector3d)intersection, planes[i], planes[j], planes[k]);
 
                     bool verified = VerifyVertex(planes, vertices, vertexToVerify);
                     if (verified)
@@ -204,6 +202,7 @@ public class Crystal
                 }
             }
         }
+
         return vertices;
     }
 
@@ -216,7 +215,7 @@ public class Crystal
     /// <param name="vertices">All existing verticies to check for duplicates against</param>
     /// <param name="vertexToVerify">The vertex we want to validate</param>
     /// <returns></returns>
-    private static bool VerifyVertex(List<Plane> planes, List<Vertex> vertices, Vertex vertexToVerify)
+    private static bool VerifyVertex(List<Planed> planes, List<Vertex> vertices, Vertex vertexToVerify)
     {
         if (vertexToVerify.point.IsZeroApprox())
             return false;
@@ -226,9 +225,9 @@ public class Crystal
 
         foreach (Vertex v in vertices)
         {
-            if ((v.point - vertexToVerify.point).LengthSquared() < .00001f)
+            if (v.point == vertexToVerify.point)
             {
-                //GD.Print("Merging point " + v.point + " with " + vertexToVerify.point);
+                // GD.Print("Merging point " + v.point + " with " + vertexToVerify.point);
                 v.MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
                 return false;//So we add the extra faces to one point and discard the other.
             }
@@ -241,9 +240,9 @@ public class Crystal
     /// </summary>
     /// <param name="vertices">The vertices to check for conections. A connection exists if two vertices share two planes</param>
     /// <returns>A dictionary that contains all surrounding edges (not in order) of each plane</returns>
-    private static Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> GenerateEdges(List<Vertex> vertices)
+    private static Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> GenerateEdges(List<Vertex> vertices)
     {
-        Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces = new();
+        Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> faces = new();
 
         for (int i = 0; i < vertices.Count - 1; i++)
         {
@@ -252,13 +251,13 @@ public class Crystal
                 if (vertices[i].point.IsEqualApprox(vertices[j].point))//Don't create an edge between a point and itself
                     continue;
 
-                List<Plane> sharedFaces = vertices[i].SharedFaces(vertices[j]);//Check for shared faces
-                if (sharedFaces.Count > 2)
-                    GD.PrintErr("Vertices share more than two faces!");
+                List<Planed> sharedFaces = vertices[i].SharedFaces(vertices[j]);//Check for shared faces
+                // if (sharedFaces.Count > 2)
+                //     // GD.PrintErr("Vertices share more than two faces!");
                 if (sharedFaces.Count >= 2)//If they share TWO faces, that means they have an edge together
                 {
-                    Plane p1 = sharedFaces[0];//First plane that we found a new edge on
-                    Plane p2 = sharedFaces[sharedFaces.Count - 1];//Second plane ^
+                    Planed p1 = sharedFaces[0];//First plane that we found a new edge on
+                    Planed p2 = sharedFaces[sharedFaces.Count - 1];//Second plane ^
                     Vertex v1 = vertices[i];//First vertex that makes up the edge
                     Vertex v2 = vertices[j];//Second vertex ^
 
@@ -270,48 +269,48 @@ public class Crystal
                     if (faces[p2].ContainsKey(v2) == false) faces[p2].Add(v2, new());
                     try
                     {
-                        //GD.Print(v1.point + "-" + v2.point);
-                        //GD.Print("Adding vertex on plane " + p1.Normal + " for vertex " + v1.point + " - " + v2.point);
+                        // GD.Print(v1.point + "-" + v2.point);
+                        // GD.Print("Adding vertex on plane " + p1.Normal + " for vertex " + v1.point + " - " + v2.point);
                         faces[p1][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 1
-                        //GD.Print("Adding vertex on plane " + p1.Normal + " for vertex " + v2.point + " - " + v1.point);
+                        // GD.Print("Adding vertex on plane " + p1.Normal + " for vertex " + v2.point + " - " + v1.point);
                         faces[p1][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 1
-                        //GD.Print("Adding vertex on plane " + p2.Normal + " for vertex " + v1.point + " - " + v2.point);
+                        // GD.Print("Adding vertex on plane " + p2.Normal + " for vertex " + v1.point + " - " + v2.point);
                         faces[p2][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 2
-                        //GD.Print("Adding vertex on plane " + p2.Normal + " for vertex " + v2.point + " - " + v1.point);
+                        // GD.Print("Adding vertex on plane " + p2.Normal + " for vertex " + v2.point + " - " + v1.point);
                         faces[p2][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 2
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
-                        GD.Print("Plane 1: " + p1.Normal);
-                        GD.Print("Plane 2: " + p2.Normal);
-                        GD.Print("Vertex 1: " + v1.point);
-                        GD.Print("Vertex 2: " + v2.point);
-                        GD.PrintErr(e.GetType() + e.Message);
-                        foreach (Plane p in faces.Keys)
-                        {
-                            GD.Print("Plane: " + p.Normal);
-                            foreach (Vertex v in faces[p].Keys)
-                            {
-                                string a = "", b = "";
-                                if (faces[p][v].a != null)
-                                    a = faces[p][v].a.point.ToString();
-                                if (faces[p][v].b != null)
-                                    b = faces[p][v].b.point.ToString();
-                                GD.PrintErr("Vertex: " + v.point + ", A: " + a + ", B: " + b);
-                            }
-                        }
+                        // // GD.Print("Plane 1: " + p1.Normal);
+                        // // GD.Print("Plane 2: " + p2.Normal);
+                        // // GD.Print("Vertex 1: " + v1.point);
+                        // // GD.Print("Vertex 2: " + v2.point);
+                        // // GD.PrintErr(e.GetType() + e.Message);
+                        // foreach (Plane p in faces.Keys)
+                        // {
+                        //     // GD.Print("Plane: " + p.Normal);
+                        //     foreach (Vertex v in faces[p].Keys)
+                        //     {
+                        //         string a = "", b = "";
+                        //         if (faces[p][v].a != null)
+                        //             a = faces[p][v].a.point.ToString();
+                        //         if (faces[p][v].b != null)
+                        //             b = faces[p][v].b.point.ToString();
+                        //         // GD.PrintErr("Vertex: " + v.point + ", A: " + a + ", B: " + b);
+                        //     }
+                        // }
                     }
                 }
             }
         }
 
-        List<Plane> facesToRemove = new();
-        foreach (Plane p in faces.Keys)
+        List<Planed> facesToRemove = new();
+        foreach (Planed p in faces.Keys)
         {
             if (faces[p].Count < 3)//Generated an invalid polygon
                 facesToRemove.Add(p);//So we remove it later
         }
-        foreach (Plane p in facesToRemove)
+        foreach (Planed p in facesToRemove)
             faces.Remove(p);
         return faces;
     }
@@ -321,9 +320,9 @@ public class Crystal
     /// </summary>
     /// <param name="face">The list of vertices and adjacents that make up the face</param>
     /// <returns>The list of vertices in order around a face</returns>
-    private static List<Vector3> CreateFaceFromEdges(Dictionary<Vertex, AdjacentEdges> face, bool clockwise = false)
+    private static List<Vector3d> CreateFaceFromEdges(Dictionary<Vertex, AdjacentEdges> face, bool clockwise = false)
     {
-        List<Vector3> edges = new();//list of vertices around the perimeter of the face
+        List<Vector3d> edges = new();//list of vertices around the perimeter of the face
         Vertex start = face.First().Key;//Arbitrary first vertex
         Vertex here = face[start].a;//Arbitrary vertex adjacent to first vertex
         Vertex tmpNext;
@@ -343,13 +342,13 @@ public class Crystal
 
             if (here == null)
             {
-                GD.PrintErr("Hit broken edge");
+                // GD.PrintErr("Hit broken edge");
                 return edges;
             }
             if (count++ > 20)
             {
-                GD.PrintErr("Infinite loop in edge creation");
-                return edges;
+                // GD.PrintErr("Infinite loop in edge creation");
+                return edges;//TODO throw error here
             }
         }
 
@@ -364,17 +363,17 @@ public class Crystal
     /// <summary>
     /// Intended to remove -0 from vectors
     /// </summary>
-    public static Vector3 FormatVector3(Vector3 v, float tolerance = 0.00001f)
+    public static Vector3d FormatVector3d(Vector3d v, double tolerance = 0.00001f)
     {
-        float x = v.X * v.X < tolerance ? 0 : v.X;
-        float y = v.Y * v.Y < tolerance ? 0 : v.Y;
-        float z = v.Z * v.Z < tolerance ? 0 : v.Z;
-        return new Vector3(x, y, z);
+        double x = v.x * v.x < tolerance ? 0 : v.x;
+        double y = v.y * v.y < tolerance ? 0 : v.y;
+        double z = v.z * v.z < tolerance ? 0 : v.z;
+        return new Vector3d(x, y, z);
     }
 
-    public static bool IsInMesh(List<Plane> planes, Vector3 v, float tolerance = .00001f)
+    public static bool IsInMesh(List<Planed> planes, Vector3d v, double tolerance = .00001f)
     {
-        foreach (Plane p in planes)
+        foreach (Planed p in planes)
         {
             if (p.DistanceTo(v) > tolerance)//Vertex is in front of a face and therefore not on the crystal. Or it's concave and this is broken.
                 return false;
@@ -390,7 +389,7 @@ public class Crystal
     /// <param name="b"></param>
     /// <param name="c"></param>
     /// <returns></returns>
-    public static float CalculateTriangleArea(Vector3 a, Vector3 b, Vector3 c)
+    public static double CalculateTriangleArea(Vector3d a, Vector3d b, Vector3d c)
     {
         return (b - a).Cross(c - a).Length() / 2;
     }
@@ -400,12 +399,12 @@ public class Crystal
     /// </summary>
     /// <param name="vertices">The list of vertices that defines the face</param>
     /// <returns>The area of the face</returns>
-    public static float CalculateFaceArea(List<Vector3> vertices, Basis b)
+    public static double CalculateFaceArea(List<Vector3d> vertices, Vector3d[] b)
     {
         if (vertices.Count < 3)
             return 0;
 
-        float total = 0;
+        double total = 0;
         for (int i = 1; i <= vertices.Count - 2; i++)
             total += CalculateTriangleArea(b * vertices[0], b * vertices[i], b * vertices[i + 1]);
         return total;
@@ -418,11 +417,11 @@ public class Crystal
     /// </summary>
     /// <param name="faces"> list of faces, each face is a list of vertices</param>
     /// <returns>The surface area of this solid</returns>
-    public static float CalculateSurfaceArea(List<List<Vector3>> faces, Basis b)
+    public static double CalculateSurfaceArea(List<List<Vector3d>> faces, Vector3d[] b)
     {
-        float sur = 0;
-        float faceArea = 0;
-        foreach (List<Vector3> face in faces)
+        double sur = 0;
+        double faceArea = 0;
+        foreach (List<Vector3d> face in faces)
             faceArea += CalculateFaceArea(face, b);
         return sur + faceArea;
     }
@@ -433,17 +432,17 @@ public class Crystal
     /// </summary>
     /// <param name="faces">A list of faces, each face is a list of vertices</param>
     /// <returns>The volume of this solid</returns>
-    public static float CalculateVolume(List<List<Vector3>> faces, Basis b)//TODO multiply all vectors by basis
+    public static double CalculateVolume(List<List<Vector3d>> faces, Vector3d[] b)//TODO multiply all vectors by basis
     {
-        float total = 0;
-        foreach (List<Vector3> face in faces)
+        double total = 0;
+        foreach (List<Vector3d> face in faces)
             total += (b * GetAverageVertex(face)).Dot(CalculateNormal(face[0], face[1], face[2], b) * CalculateFaceArea(face, b));
-        return Mathf.Abs(total) / 3;
+        return Math.Abs(total) / 3;
     }
-    public static Vector3 GetAverageVertex(List<Vector3> vertices)
+    public static Vector3d GetAverageVertex(List<Vector3d> vertices)
     {
-        Vector3 total = new();
-        foreach (Vector3 v in vertices)
+        Vector3d total = new();
+        foreach (Vector3d v in vertices)
             total += v;
         return total / vertices.Count;
     }
@@ -453,18 +452,18 @@ public class Crystal
     /// Checks if a, b, c, are ordered in clockwise order
     /// </summary>
     /// <returns>True if a, b, c are in clockwise order</returns>
-    public static bool IsClockwise(Vector3 a, Vector3 b, Vector3 c)
+    public static bool IsClockwise(Vector3d a, Vector3d b, Vector3d c)
     {
-        Vector3 normal = (b - a).Cross(c - a);
+        Vector3d normal = (b - a).Cross(c - a);
         return normal.Dot(a) > 0;
     }
-    public static Vector3 CalculateNormal(Vector3 a, Vector3 b, Vector3 c, Basis basis)
+    public static Vector3d CalculateNormal(Vector3d a, Vector3d b, Vector3d c, Vector3d[] m)
     {
-        return CalculateNormal(basis * a, basis * b, basis * c);
+        return CalculateNormal(m * a, m * b, m * c);
     }
-    public static Vector3 CalculateNormal(Vector3 a, Vector3 b, Vector3 c)
+    public static Vector3d CalculateNormal(Vector3d a, Vector3d b, Vector3d c)
     {
-        Vector3 normal = (c - a).Cross(b - a).Normalized();
+        Vector3d normal = (c - a).Cross(b - a).Normalized();
         if (normal.Dot(a) < 0)
             normal = -normal;
         return normal.Normalized();
@@ -477,8 +476,8 @@ public class Crystal
     /// </summary>
     /// <param name="fileName">Name of the file to save to</param>
     /// <param name="mesh">Crystal mesh, not transformed by any crystal parameters</param>
-    /// <param name="basis">Crystal parameters to transform the mesh by</param>
-    public static void ExportSTL(string fileName, ArrayMesh mesh, Basis basis)
+    /// <param name="m">Crystal parameters to transform the mesh by</param>
+    public void ExportSTL(string fileName, Vector3d[] m)
     {
         //https://docs.godotengine.org/en/stable/tutorials/io/saving_games.html
         /*
@@ -487,7 +486,7 @@ public class Crystal
             outer loop
                 vertex v1x v1y v1z
                 vertex v2x v2y v2z
-                vertex v3x v3y v3z
+                vertex v3x v3y v3z //CAN ONLY do tris
             endloop
         endfacet
         endsolid [name]*/
@@ -495,32 +494,40 @@ public class Crystal
         if (fileName.EndsWith(".stl") == false)
             fileName += ".stl";
 
-        using FileAccess file = FileAccess.Open(fileName, FileAccess.ModeFlags.Write);
+        using System.IO.StreamWriter writer = new System.IO.StreamWriter(fileName);
 
-        Vector3[] faces = mesh.GetFaces();//Every 3 vertices is a new tri
-
-        for (int i = 0; i < faces.Length; i++)
-            faces[i] = basis * faces[i];
-
-
-        file.StoreLine("solid " + fileName.Substring(0, fileName.Length - 4));//Trim out .stl tag
-        for (int i = 0; i < faces.Length - 2; i += 3)
+        List<Vector3d> faces = new List<Vector3d>();//Every 3 vertices is a new tri
+        foreach (List<Vector3d> face in this.faces)
         {
-            Vector3 v1 = faces[i];
-            Vector3 v2 = faces[i + 1];
-            Vector3 v3 = faces[i + 2];//these 3 are one tri in the mesh
-
-            Vector3 normal = CalculateNormal(v1, v2, v3);
-
-            file.StoreLine("facet normal " + normal.X + " " + normal.Y + " " + normal.Z);
-            file.StoreLine("\touter loop");
-            file.StoreLine("\t\t vertex " + v1.X + " " + v1.Y + " " + v1.Z);
-            file.StoreLine("\t\t vertex " + v2.X + " " + v2.Y + " " + v2.Z);
-            file.StoreLine("\t\t vertex " + v3.X + " " + v3.Y + " " + v3.Z);
-            file.StoreLine("\tendloop");
-            file.StoreLine("endfacet");
+            for (int i = 1; i < face.Count - 2; i++)
+            {
+                faces.Add(face[0]);
+                faces.Add(face[i]);
+                faces.Add(face[i + 1]);
+            }
         }
-        file.StoreLine("endsolid " + fileName);
+        for (int i = 0; i < faces.Count; i++)
+            faces[i] = m * faces[i];
+
+
+        writer.WriteLine("solid " + fileName.Substring(0, fileName.Length - 4));//Trim out .stl tag
+        for (int i = 0; i < faces.Count - 2; i += 3)
+        {
+            Vector3d v1 = faces[i];
+            Vector3d v2 = faces[i + 1];
+            Vector3d v3 = faces[i + 2];//these 3 are one tri in the mesh
+
+            Vector3d normal = CalculateNormal(v1, v2, v3);
+
+            writer.WriteLine("facet normal " + normal.X + " " + normal.Y + " " + normal.Z);
+            writer.WriteLine("\touter loop");
+            writer.WriteLine("\t\t vertex " + v1.X + " " + v1.Y + " " + v1.Z);
+            writer.WriteLine("\t\t vertex " + v2.X + " " + v2.Y + " " + v2.Z);
+            writer.WriteLine("\t\t vertex " + v3.X + " " + v3.Y + " " + v3.Z);
+            writer.WriteLine("\tendloop");
+            writer.WriteLine("endfacet");
+        }
+        writer.WriteLine("endsolid " + fileName);
     }
 
     /// <summary>
@@ -528,8 +535,8 @@ public class Crystal
     /// </summary>
     /// <param name="fileName">Name of the file to save to</param>
     /// <param name="mesh">Crystal mesh, not transformed by any crystal parameters</param>
-    /// <param name="basis">Crystal parameters to transform the mesh by</param>
-    public static void ExportOBJ(string fileName, ArrayMesh mesh, Basis basis)
+    /// <param name="m">Crystal parameters to transform the mesh by</param>
+    public void ExportOBJ(string fileName, Vector3d[] m)
     {
         //https://docs.godotengine.org/en/stable/tutorials/io/saving_games.html
         //https://en.wikipedia.org/wiki/Wavefront_.obj_file
@@ -545,60 +552,68 @@ public class Crystal
         if (fileName.EndsWith(".obj") == false)
             fileName += ".obj";
 
-        using FileAccess file = FileAccess.Open(fileName, FileAccess.ModeFlags.Write);
+        using System.IO.StreamWriter writer = new System.IO.StreamWriter(fileName);
 
-        Vector3[] faces = mesh.GetFaces();//Every 3 vertices is a new tri
+        List<List<Vector3d>> faces = new List<List<Vector3d>>();
 
-        for (int i = 0; i < faces.Length; i++)
-            faces[i] = basis * faces[i];
+        foreach (List<Vector3d> face in faces)
+        {
+            List<Vector3d> newFace = new List<Vector3d>();
+            foreach (Vector3d v in face)
+                newFace.Add(m * v);//Apply matrix transform while adding
+            faces.Add(newFace);
+        }
 
         //Index each vertex and normal
         int vertexIndex = 1, normalIndex = 1;
-        Dictionary<Vector3, int> vertexDict = new Dictionary<Vector3, int>();
-        Dictionary<Vector3, int> normalDict = new Dictionary<Vector3, int>();
-        foreach (Vector3 v in faces)
+        Dictionary<Vector3d, int> vertexDict = new Dictionary<Vector3d, int>();
+        Dictionary<Vector3d, int> normalDict = new Dictionary<Vector3d, int>();
+        foreach (List<Vector3d> face in faces)
         {
-            if (vertexDict.ContainsKey(v) == false)
-                vertexDict.Add(v, vertexIndex++);
+            foreach (Vector3d v in face)
+            {
+                if (vertexDict.ContainsKey(v) == false)
+                    vertexDict.Add(v, vertexIndex++);
+            }
         }
         //Creates an alias for each normal. We go by 3 since every 3 vertices is a surface triangle
-        for (int i = 0; i < faces.Length - 2; i += 3)
+        foreach (List<Vector3d> face in faces)
         {
-            Vector3 normal = CalculateNormal(faces[i], faces[i + 1], faces[i + 2]);
+            Vector3d normal = CalculateNormal(face[0], face[1], face[2]);
 
             if (normalDict.ContainsKey(normal) == false)
                 normalDict.Add(normal, normalIndex++);
         }
 
 
-        file.StoreLine("o " + fileName.Substring(0, fileName.Length - 4));//Trim out .obj tag
+        writer.WriteLine("o " + fileName.Substring(0, fileName.Length - 4));//Trim out .obj tag
 
         //Create list of vertices and normals in file
-        foreach (Vector3 v in vertexDict.Keys)
-            file.StoreLine($"v {v.X} {v.Y} {v.Z} #v{vertexDict[v]}");
-        foreach (Vector3 n in normalDict.Keys)
-            file.StoreLine($"vn {n.X} {n.Y} {n.Z} #v{normalDict[n]}");
+        foreach (Vector3d v in vertexDict.Keys)
+            writer.WriteLine($"v {v.X} {v.Y} {v.Z} #v{vertexDict[v]}");
+        foreach (Vector3d n in normalDict.Keys)
+            writer.WriteLine($"vn {n.X} {n.Y} {n.Z} #v{normalDict[n]}");
 
-        file.StoreLine("s " + 0);//Surface number 0
+        writer.WriteLine("s " + 0);//Surface number 0
 
-        for (int i = 0; i < faces.Length - 2; i += 3)
+        foreach (List<Vector3d> face in faces)
         {
             //Yes this is redundant. But we have to create an alias for each vertex before we use it
-            Vector3 v1 = faces[i];
-            Vector3 v2 = faces[i + 1];
-            Vector3 v3 = faces[i + 2];//these 3 are one tri in the mesh
+            Vector3d v1 = face[0];
+            Vector3d v2 = face[1];
+            Vector3d v3 = face[2];//these 3 are one tri in the mesh
 
-            Vector3 normal = CalculateNormal(v1, v2, v3);
-            if (normal == Vector3.Zero)
-                GD.Print($"v1: {v1} v2: {v2} v3: {v3} norm: {normal} i: {i} count: {faces.Length}");
+            Vector3d normal = CalculateNormal(v1, v2, v3);
+
             int n = normalDict[normal];
 
             //A .obj face is structured like this:
             //f vertex1/texturecoords1/normal1 vertex2...
             //We skip texturecoords by doing vertex1//normal1
-            //we COULD add more vertices per face instead of just building tris
-            //But "mesh.GetFaces" only returns tris and I dont want to find like surfaces.
-            file.StoreLine($"f {vertexDict[v1]}//{n} {vertexDict[v2]}//{n} {vertexDict[v3]}//{n}");
+            string s = "f";
+            for (int i = 0; i < face.Count; i++)//Add vertex and normal for each vertex on face
+                s += $" {vertexDict[face[i]]}//{n}";//The leading space is intentional
+            writer.WriteLine(s);
         }
     }
 
@@ -607,10 +622,10 @@ public class Crystal
     /// </summary>
     private class Vertex
     {
-        public Vector3 point;
-        public List<Plane> planes = new();
+        public Vector3d point;
+        public List<Planed> planes = new();
 
-        public Vertex(Vector3 p, Plane plane1, Plane plane2, Plane plane3)
+        public Vertex(Vector3d p, Planed plane1, Planed plane2, Planed plane3)
         {
             point = p;
             planes.Add(plane1);
@@ -622,9 +637,9 @@ public class Crystal
         /// </summary>
         /// <param name="other">Vertex to check for shared vertices</param>
         /// <returns>the list of shared vertices</returns>
-        public List<Plane> SharedFaces(Vertex other)
+        public List<Planed> SharedFaces(Vertex other)
         {
-            List<Plane> sharedFaces = new();
+            List<Planed> sharedFaces = new();
             for (int i = 0; i < planes.Count; i++)
             {
                 for (int j = 0; j < other.planes.Count; j++)
@@ -641,9 +656,9 @@ public class Crystal
         /// <param name="other">The duplicate vertex formed by a slightly different set of faces</param>
         public void MergeVertices(Vertex other)
         {
-            foreach (Plane p in other.planes)
+            foreach (Planed p in other.planes)
             {
-                //GD.Print(p.Normal);
+                // GD.Print(p.Normal);
                 if (!planes.Contains(p))
                     planes.Add(p);
             }
@@ -686,39 +701,39 @@ public class Crystal
     }
 
     #region debug
-    private static void DebugPrintVertexAdjacentEdges(Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces)
-    {
-        foreach (Plane p in faces.Keys)
-        {
-            GD.Print("Plane: " + p.Normal);
-            foreach (Vertex v in faces[p].Keys)
-            {
-                string a = "", b = "";
-                if (faces[p][v].a != null)
-                    a = faces[p][v].a.point.ToString();
-                if (faces[p][v].b != null)
-                    b = faces[p][v].b.point.ToString();
-                GD.Print("Vertex: " + v.point + ", A: " + a + ", B: " + b);
-            }
-        }
-    }
+    // private static void DebugPrintVertexAdjacentEdges(Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces)
+    // {
+    //     foreach (Planed p in faces.Keys)
+    //     {
+    //         // GD.Print("Plane: " + p.Normal);
+    //         foreach (Vertex v in faces[p].Keys)
+    //         {
+    //             string a = "", b = "";
+    //             if (faces[p][v].a != null)
+    //                 a = faces[p][v].a.point.ToString();
+    //             if (faces[p][v].b != null)
+    //                 b = faces[p][v].b.point.ToString();
+    //             // GD.Print("Vertex: " + v.point + ", A: " + a + ", B: " + b);
+    //         }
+    //     }
+    // }
 
-    private static void DebugPrintPlanesWithVertices(List<Plane> planes, List<Vertex> vertices)
-    {
-        string s = "Planes: ";
-        foreach (Plane p in planes)
-            s += p.Normal + ", ";
-        GD.Print(s);
-        foreach (Vertex v in vertices)
-        {
-            s = "Vertices: ";
-            s += v.point + ":";
-            foreach (Plane p in v.planes)
-            {
-                s += p.Normal + "; ";
-            }
-            GD.Print(s);
-        }
-    }
+    // private static void DebugPrintPlanesWithVertices(List<Planed> planes, List<Vertex> vertices)
+    // {
+    //     string s = "Planes: ";
+    //     foreach (Planed p in planes)
+    //         s += p.Normal + ", ";
+    //     // GD.Print(s);
+    //     foreach (Vertex v in vertices)
+    //     {
+    //         s = "Vertices: ";
+    //         s += v.point + ":";
+    //         foreach (Plane p in v.planes)
+    //         {
+    //             s += p.Normal + "; ";
+    //         }
+    //         // GD.Print(s);
+    //     }
+    // }
     #endregion debug
 }
