@@ -42,15 +42,23 @@ public class Crystal
         if (distances.Length != initialFaces.Length)
             throw new ArgumentException("Every initial face must be given a distance!");
 
-        //TODO instead of JUST doing normals, also keep track of which original face they are a part of with a 2d array.
-        normals = new List<Vector3d>[initialFaces.Length];//List of normals for each initial face that was duplicated by the symmetry group
-        //Reflect every given face along the given symmetry group
-        for (int i = 0; i < initialFaces.Length; i++)
+        List<Vector3d> validFaces = new List<Vector3d>();
+        foreach (Vector3d v in initialFaces)
         {
-            normals[i] = CreateCrystalSymmetry(initialFaces[i].Normalized(), pointGroup);//Reflects every normal along the given point group's symmetry.
+            if (v.IsZeroApprox() == false)
+                validFaces.Add(v);
         }
 
-        planes = GeneratePlanes(initialFaces, distances, normals);//Create a plane with distance from center for every generated normal
+        //TODO instead of JUST doing normals, also keep track of which original face they are a part of with a 2d array.
+        normals = new List<Vector3d>[validFaces.Count];//List of normals for each initial face that was duplicated by the symmetry group
+
+        //Reflect every given face along the given symmetry group
+        for (int i = 0; i < normals.Length; i++)
+        {
+            normals[i] = CreateCrystalSymmetry(validFaces[i].Normalized(), pointGroup);//Reflects every normal along the given point group's symmetry.
+        }
+
+        planes = GeneratePlanes(validFaces.ToArray(), distances, normals);//Create a plane with distance from center for every generated normal
 
         List<Vertex> vertices = GenerateVertices(planes);//Get all valid vertices on the crystal
 

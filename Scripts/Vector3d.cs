@@ -28,19 +28,78 @@ public struct Vector3d
             throw new ArgumentException("Was given NaN as value!");
         this.x = x; this.y = y; this.z = z;
     }
+    /// <summary>
+    /// Returns Squared distance of this vector from the origin. 
+    /// Best used for relative comparisons, and is faster than normal Length()
+    /// </summary>
+    /// <returns>The length of this vector, squared</returns>
     public double LengthSquared() => x * x + y * y + z * z;
+    /// <summary>
+    /// Returns the distance of this vector from the origin
+    /// Note: For relative comparisons, use LengthSquared(), since it is faster
+    /// </summary>
+    /// <returns>The length of this vector</returns>
     public double Length() => Math.Sqrt(LengthSquared());
+    /// <summary>
+    /// Returns the squared distance between this vector and the other
+    /// Best used for relative comparisons, and is faster than normal DistanceTo()
+    /// </summary>
+    /// <param name="other">The vector to find the distance to</param>
+    /// <returns>The distance between this vector and the other</returns>
+    public double SqrDistanceTo(Vector3d other) => SqrDistance(this, other);
+    /// <summary>
+    /// Returns the distance between this vector and the other    
+    /// Note: For relative comparisons, use SqrDistanceTo(), since it is faster
+    /// </summary>
+    /// <param name="other">The vector to find the distance to</param>
+    /// <returns>The distance between this vector and the other</returns>
     public double DistanceTo(Vector3d other) => Distance(this, other);
+    /// <summary>
+    /// Returns the scalar dot product of this vector and the other. Is commutative.    
+    /// The dot product is how much two vectors "Agree" with each other. 
+    /// If they align it is >0, if they are perpendicular it is 0, if they do not align it is <0
+    /// If they align perfectly it is |a| * |b|
+    /// If the second vector is normalized(|b| == 1) then the dot product can be thought of as a projection onto it.
+    /// </summary>
+    /// <param name="other">The vector to calculte the dot product with</param>
+    /// <returns>The dot product of of the two vectors.</returns>
+    /// <remarks>
+    /// We use a.x * b.x + a.y * b.y + a.z * b.z for this, 
+    /// though |a|*|b|*cos(angle between the two) is clearer mathematically
+    /// </remarks>
     public double Dot(Vector3d other) => Dot(this, other);
+    /// <summary>
+    /// Returns the vector cross product of this vector and the other. 
+    /// Is anti-commutative, so flipping inputs returns the result * -1.
+    /// The cross product returns a perpendicular vector whose length is the area of the parallelegram of the two input vectors.
+    /// If a, b are colinear, the cross product has a magnitude of zero.
+    /// If a, b are perpendicular, the cross product has a magnitude of |a| * |b|
+    /// </summary>
+    /// <param name="other">The vector to calculate the cross product with</param>
+    /// <returns>The cross product of the two vectors</returns>
+    /// <remarks>The formula is (a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x)</remarks>
     public Vector3d Cross(Vector3d other) => Cross(this, other);
+    /// <summary>
+    /// Returns this vector with a length of 1, or (0,0,0) if it already has a length of zero
+    /// </summary>
+    /// <returns>Returns this vector with a length of 1, or (0,0,0) if it already has a length of zero</returns>
     public Vector3d Normalized()
     {
         double l = Length();
-        if (Length() == 0)
+        if (Length() < threshold)//I could do this branchless, but the compiler likely already does
             return this;
         return this / Length();
     }
+    /// <summary>
+    /// Returns true if these two vectors are approximately equal. The equality operator does this anyway.
+    /// </summary>
+    /// <param name="other">The vector to check equalitty with</param>
+    /// <returns>Returns true if these two vectors are approximately equal.</returns>
     public bool IsEqualApprox(Vector3d other) => IsEqualApprox(this, other);
+    /// <summary>
+    /// Returns true if this vector is approximately equal
+    /// </summary>
+    /// <returns>Returns true if this vector is approximately equal</returns>
     public bool IsZeroApprox() => IsZeroApprox(this);
 
     public static double Distance(Vector3d a, Vector3d b) => (a - b).Length();
@@ -67,12 +126,12 @@ public struct Vector3d
     /// <summary>
     /// Basis/Linear transformation
     /// </summary>
-    /// <param name="m">Basis matrix to multiply with</param>
+    /// <param name="m">3x3 Basis matrix to multiply with</param>
     /// <param name="v">Vector to transform</param>
     /// <returns>Transformed vector</returns>
     public static Vector3d operator *(Vector3d[] m, Vector3d v)
     {
-        if (m.Length < 3)
+        if (m.Length != 3)
             throw new ArgumentException("Must be a 3x3 matrix!");
         return m[0] * v.x + m[1] * v.y + m[2] * v.z;
     }
