@@ -115,7 +115,7 @@ public static class SymmetryOperations
 	/// The list of EVERY POSSIBLE OPERATION within a point group that will yield the same shape back.
 	/// All are callable as functions
 	/// </summary>
-	/// <value></value>
+	/// <value>The list of symmetry operation functions to run to generate the given point group</value>
 	public static readonly Func<Vector3d, Vector3d>[][] PointGroupPositions =
 	{
 		new[] {Identity}, //Null
@@ -173,8 +173,9 @@ public static class SymmetryOperations
 	/// <summary>
 	/// The list of callable operations that will generate a point group. 
 	/// Yields the same result as PointGroupPositions with far fewer operations, as most can be redundant.
+	/// An extreme example is 47 operations vs 5 for MBarThreeM
 	/// </summary>
-	/// <value></value>
+	/// <value>The list of symmetry operation functions to run to generate the given point group</value>
 	public static readonly Func<Vector3d, Vector3d>[][] PointGroupOperations =
 	{
 		new[] {Identity},//0

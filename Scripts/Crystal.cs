@@ -117,7 +117,7 @@ public class Crystal
             v = FormatVector3d(v);
 
             bool valid = true;
-            foreach (Vector3d vl in vectorList)
+            foreach (Vector3d vl in vectorList)//Avoid creating duplicatet vectors
             {
                 if (v.IsEqualApprox(vl))
                 {
@@ -487,10 +487,9 @@ public class Crystal
     /// <param name="m">Crystal parameters to transform the mesh by</param>
     public void ExportSTL(string fileName, Vector3d[] m)
     {
-        //https://docs.godotengine.org/en/stable/tutorials/io/saving_games.html
         /*
         solid [name]
-        facet normal ni nj nk
+        facet normal nx ny nz
             outer loop
                 vertex v1x v1y v1z
                 vertex v2x v2y v2z
@@ -505,12 +504,13 @@ public class Crystal
         using System.IO.StreamWriter writer = new System.IO.StreamWriter(fileName);
 
         List<Vector3d> transformedFaces = new List<Vector3d>();//Every 3 vertices is a new tri
-        foreach (List<Vector3d> face in this.faces)
+
+        foreach (List<Vector3d> face in this.faces)//Vertices are currently in a "loop" around the face
         {
             for (int i = 1; i < face.Count - 1; i++)
             {
-                transformedFaces.Add(face[0]);
-                transformedFaces.Add(face[i]);
+                transformedFaces.Add(face[0]);//Create a "fan shaped" sequence of tris that cover the 
+                transformedFaces.Add(face[i]);//entire loop
                 transformedFaces.Add(face[i + 1]);
             }
         }
@@ -546,15 +546,15 @@ public class Crystal
     /// <param name="m">Crystal parameters to transform the mesh by</param>
     public void ExportOBJ(string fileName, Vector3d[] m)
     {
-        //https://docs.godotengine.org/en/stable/tutorials/io/saving_games.html
         //https://en.wikipedia.org/wiki/Wavefront_.obj_file
         /*
         o (name)
-        v x y z
-        n x y z
-        f v1 v2 v3 v4... <- mesh.GetFaces() only does tris so we export 3 at a time
-        f v1/uv1/n1 v2/uv2/n2 v3/uv3/n3
-        f v1//n1 v2//n2 v3//n3 <- we use normals but not UVs so we we use this
+        v x y z <- referenced as 1
+        v x y z <- referenced as 2
+        n x y z <- referenced as 1
+        f v1 v2 v3 v4... 
+        f v1/uv1/n1 v2/uv2/n2 v3/uv3/n3...
+        f v1//n1 v2//n2 v3//n3... <- we use normals but not UVs so we leave the UV slot empty
         */
 
         if (fileName.EndsWith(".obj") == false)
