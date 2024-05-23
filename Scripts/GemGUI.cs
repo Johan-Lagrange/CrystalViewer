@@ -62,11 +62,11 @@ public partial class GemGUI : Control
 
 	public void ExportSTL(string output)
 	{
-		Crystal.ExportSTL(output, (ArrayMesh)crystal.Mesh, crystal.Basis);
+		crystal.ExportSTL(output);
 	}
 	public void ExportOBJ(string output)
 	{
-		Crystal.ExportOBJ(output, (ArrayMesh)crystal.Mesh, crystal.Basis);
+		crystal.ExportOBJ(output);
 	}
 	public void GetDragInput(InputEvent @event)
 	{
@@ -224,7 +224,7 @@ public partial class GemGUI : Control
 		listItem.SetValues(Vector3.One, 1);
 		SetNormals(listItem.index, listItem.vector, listItem.distance);
 
-		h.ValueChanged += listItem.SetX;
+		h.ValueChanged += listItem.SetX;//Callback methods to update when number is changed
 		k.ValueChanged += listItem.SetY;
 		l.ValueChanged += listItem.SetZ;
 		d.ValueChanged += listItem.SetDistance;

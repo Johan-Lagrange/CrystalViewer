@@ -6,7 +6,7 @@ using System;
 /// 1) I don't want to
 /// 2) reimplementing it here allows us to make the crystal program more portable 
 /// </summary>
-public class Vector3d
+public struct Vector3d
 {
     public static Vector3d Zero { get => new(0, 0, 0); }
     public static Vector3d One { get => new(1, 1, 1); }
@@ -24,6 +24,8 @@ public class Vector3d
     public Vector3d() { this.x = 0; this.y = 0; this.z = 0; }
     public Vector3d(double x, double y, double z)
     {
+        if (x is double.NaN || y is double.NaN || z is double.NaN)
+            throw new ArgumentException("Was given NaN as value!");
         this.x = x; this.y = y; this.z = z;
     }
     public double LengthSquared() => x * x + y * y + z * z;
@@ -31,14 +33,20 @@ public class Vector3d
     public double DistanceTo(Vector3d other) => Distance(this, other);
     public double Dot(Vector3d other) => Dot(this, other);
     public Vector3d Cross(Vector3d other) => Cross(this, other);
-    public Vector3d Normalized() => this / Length();
+    public Vector3d Normalized()
+    {
+        double l = Length();
+        if (Length() == 0)
+            return this;
+        return this / Length();
+    }
     public bool IsEqualApprox(Vector3d other) => IsEqualApprox(this, other);
     public bool IsZeroApprox() => IsZeroApprox(this);
 
     public static double Distance(Vector3d a, Vector3d b) => (a - b).Length();
     public static double SqrDistance(Vector3d a, Vector3d b) => (a - b).LengthSquared();
     public static double Dot(Vector3d a, Vector3d b) => a.x * b.x + a.y * b.y + a.z * b.z;
-    public static Vector3d Cross(Vector3d a, Vector3d b) => new(a.y * b.z - a.z * b.y, a.x * b.z - a.z * b.x, a.x * b.y - a.y * b.x);
+    public static Vector3d Cross(Vector3d a, Vector3d b) => new(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
     public static bool IsEqualApprox(Vector3d a, Vector3d b) => a == b;
     public static bool IsExactlyEqual(Vector3d a, Vector3d b) => a.x == b.x && a.y == b.y && a.z == b.z;
     public static bool IsZeroApprox(Vector3d v) => v == Zero;
@@ -47,7 +55,12 @@ public class Vector3d
     public static bool operator ==(Vector3d a, Vector3d b) => SqrDistance(a, b) < threshold;
     public static bool operator !=(Vector3d a, Vector3d b) => SqrDistance(a, b) >= threshold;
     public static Vector3d operator *(Vector3d v, double s) => new(v.x * s, v.y * s, v.z * s);
-    public static Vector3d operator /(Vector3d v, double s) => v * (1 / s);
+    public static Vector3d operator /(Vector3d v, double s)
+    {
+        if (s == 0)
+            throw new DivideByZeroException();
+        return v * (1 / s);
+    }
     public static Vector3d operator +(Vector3d a, Vector3d b) => new(a.x + b.x, a.y + b.y, a.z + b.z);
     public static Vector3d operator -(Vector3d a, Vector3d b) => a + -b;
     public static Vector3d operator -(Vector3d v) => new(-v.x, -v.y, -v.z);
@@ -67,14 +80,13 @@ public class Vector3d
 
     public override bool Equals(object obj)
     {
-        if (ReferenceEquals(this, obj))
-            return true;
-        if (ReferenceEquals(obj, null))
+        if (obj is null)
             return false;
         if (obj is Vector3d v)
             return this == v;
         return false;
     }
+    public override string ToString() => $"({x}, {y}, {z})";
 
     public override int GetHashCode() => base.GetHashCode();
 }
