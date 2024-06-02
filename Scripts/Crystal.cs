@@ -479,6 +479,7 @@ public class Crystal
 
     #endregion math
 
+    #region exports
     /// <summary>
     /// Saves the mesh as an STL
     /// </summary>
@@ -624,7 +625,9 @@ public class Crystal
             writer.WriteLine(s);
         }
     }
+    #endregion exports
 
+    #region classes
     /// <summary>
     /// The vertex of a crystal. Stores position and adjacent faces for determining edges.
     /// </summary>
@@ -707,6 +710,7 @@ public class Crystal
                 return b;
         }
     }
+    #endregion classes
 
     #region debug
     // private static void DebugPrintVertexAdjacentEdges(Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces)
