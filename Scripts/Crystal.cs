@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 public class Crystal
 {
     public readonly List<Vector3d>[] normals;
     public readonly List<Planed> planes;
     public readonly List<List<Vector3d>> faces;
+    public readonly List<List<List<Vector3d>>> faceGroups;
     /// <summary>
     /// Generates a mesh from a list of face normals and distances that will be duplicated according to symmetry. Generates a convex hull using halfspaces
     /// </summary>
@@ -35,30 +35,32 @@ public class Crystal
     /// 6. Generate normals, tangents, and tris for each trio of vertices, and use Godot's mesh builder to create a mesh from there.
     ///  </remarks>
     public Crystal(
-        Vector3d[] initialFaces,
-        float[] distances,
+        List<Vector3d> initialFaces,
+        List<double> distances,
         SymmetryOperations.PointGroup pointGroup)
     {
-        if (distances.Length != initialFaces.Length)
+        if (distances.Count != initialFaces.Count)
             throw new ArgumentException("Every initial face must be given a distance!");
 
-        List<Vector3d> validFaces = new List<Vector3d>();
-        foreach (Vector3d v in initialFaces)
+        for (int i = 0; i < initialFaces.Count; i++)
         {
-            if (v.IsZeroApprox() == false)
-                validFaces.Add(v);
+            if (initialFaces[i].IsZeroApprox() == true || distances[i] == 0)
+            {
+                initialFaces.RemoveAt(i);
+                distances.RemoveAt(i);
+                i--;//We would skip over the next one if we didn't do this.
+            }
         }
 
-        //TODO instead of JUST doing normals, also keep track of which original face they are a part of with a 2d array.
-        normals = new List<Vector3d>[validFaces.Count];//List of normals for each initial face that was duplicated by the symmetry group
+        normals = new List<Vector3d>[initialFaces.Count];//List of normals for each initial face that was duplicated by the symmetry group
 
         //Reflect every given face along the given symmetry group
         for (int i = 0; i < normals.Length; i++)
         {
-            normals[i] = CreateCrystalSymmetry(validFaces[i].Normalized(), pointGroup);//Reflects every normal along the given point group's symmetry.
+            normals[i] = CreateCrystalSymmetry(initialFaces[i].Normalized(), pointGroup);//Reflects every normal along the given point group's symmetry.
         }
 
-        planes = GeneratePlanes(validFaces.ToArray(), distances, normals);//Create a plane with distance from center for every generated normal
+        planes = GeneratePlanes(initialFaces.ToArray(), distances.ToArray(), normals);//Create a plane with distance from center for every generated normal
 
         List<Vertex> vertices = GenerateVertices(planes);//Get all valid vertices on the crystal
 
@@ -70,6 +72,26 @@ public class Crystal
             List<Vector3d> face = CreateFaceFromEdges(unorderedFace);
             if (face.Count >= 3)
                 faces.Add(face);
+        }
+
+        //Intermediate step to associate every normal index with every face while avoiding just checking every combination
+        Dictionary<Vector3d, Tuple<int, int>> normalToFaceIndexTable = new();
+        faceGroups = new List<List<List<Vector3d>>>();
+        faceGroups.Capacity = normals.Length;
+        for (int i = 0; i < normals.Length; i++)
+        {
+            faceGroups.Add(new List<List<Vector3d>>());
+            faceGroups[i].Capacity = normals[i].Count;
+            for (int j = 0; j < normals[i].Count; j++)
+            {
+                normalToFaceIndexTable.Add(normals[i][j], new Tuple<int, int>(i, j));
+            }
+        }
+        foreach (List<Vector3d> face in faces)
+        {//TODO key isnt found
+            Vector3d normal = CalculateNormal(face[0], face[1], face[2]);
+            Tuple<int, int> indices = normalToFaceIndexTable[normal];
+            faceGroups[indices.Item1][indices.Item2] = face;
         }
 
     }
@@ -137,7 +159,7 @@ public class Crystal
     /// <param name="distances"></param>
     /// <param name="normals"></param>
     /// <returns></returns>
-    private static List<Planed> GeneratePlanes(Vector3d[] initialFaces, float[] distances, List<Vector3d>[] normals)
+    private static List<Planed> GeneratePlanes(Vector3d[] initialFaces, double[] distances, List<Vector3d>[] normals)
     {
         List<Planed> planes = new();
         for (int givenFace = 0; givenFace < initialFaces.Length; givenFace++)

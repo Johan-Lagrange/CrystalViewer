@@ -1,0 +1,86 @@
+[gd_scene load_steps=11 format=3 uid="uid://b226ro6gyacgx"]
+
+[ext_resource type="Script" path="res://Scripts/CrystalGameObject.cs" id="1_b016c"]
+[ext_resource type="PackedScene" uid="uid://x33tjj1pcrt7" path="res://Prefabs/AxisArrow.tscn" id="2_7uuxe"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_81ati"]
+frequency = 0.0031
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_ihcdk"]
+noise = SubResource("FastNoiseLite_81ati")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_ikefx"]
+frequency = 0.0011
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_phcrc"]
+noise = SubResource("FastNoiseLite_ikefx")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_v46ww"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_24agq"]
+noise = SubResource("FastNoiseLite_v46ww")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gdl7n"]
+transparency = 1
+shading_mode = 2
+albedo_color = Color(0.145098, 0.552941, 0.431373, 0.870588)
+metallic = 1.0
+roughness = 0.03
+emission = Color(0.145098, 0.552941, 0.431373, 1)
+emission_energy_multiplier = 0.16
+rim_tint = 0.63
+rim_texture = SubResource("NoiseTexture2D_24agq")
+refraction_scale = 0.0
+refraction_texture = SubResource("NoiseTexture2D_phcrc")
+detail_blend_mode = 3
+detail_albedo = SubResource("NoiseTexture2D_ihcdk")
+
+[sub_resource type="BoxMesh" id="BoxMesh_n30nq"]
+
+[node name="CrystalGameObject" type="MeshInstance3D"]
+transform = Transform3D(1, 0.5, 0.5, 0, 0.866025, 0.288675, 0, 0, 0.816497, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_gdl7n")
+script = ExtResource("1_b016c")
+AxisLengths = Vector3(1, 1, 1)
+AlphaBetaGamma = Vector3(60, 60, 60)
+bVector = Vector3(0.5, 0.866025, 0)
+cVector = Vector3(0.5, 0.288675, 0.816497)
+UnitCellVolume = 0.707107
+UpdateTheMesh = true
+UseLatticeVectors = true
+
+[node name="Axes" type="Node3D" parent="."]
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 0, 0)
+
+[node name="A" parent="Axes" instance=ExtResource("2_7uuxe")]
+transform = Transform3D(-4.37114e-08, 0, 0.999999, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
+
+[node name="Arrow" parent="Axes/A" index="1"]
+transform = Transform3D(5.96046e-08, 2.98023e-08, -1, -1, -1.11759e-07, -2.98023e-08, -6.70552e-08, 1, 4.47035e-08, 0, 0, 2.5)
+
+[node name="Text" parent="Axes/A" index="2"]
+transform = Transform3D(1, 1.19209e-07, 3.72529e-08, -5.96046e-08, 1, -7.45058e-08, -7.45058e-09, -7.45058e-09, 1, 5.96046e-08, -1.78814e-07, 2.959)
+text = "A
+"
+
+[node name="B" parent="Axes" instance=ExtResource("2_7uuxe")]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
+
+[node name="Text" parent="Axes/B" index="2"]
+text = "B"
+
+[node name="C" parent="Axes" instance=ExtResource("2_7uuxe")]
+
+[node name="ABC" parent="Axes" instance=ExtResource("2_7uuxe")]
+transform = Transform3D(0.793892, 0.206107, 0.572061, -0.572061, 0.572061, 0.587785, -0.206107, -0.793892, 0.572061, 0, 0, 0)
+
+[node name="Text" parent="Axes/ABC" index="2"]
+transform = Transform3D(1, 1.19209e-07, 3.72529e-08, -5.96046e-08, 1, -7.45058e-08, -7.45058e-09, -7.45058e-09, 1, 5.96046e-08, -1.78814e-07, 2.959)
+text = "ABC"
+
+[node name="Cube" type="MeshInstance3D" parent="Axes"]
+mesh = SubResource("BoxMesh_n30nq")
+
+[editable path="Axes/A"]
+[editable path="Axes/B"]
+[editable path="Axes/ABC"]

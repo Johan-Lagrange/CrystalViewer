@@ -151,7 +151,11 @@ public partial class CrystalGameObject : MeshInstance3D
 		foreach (Vector3 n in Normals)
 			Normalsd.Add(GodotCompatability.GDToDouble(n));
 
-		crystal = new Crystal(Normalsd.ToArray(), Distances, _pointGroup);
+		List<double> doubles = new List<double>();
+		foreach (float f in Distances)
+			doubles.Add((double)f);
+
+		crystal = new Crystal(Normalsd, doubles, _pointGroup);
 		ArrayMesh mesh = CreateArrayMeshFromCrystal(crystal);
 		Mesh = mesh;
 	}
