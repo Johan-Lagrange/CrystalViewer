@@ -26,6 +26,12 @@ public struct Vector3d
     {
         if (x is double.NaN || y is double.NaN || z is double.NaN)
             throw new ArgumentException("Was given NaN as value!");
+        if (Double.IsNegative(x) && x == -0.0)
+            x = 0;
+        if (Double.IsNegative(y) && y == -0.0)
+            y = 0;
+        if (Double.IsNegative(z) && z == -0.0)
+            z = 0;
         this.x = x; this.y = y; this.z = z;
     }
     /// <summary>
@@ -135,9 +141,7 @@ public struct Vector3d
             throw new ArgumentException("Must be a 3x3 matrix!");
         return m[0] * v.x + m[1] * v.y + m[2] * v.z;
     }
-
-
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         if (obj is null)
             return false;
@@ -145,8 +149,10 @@ public struct Vector3d
             return this == v;
         return false;
     }
-    public override string ToString() => $"({x}, {y}, {z})";
+    public override readonly string ToString() => $"({x}, {y}, {z})";
 
-    public override int GetHashCode() => base.GetHashCode();
+    public override readonly int GetHashCode() => ((x * 2).GetHashCode()
+    + (y * 3).GetHashCode()
+    + (z * 5).GetHashCode()).GetHashCode();
 }
 

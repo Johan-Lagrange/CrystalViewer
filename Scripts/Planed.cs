@@ -39,7 +39,7 @@ public struct Planed
                 denom;
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         if (obj is null)
             return false;
@@ -48,6 +48,10 @@ public struct Planed
         return false;
     }
     public override string ToString() => $"({Normal.x}, {Normal.y}, {Normal.z}, {distance})";
-    public override int GetHashCode() => base.GetHashCode();
+    public override int GetHashCode() =>
+    ((Normal.x * 2).GetHashCode()
+    + (Normal.y * 3).GetHashCode()
+    + (Normal.z * 5).GetHashCode()
+    + (Distance * 7).GetHashCode()).GetHashCode();
 
 }

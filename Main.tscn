@@ -28,9 +28,8 @@ near = 0.001
 [node name="CrystalParent" type="Node3D" parent="."]
 
 [node name="Crystal" parent="CrystalParent" instance=ExtResource("1_m7r4q")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+transform = Transform3D(1, 0.5, 0.5, 0, 0.866025, 0.288675, 0, 0, 0.816497, 0, 0, 0)
 skeleton = NodePath("../..")
-UseLatticeVectors = false
 
 [editable path="CrystalParent/Crystal"]
 [editable path="CrystalParent/Crystal/Axes/A"]

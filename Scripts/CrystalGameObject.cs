@@ -95,35 +95,41 @@ public partial class CrystalGameObject : MeshInstance3D
 	{
 		// Create the Mesh.
 		mesh = new ArrayMesh();
-		foreach (List<Vector3d> faced in c.faces)
+		foreach (List<List<Vector3d>> faceGroup in c.faceGroups)
 		{
-			List<Vector3> face = new List<Vector3>();
-			foreach (Vector3d vd in faced)
-				face.Add(GodotCompatability.DoubleToGD(vd));//Convert our bespoke double based vectors to GD's float ones
+			if (faceGroup.Count == 0)
+				continue;
 
 			Godot.Collections.Array arrays = new();//Array of surface data
 			arrays.Resize((int)Mesh.ArrayType.Max);
-			arrays[(int)Mesh.ArrayType.Vertex] = face.ToArray();
-			Vector3 normal = GodotCompatability.CalculateNormal(face[0], face[1], face[2]);
-
-			Vector3 tangentVector = (face[1] - face[0]).Normalized();
-			float[] tangent = new float[] { tangentVector[0], tangentVector[1], tangentVector[2], 1 };
-
 			List<Vector3> meshVertices = new();
 			List<Vector3> meshNormals = new();
 			List<float> tangents = new();
 
-			for (int i = 1; i <= face.Count - 2; i++)//We work two vertices at a time. That's why we do face.count - 2
+			foreach (List<Vector3d> faced in faceGroup)
 			{
-				meshVertices.AddRange(new Vector3[] { face[0], face[i], face[i + 1] });
-				meshNormals.AddRange(new Vector3[] { normal, normal, normal });
-				tangents.AddRange(new float[] { tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3] });
-			}
+				if (faced.Count == 0)
+					continue;
 
+				List<Vector3> face = new();
+				foreach (Vector3d vd in faced)
+					face.Add(GodotCompatability.DoubleToGD(vd));//Convert our bespoke double based vectors to GD's float ones
+
+				Vector3 normal = GodotCompatability.CalculateNormal(face[0], face[1], face[2]);
+
+				Vector3 tangentVector = (face[1] - face[0]).Normalized();
+				float[] tangent = new float[] { tangentVector[0], tangentVector[1], tangentVector[2], 1 };
+
+				for (int i = 1; i <= face.Count - 2; i++)//We work two vertices at a time. That's why we do face.count - 2
+				{
+					meshVertices.AddRange(new Vector3[] { face[0], face[i], face[i + 1] });
+					meshNormals.AddRange(new Vector3[] { normal, normal, normal });
+					tangents.AddRange(new float[] { tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3] });
+				}
+			}
 			arrays[(int)Mesh.ArrayType.Vertex] = meshVertices.ToArray();
 			arrays[(int)Mesh.ArrayType.Normal] = meshNormals.ToArray();
 			arrays[(int)Mesh.ArrayType.Tangent] = tangents.ToArray();
-
 			mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
 		}
 		return mesh;
