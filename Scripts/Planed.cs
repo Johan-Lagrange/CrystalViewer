@@ -6,9 +6,10 @@ public struct Planed
     public double D { get => distance; set => distance = value; }
 
     public Vector3d normal;
+    public Vector3d originalNormal;
     public double distance;
 
-    public Planed(Vector3d normal, double distance) { this.normal = normal; this.distance = distance; }
+    public Planed(Vector3d normal, double distance) { this.normal = normal.Normalized(); this.originalNormal = normal; this.distance = distance; }
 
     //https://stackoverflow.com/a/41897378
     public Vector3d Project(Vector3d v) => v - normal * (normal.Dot(v) + distance);
@@ -30,7 +31,7 @@ public struct Planed
         Vector3d normal2 = plane2.normal;
         double denom = normal0.Cross(normal1).Dot(normal2);
 
-        if (denom * denom < 0.0000001)
+        if (denom * denom < 0.0001)
             return null;
 
         return ((Vector3d.Cross(normal1, normal2) * this.D) +

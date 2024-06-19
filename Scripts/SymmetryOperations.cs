@@ -27,7 +27,7 @@ public static class SymmetryOperations
 			case 0 or 1 or 2:
 				return new float[] { 1, 1.5f, 2, 30, 60, 80 };//Triclinic
 			case 3 or 4 or 5:
-				return new float[] { 1, 2, 1.5f, 90, 60, 90 };//Monoclinic. Again monoclinic as b as the wacky axis
+				return new float[] { 1, 2, 1.5f, 90, 60, 90 };//Monoclinic. Again monoclinic has b as the wacky axis
 			case 6 or 7 or 8:
 				return new float[] { 1, 1.5f, 2, 90, 90, 90 };//Orthorhombic
 			case >= 9 and <= 15:

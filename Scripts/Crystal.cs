@@ -43,6 +43,7 @@ public class Crystal
         if (distances.Count != initialFaces.Count)
             throw new ArgumentException("Every initial face must be given a distance!");
 
+        string s = "";
         System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
         for (int i = 0; i < initialFaces.Count; i++)
         {
@@ -62,10 +63,19 @@ public class Crystal
         HashSet<Vector3d> vectorHashes = new() { };//For quick lookup
         for (int i = 0; i < initialFaces.Count; i++)
         {
-            normalGroups.Add(CreateCrystalSymmetry(initialFaces[i].Normalized(), vectorHashes, pointGroup));//Reflects every normal along the given point group's symmetry.
+            vectorHashes.Add(initialFaces[i]);
+            normalGroups.Add(CreateCrystalSymmetry(initialFaces[i], vectorHashes, pointGroup));//Reflects every normal along the given point group's symmetry.
         }
         watch.Stop();
         GD.Print("Normal Groups: " + watch.ElapsedMilliseconds);
+        // s = "NORMALS:\n";
+        // foreach (List<Vector3d> group in normalGroups)
+        // {
+        //     s += "\n";
+        //     foreach (Vector3d v in group)
+        //         s += v.ToString() + ", ";
+        // }
+        // GD.Print(s);
 
         watch.Restart();
         planeGroups = GeneratePlanes(initialFaces.ToArray(), distances.ToArray(), normalGroups);//Create a plane with distance from center for every generated normal
@@ -86,10 +96,19 @@ public class Crystal
                 planesToFaceGroups.Add(plane, group);
             }
         }
-
-
         watch.Stop();
         GD.Print("Plane Groups: " + watch.ElapsedMilliseconds);
+
+        s = "PLANES:\n";
+        foreach (List<Planed> group in planeGroups)
+        {
+            s += "\n";
+            foreach (Planed v in group)
+                s += v.originalNormal.ToString() + ", ";
+        }
+        GD.Print(s);
+
+
         watch.Restart();
         List<Vertex> vertices = GenerateVertices(planeFlat);//Get all valid vertices on the crystal
         watch.Stop();
@@ -153,19 +172,18 @@ public class Crystal
     /// </summary>
     /// <param name="vectorList">List of vectors to operate upon and expand</param>
     /// <param name="symmetryOperation">The symmetry operation to do</param>
-    public static void ApplyOperation(List<Vector3d> vectorList, HashSet<Vector3d> vectorSet, Func<Vector3d, Vector3d> symmetryOperation)
+    public static void ApplyOperation(List<Vector3d> vectorList, HashSet<Vector3d> vectorHashes, Func<Vector3d, Vector3d> symmetryOperation)
     {
-        int count = vectorList.Count;//Get the count before we add to the list so we aren't in an infinite loop
+        int count = vectorList.Count;//Get the count before we add to the list, so we can add to the list we're reading without causing an infinite loop by looking at stuff we just added
         for (int i = 0; i < count; i++)
         {
             Vector3d v = symmetryOperation(vectorList[i]);
-            v = FormatVector3d(v);
 
-            if (vectorSet.Contains(v))
+            if (vectorHashes.Contains(v))
                 continue;
 
             vectorList.Add(v);
-            vectorSet.Add(v);
+            vectorHashes.Add(v);
         }
     }
 
@@ -181,30 +199,30 @@ public class Crystal
         List<List<Planed>> planeGroups = new();
         for (int givenFace = 0; givenFace < initialFaces.Length; givenFace++)
         {
-            GD.Print(normals.Count);
             List<Vector3d> normalsList = normals[givenFace];
             List<Planed> newPlanes = new List<Planed>();
             planeGroups.Add(newPlanes);
 
             foreach (Vector3d normal in normalsList)//Verify and add planes for each type of normal
             {
-                Planed planeToAdd = new Planed(normal, distances[givenFace]);
+                Planed planeToAdd = new Planed(normal, distances[givenFace]);//Create new plane to add
                 List<Planed> planesToRemove = new();
                 bool valid = true;
-                foreach (List<Planed> prevPlanes in planeGroups)
+                foreach (List<Planed> prevPlanes in planeGroups)//Go through each group of planes we added
                 {
-                    foreach (Planed p in prevPlanes)
+                    foreach (Planed p in prevPlanes)//Go through every plane previously added
                     {
-                        if (planeToAdd.Normal.Normalized().Dot(p.Normal.Normalized()) > .9999)//Skip adding duplicate plane
+                        if (planeToAdd.Normal.Dot(p.Normal) > .9999)//Skip adding duplicate plane (plane normals are already normalized)
                         {
-                            if (planeToAdd.D < p.D)
+                            if (planeToAdd.D <= p.D)
                             {
                                 valid = false;//This face is behind another face so we can skip it
-                                goto invalid;
+                                goto invalid;//Think of this as a break; we can't break 2 loops though
                             }
                             else
                             {
-                                planesToRemove.Add(p);//Another face was behind this so we remove this
+                                GD.Print("Removed old plane" + p.originalNormal + " of larger " + planeToAdd.originalNormal);
+                                planesToRemove.Add(p);//Another face was behind this so we remove the old one
                             }
                         }
                     }
@@ -216,14 +234,6 @@ public class Crystal
                 invalid:;
             }
         }
-        string s = "";
-        foreach (List<Planed> group in planeGroups)
-        {
-            s += "\n";
-            foreach (Planed v in group)
-                s += v.ToString() + ", ";
-        }
-        GD.Print(s);
         return planeGroups;
     }
 
@@ -235,6 +245,19 @@ public class Crystal
     private static List<Vertex> GenerateVertices(List<Planed> planes)
     {
         Dictionary<Vector3d, Vertex> vertexPoints = new();
+        SortedSet<Vector3d> pointsList = new();//For quick fuzzy searching
+
+        LinkedList<Planed>[] octants = new LinkedList<Planed>[8];
+        for (int i = 0; i < 8; i++)
+            octants[i] = new LinkedList<Planed>();
+        foreach (Planed p in planes)
+        {
+            int index = ((p.originalNormal.x >= 0) ? 1 : 0)
+            + ((p.originalNormal.y >= 0) ? 2 : 0)
+            + ((p.originalNormal.z >= 0) ? 4 : 0);
+            octants[index].AddLast(p);
+        }
+
         for (int i = 0; i < planes.Count - 2; i++)
         {
             for (int j = i + 1; j < planes.Count - 1; j++)
@@ -250,13 +273,15 @@ public class Crystal
 
                     if (intersection == null)//Only happens if two faces are parallel
                         continue;
-                    //intersection = FormatVector3d((Vector3d)intersection);
 
                     Vertex vertexToVerify = new((Vector3d)intersection, planes[i], planes[j], planes[k]);
 
-                    bool verified = VerifyVertex(planes, vertexPoints, vertexToVerify);
+                    bool verified = VerifyVertex(octants, pointsList, vertexPoints, vertexToVerify);
                     if (verified)
+                    {
+                        pointsList.Add(vertexToVerify.point);
                         vertexPoints.Add(vertexToVerify.point, vertexToVerify);
+                    }
                 }
             }
         }
@@ -273,18 +298,19 @@ public class Crystal
     /// <param name="vertices">All existing verticies to check for duplicates against</param>
     /// <param name="vertexToVerify">The vertex we want to validate</param>
     /// <returns></returns>
-    private static bool VerifyVertex(List<Planed> planes, Dictionary<Vector3d, Vertex> vertexPoints, Vertex vertexToVerify)
+    private static bool VerifyVertex(LinkedList<Planed>[] octants, SortedSet<Vector3d> pointsList, Dictionary<Vector3d, Vertex> vertexPoints, Vertex vertexToVerify)
     {
         if (vertexToVerify.point.IsZeroApprox())
             return false;
 
-        if (IsInMesh(planes, vertexToVerify.point) == false)
+        if (IsInMesh(octants, vertexToVerify.point) == false)
             return false;
 
-        if (vertexPoints.ContainsKey(vertexToVerify.point))
+        pointsList.TryGetValue(vertexToVerify.point, out Vector3d matchedPoint);
+        if (matchedPoint == vertexToVerify.point)
         {
             // GD.Print("Merging point " + v.point + " with " + vertexToVerify.point);
-            vertexPoints[vertexToVerify.point].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
+            vertexPoints[matchedPoint].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
             return false;//So we add the extra faces to one point and discard the other.
         }
         return true;
@@ -415,17 +441,6 @@ public class Crystal
     }
 
     #region math
-    /// <summary>
-    /// Intended to remove -0 from vectors
-    /// </summary>
-    public static Vector3d FormatVector3d(Vector3d v, double tolerance = 0.00001f)
-    {
-        double x = v.x * v.x < tolerance ? 0 : v.x;
-        double y = v.y * v.y < tolerance ? 0 : v.y;
-        double z = v.z * v.z < tolerance ? 0 : v.z;
-        return new Vector3d(x, y, z);
-    }
-
     public static bool IsInMesh(List<Planed> planes, Vector3d v, double tolerance = .00001f)
     {
         foreach (Planed p in planes)
@@ -434,6 +449,55 @@ public class Crystal
                 return false;
         }
         return true;
+    }
+    public static bool IsInMesh(LinkedList<Planed>[] octants, Vector3d v, double tolerance = .00001f)
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            if (ShouldCheckOctant(i, v) == false)
+            {
+                //GD.Print(i, v.ToString());
+                continue;
+            }
+
+            foreach (Planed p in octants[i])
+            {
+                if (p.DistanceTo(v) > tolerance)//Vertex is in front of a face and therefore not on the crystal. Or it's concave and this is broken.
+                    return false;
+            }
+        }
+        return true;
+    }
+    /// <summary>
+    /// Optimization. Returns true for any octant that can hold a positive dot product with the given vector.
+    /// </summary>
+    /// <param name="n">Encoded octant. bit is positive if the octant is on the positive side of the axis.
+    /// Encoded like this: ZYX
+    /// negative Z, positive Y, positive X would be 011
+    /// Components that are zero are assumed positive when placed in octants, 
+    /// but not when checking against octants- That would include unnecessary octants in calculations.</param>
+    /// <param name="v">Vector to check against octants. Zero components are disregarded</param>
+    /// <returns>True if the given octant can hold a vector with a positive dot product with v</returns>
+    private static bool ShouldCheckOctant(int n, Vector3d v)
+    {
+        //https://stackoverflow.com/questions/2431732/checking-if-a-bit-is-set-or-not#2431759
+        bool GetBit(int x, int pos) => (x & (1 << pos)) != 0;
+        if (v.x != 0)
+        {
+            if (GetBit(n, 0) == (v.x >= 0))//Is on this half of the x axis
+                return true;
+        }
+        if (v.y != 0)
+        {
+            if (GetBit(n, 1) == (v.y >= 0))//Is on this half of the y axis
+                return true;
+        }
+        if (v.z != 0)
+        {
+            if (GetBit(n, 2) == (v.z >= 0))//Is on this half of the z axis
+                return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -487,7 +551,7 @@ public class Crystal
     /// </summary>
     /// <param name="faces">A list of faces, each face is a list of vertices</param>
     /// <returns>The volume of this solid</returns>
-    public static double CalculateVolume(List<List<Vector3d>> faces, Vector3d[] b)//TODO multiply all vectors by basis
+    public static double CalculateVolume(List<List<Vector3d>> faces, Vector3d[] b)
     {
         double total = 0;
         foreach (List<Vector3d> face in faces)

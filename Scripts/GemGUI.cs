@@ -245,7 +245,8 @@ public partial class GemGUI : Control
 			return;
 		if (crystal.Normals.Length <= idx || crystal.Distances.Length <= idx)
 		{
-			Vector3[] newNormals = new Vector3[idx + 2];
+			//No more space in crystal's arrays, so we add more slots for a new one and copy the arrays
+			Vector3[] newNormals = new Vector3[idx + 2];//TODO check why I add two here
 			float[] newDistances = new float[idx + 2];
 			crystal.Normals.CopyTo(newNormals, 0);
 			crystal.Distances.CopyTo(newDistances, 0);
