@@ -13,6 +13,7 @@ public struct Planed
 
     //https://stackoverflow.com/a/41897378
     public Vector3d Project(Vector3d v) => v - normal * (normal.Dot(v) + distance);
+    public bool IsVectorInFrontOf(Vector3d v) => normal.Dot(v) > distance + 0.001f;
     public double DistanceTo(Vector3d v) => normal.Dot(v) - distance;
     public static bool operator ==(Planed a, Planed b) => Vector3d.SqrDistance(a.normal, b.normal) < Vector3d.threshold && System.Math.Abs(a.distance - b.distance) < Vector3d.threshold;
     public static bool operator !=(Planed a, Planed b) => !(a == b);
@@ -53,6 +54,6 @@ public struct Planed
     ((Normal.x * 2).GetHashCode()
     + (Normal.y * 3).GetHashCode()
     + (Normal.z * 5).GetHashCode()
-    + (Distance * 7).GetHashCode()).GetHashCode();
+    + (Distance * 7).GetHashCode()).GetHashCode();//We use coprime numbers to ensure the hash is more likely to be unique
 
 }

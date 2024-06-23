@@ -279,9 +279,7 @@ public class Crystal
             octants[i] = new LinkedList<Planed>();
         foreach (Planed p in planes)
         {
-            int index = ((p.originalNormal.x >= 0) ? 1 : 0)
-            + ((p.originalNormal.y >= 0) ? 2 : 0)
-            + ((p.originalNormal.z >= 0) ? 4 : 0);
+            int index = VectorToOctant(p.originalNormal);
             octants[index].AddLast(p);
         }
 
@@ -316,12 +314,13 @@ public class Crystal
         return vertexPoints.Values.ToList<Vertex>();
     }
 
+
     /// <summary>
     /// Merges two vertices if they are in the same spot but has different faces
     /// Also checks to make sure the vertex is within or on the crystal. 
     /// Sometimes planes can generate outside of the crystal so we make sure that doesn't happen here.
     /// </summary>
-    /// <param name="planes">The list of planes that make up the crystal faces</param>
+    /// <param name="octants">The list of planes that make up the crystal faces, sorted by signs into octants(3d quadrants)</param>
     /// <param name="vertices">All existing verticies to check for duplicates against</param>
     /// <param name="vertexToVerify">The vertex we want to validate</param>
     /// <returns></returns>
@@ -481,21 +480,44 @@ public class Crystal
     }
 
     #region math
-    public static bool IsInPlanes(IEnumerable<Planed> planes, Vector3d v, double tolerance = .00001f)
+    /// <summary>
+    /// Returns true if v is behind every plane in the list
+    /// </summary>
+    /// <param name="planes">the list of planes to check if v is behind</param>
+    /// <param name="v">the vector to check is behind each plane</param>
+    /// <returns>true if the vector is behind every plane in the list.</returns>
+    public static bool IsInPlanes(IEnumerable<Planed> planes, Vector3d v)
     {
         foreach (Planed p in planes)
         {
-            if (p.DistanceTo(v) > tolerance)//Vertex is in front of a face and therefore not on the crystal. Or it's concave and this is broken.
+            if (p.IsVectorInFrontOf(v))//Vertex is in front of a face and therefore not on the crystal. Or it's concave and this is broken.
                 return false;
         }
         return true;
     }
+
+    /// <summary>
+    /// Takes a vector and returns its 'octant index' (which side of the x, y, and z axis it is on) depending on sign of components. 0 is considered positive.
+    /// </summary>
+    /// <param name="v">The vector to find which octant index it is in</param>
+    /// <returns>Encoded octant. bit is positive if the octant is on the positive side of the axis.
+    /// Encoded like this: ZYX
+    /// negative Z, positive Y, positive X would be (binary)011 = (int)3
+    /// Components that are zero are assumed positive when placed in octants, 
+    /// but not when checking against octants- That would include unnecessary octants in calculations.</returns>
+    public static int VectorToOctant(Vector3d v)
+    {
+        return ((v.x >= 0) ? 1 : 0)
+        + ((v.y >= 0) ? 2 : 0)
+        + ((v.z >= 0) ? 4 : 0);
+    }
+
     /// <summary>
     /// Optimization. Returns true for any octant that can hold a positive dot product with the given vector.
     /// </summary>
     /// <param name="n">Encoded octant. bit is positive if the octant is on the positive side of the axis.
     /// Encoded like this: ZYX
-    /// negative Z, positive Y, positive X would be 011
+    /// negative Z, positive Y, positive X would be (binary)011 = (int)3
     /// Components that are zero are assumed positive when placed in octants, 
     /// but not when checking against octants- That would include unnecessary octants in calculations.</param>
     /// <param name="v">Vector to check against octants. Zero components are disregarded</param>
@@ -540,7 +562,7 @@ public class Crystal
     /// </summary>
     /// <param name="vertices">The list of vertices that defines the face</param>
     /// <returns>The area of the face</returns>
-    public static double CalculateFaceArea(List<Vector3d> vertices, Vector3d[] b)
+    public static double CalculateFaceArea(IList<Vector3d> vertices, Vector3d[] b = null)
     {
         if (vertices.Count < 3)
             return 0;
@@ -558,8 +580,10 @@ public class Crystal
     /// </summary>
     /// <param name="faces"> list of faces, each face is a list of vertices</param>
     /// <returns>The surface area of this solid</returns>
-    public static double CalculateSurfaceArea(List<List<Vector3d>> faces, Vector3d[] b)
+    public static double CalculateTotalSurfaceArea(List<List<Vector3d>> faces, Vector3d[] b = null)
     {
+        b ??= Vector3d.BasisIdentity;
+
         double sur = 0;
         double faceArea = 0;
         foreach (List<Vector3d> face in faces)
@@ -573,8 +597,10 @@ public class Crystal
     /// </summary>
     /// <param name="faces">A list of faces, each face is a list of vertices</param>
     /// <returns>The volume of this solid</returns>
-    public static double CalculateVolume(List<List<Vector3d>> faces, Vector3d[] b)
+    public static double CalculateVolume(List<List<Vector3d>> faces, Vector3d[] b = null)
     {
+        b ??= Vector3d.BasisIdentity;
+
         double total = 0;
         foreach (List<Vector3d> face in faces)
             total += (b * GetAverageVertex(face)).Dot(CalculateNormal(face[0], face[1], face[2], b) * CalculateFaceArea(face, b));
@@ -610,6 +636,59 @@ public class Crystal
         return normal.Normalized();
     }
 
+    /// <summary>
+    /// Converts miller indices (x, y, z intercept reciprocals) to its corresponding plane-unit cell intersection's vertices. The unit cell is just the base orthogonal unit square in this case- we can transform them later.
+    /// </summary>
+    /// <param name="h">reciprocal of the a/x intercept</param>
+    /// <param name="k">reciprocal of the b/y intercept</param>
+    /// <param name="l">reciprocal of the c/z intercept</param>
+    /// <param name="b">3x3 transformation matrix for the mesh</param>
+    /// <returns>3 or 4 vertices of the planar intersection of the millers and unit cell</returns>
+    public static List<Vector3d> MillerToVertices(Vector3d v, Vector3d[] b = null) => MillerToVertices((int)v.X, (int)v.Y, (int)v.Z, b);
+
+    /// <summary>
+    /// Converts miller indices (x, y, z intercept reciprocals) to its corresponding plane-unit cell intersection's vertices. The unit cell is just the base orthogonal unit square in this case- we can transform them later.
+    /// </summary>
+    /// <param name="h">reciprocal of the a/x intercept</param>
+    /// <param name="k">reciprocal of the b/y intercept</param>
+    /// <param name="l">reciprocal of the c/z intercept</param>
+    /// <param name="b">3x3 transformation matrix for the mesh</param>
+    /// <returns>3 or 4 vertices of the planar intersection of the millers and unit cell</returns>
+    public static List<Vector3d> MillerToVertices(int h, int k, int l, Vector3d[] b)
+    {
+        b ??= Vector3d.BasisIdentity;
+        List<Vector3d> vertices = new();
+        Stack<Vector3d> skipped = new();
+        if (h == 0)
+            skipped.Push(new(1, 0, 0));
+        else
+            vertices.Add(new(1f / h, 0, 0));
+
+        if (k == 0)
+            skipped.Push(new(0, 1f, 0));
+        else
+            vertices.Add(new(0, 1f / k, 0));
+
+        if (l == 0)
+            skipped.Push(new(0, 0, 1));
+        else
+            vertices.Add(new(0, 0, 1f / l));
+
+        while (skipped.Count > 0)
+        {
+            int count = vertices.Count;
+            Vector3d axis = skipped.Pop();
+            for (int i = 0; i < count; i++)
+            {
+                Vector3d vert = vertices[i];
+                Vector3d newVert = vert + axis;
+                if (vertices.Contains(newVert) == false)
+                    vertices.Add(newVert);
+            }
+        }
+        return vertices;
+    }
+
     #endregion math
 
     #region exports
@@ -618,8 +697,8 @@ public class Crystal
     /// </summary>
     /// <param name="fileName">Name of the file to save to</param>
     /// <param name="mesh">Crystal mesh, not transformed by any crystal parameters</param>
-    /// <param name="m">Crystal parameters to transform the mesh by</param>
-    public void ExportSTL(string fileName, Vector3d[] m)
+    /// <param name="m">3x3 transformation matrix/Crystal parameters to transform the mesh by</param>
+    public void ExportSTL(string fileName, Vector3d[] m = null)
     {
         /*
         solid [name]
@@ -631,6 +710,8 @@ public class Crystal
             endloop
         endfacet
         endsolid [name]*/
+
+        m ??= Vector3d.BasisIdentity;
 
         if (fileName.EndsWith(".stl") == false)
             fileName += ".stl";
@@ -677,8 +758,8 @@ public class Crystal
     /// </summary>
     /// <param name="fileName">Name of the file to save to</param>
     /// <param name="mesh">Crystal mesh, not transformed by any crystal parameters</param>
-    /// <param name="m">Crystal parameters to transform the mesh by</param>
-    public void ExportOBJ(string fileName, Vector3d[] m)
+    /// <param name="m">3x3 transformation matrix/Crystal parameters to transform the mesh by</param>
+    public void ExportOBJ(string fileName, Vector3d[] m = null)
     {
         //https://en.wikipedia.org/wiki/Wavefront_.obj_file
         /*
@@ -690,6 +771,8 @@ public class Crystal
         f v1/uv1/n1 v2/uv2/n2 v3/uv3/n3...
         f v1//n1 v2//n2 v3//n3... <- we use normals but not UVs so we leave the UV slot empty
         */
+
+        m ??= Vector3d.BasisIdentity;
 
         if (fileName.EndsWith(".obj") == false)
             fileName += ".obj";

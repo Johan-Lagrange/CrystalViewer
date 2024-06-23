@@ -69,7 +69,7 @@ public partial class CrystalGameObject : MeshInstance3D
 	public float GetSurfaceCount() => crystal.faces.Count;
 	public float GetSurfaceArea()
 	{
-		return (float)Crystal.CalculateSurfaceArea(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
+		return (float)Crystal.CalculateTotalSurfaceArea(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
 	}
 	public float GetVolume()
 	{
@@ -226,39 +226,5 @@ public partial class CrystalGameObject : MeshInstance3D
 			return new(Mathf.Round(v.X), Mathf.Round(v.Y), Mathf.Round(v.Z));
 
 		return vScaled;
-	}
-	public static List<Vector3> MillerToVertices(Vector3 v) => MillerToVertices((int)v.X, (int)v.Y, (int)v.Z);
-	public static List<Vector3> MillerToVertices(int h, int k, int l)
-	{
-		List<Vector3> vertices = new();
-		Stack<Vector3> skipped = new();
-		if (h == 0)
-			skipped.Push(new(1, 0, 0));
-		else
-			vertices.Add(new(1f / h, 0, 0));
-
-		if (k == 0)
-			skipped.Push(new(0, 1f, 0));
-		else
-			vertices.Add(new(0, 1f / k, 0));
-
-		if (l == 0)
-			skipped.Push(new(0, 0, 1));
-		else
-			vertices.Add(new(0, 0, 1f / l));
-
-		while (skipped.Count > 0)
-		{
-			int count = vertices.Count;
-			Vector3 axis = skipped.Pop();
-			for (int i = 0; i < count; i++)
-			{
-				Vector3 vert = vertices[i];
-				Vector3 newVert = vert + axis;
-				if (vertices.Contains(newVert) == false)
-					vertices.Add(newVert);
-			}
-		}
-		return vertices;
 	}
 }
