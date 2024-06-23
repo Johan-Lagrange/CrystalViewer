@@ -325,14 +325,18 @@ public class Crystal
     /// <param name="vertices">All existing verticies to check for duplicates against</param>
     /// <param name="vertexToVerify">The vertex we want to validate</param>
     /// <returns></returns>
-    private static bool VerifyVertex(LinkedList<Planed>[] octants, SortedSet<Vector3d> pointsList, Dictionary<Vector3d, Vertex> vertexPoints, Vertex vertexToVerify)
+    private static bool VerifyVertex(IEnumerable<Planed>[] octants, SortedSet<Vector3d> pointsList, Dictionary<Vector3d, Vertex> vertexPoints, Vertex vertexToVerify)
     {
         if (vertexToVerify.point.IsZeroApprox())
             return false;
 
-        if (IsInMesh(octants, vertexToVerify.point) == false)
-            return false;
-
+        for (int i = 0; i < 8; i++)
+        {
+            if (ShouldCheckOctant(i, vertexToVerify.point) == false)
+                continue;
+            if (IsInPlanes(octants[i], vertexToVerify.point) == false)
+                return false;
+        }
         pointsList.TryGetValue(vertexToVerify.point, out Vector3d matchedPoint);
         if (matchedPoint == vertexToVerify.point)
         {
@@ -477,30 +481,12 @@ public class Crystal
     }
 
     #region math
-    public static bool IsInMesh(List<Planed> planes, Vector3d v, double tolerance = .00001f)
+    public static bool IsInPlanes(IEnumerable<Planed> planes, Vector3d v, double tolerance = .00001f)
     {
         foreach (Planed p in planes)
         {
             if (p.DistanceTo(v) > tolerance)//Vertex is in front of a face and therefore not on the crystal. Or it's concave and this is broken.
                 return false;
-        }
-        return true;
-    }
-    public static bool IsInMesh(LinkedList<Planed>[] octants, Vector3d v, double tolerance = .00001f)
-    {
-        for (int i = 0; i < 8; i++)
-        {
-            if (ShouldCheckOctant(i, v) == false)
-            {
-                //GD.Print(i, v.ToString());
-                continue;
-            }
-
-            foreach (Planed p in octants[i])
-            {
-                if (p.DistanceTo(v) > tolerance)//Vertex is in front of a face and therefore not on the crystal. Or it's concave and this is broken.
-                    return false;
-            }
         }
         return true;
     }

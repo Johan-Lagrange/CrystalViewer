@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 
 /// <summary>
-/// Double precision Vector3 for accurate calculations.
+/// Double precision Vector3 for accurate BUT FUZZY calculations.
 /// We CAN compile godot for double precision but:
 /// 1) I don't want to
 /// 2) reimplementing it here allows us to make the crystal program more portable 
