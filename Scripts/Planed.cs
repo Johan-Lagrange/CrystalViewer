@@ -31,7 +31,7 @@ public struct Planed
         Vector3d normal2 = plane2.normal;
         double denom = normal0.Cross(normal1).Dot(normal2);
 
-        if (denom * denom < 0.0001)
+        if (denom * denom < 0.000001)
             return null;
 
         return ((Vector3d.Cross(normal1, normal2) * this.D) +

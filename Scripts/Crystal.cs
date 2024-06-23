@@ -43,6 +43,7 @@ public class Crystal
         if (distances.Count != initialFaces.Count)
             throw new ArgumentException("Every initial face must be given a distance!");
 
+        Vector3d.ResetDebugLists();
         string s = "";
         System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
         for (int i = 0; i < initialFaces.Count; i++)
@@ -113,27 +114,53 @@ public class Crystal
         List<Vertex> vertices = GenerateVertices(planeFlat);//Get all valid vertices on the crystal
         watch.Stop();
         GD.Print("Vertices: " + watch.ElapsedMilliseconds);
-
+        s = "VERTICES:\n";
+        foreach (Vertex v in vertices)
+        {
+            s += "planes[";
+            foreach (Planed p in v.planes)
+            {
+                s += p.originalNormal.ToStringSingleLetter();
+            }
+            s += "]";
+            s += v.point.ToStringWithCharComponents();
+            s += "\n";
+        }
+        GD.Print(s);
 
         watch.Restart();
         //Create a dictionary that will take a plane and give an unordered list of each edge that makes up the plane's face
         Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> unorderedEdges = GenerateEdges(vertices);
         watch.Stop();
         GD.Print("UnorderedEdges: " + watch.ElapsedMilliseconds);
+        s = "FACES\n";
+        foreach (Planed p in unorderedEdges.Keys)
+        {
+            s += p.originalNormal.ToStringSingleLetter() + ": ";
+            foreach (Vertex v in unorderedEdges[p].Keys)
+                s += v.point.ToStringWithCharComponents() + ", ";
+            s += "\n";
+        }
+        GD.Print(s);
 
         watch.Restart();
 
+        s = "Faces:\n";
         faces = new();//The final mesh that we are building. Contains the vertices of each face in order.
         foreach (Planed plane in unorderedEdges.Keys)
         {
             List<Vector3d> face = CreateFaceFromEdges(unorderedEdges[plane]);
             if (face.Count >= 3)
             {
+                foreach (Vector3d v in face)
+                    s += v.ToStringWithCharComponents() + ", ";
+                s += "\n";
                 faces.Add(face);
                 int index = planesToFaceGroups[plane];
                 faceGroups[index].Add(face);
             }
         }
+        GD.Print(s);
         GD.Print("Faces: " + watch.ElapsedMilliseconds);
 
     }
@@ -329,7 +356,7 @@ public class Crystal
         {
             for (int j = i + 1; j < vertices.Count; j++)//For every pair of vertices
             {
-                if (vertices[i].point.IsEqualApprox(vertices[j].point))//Don't create an edge between a point and itself
+                if (vertices[i].point == vertices[j].point)//Don't create an edge between a point and itself
                     continue;
 
                 List<Planed> sharedFaces = vertices[i].SharedFaces(vertices[j]);//Check for shared faces
@@ -337,6 +364,15 @@ public class Crystal
                 //     // GD.PrintErr("Vertices share more than two faces!");
                 if (sharedFaces.Count >= 2)//If they share TWO faces, that means they have an edge together
                 {
+                    if (sharedFaces.Count > 2)
+                    {
+                        string s = "TOO MANY SHARED FACES: ";
+                        foreach (Planed p in sharedFaces)
+                        {
+                            s += p.originalNormal.ToStringSingleLetter();
+                        }
+                        GD.PrintErr(s);
+                    }
                     Planed p1 = sharedFaces[0];//First plane that we found a new edge on
                     Planed p2 = sharedFaces[sharedFaces.Count - 1];//Second plane ^
                     Vertex v1 = vertices[i];//First vertex that makes up the edge

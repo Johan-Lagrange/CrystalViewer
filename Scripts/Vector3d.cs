@@ -296,4 +296,9 @@ public struct Vector3d : IComparable
         }
         return 0;
     }
+    public static void ResetDebugLists()
+    {
+        debugDoubleToStr = new();
+        debugVectorToStr = new();
+    }
 }
