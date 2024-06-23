@@ -109,7 +109,7 @@ public class Crystal
         }
         GD.Print(s);
 
-
+        //TODO use watch for cumulative time of sections of methods
         watch.Restart();
         List<Vertex> vertices = GenerateVertices(planeFlat);//Get all valid vertices on the crystal
         watch.Stop();
@@ -337,7 +337,7 @@ public class Crystal
                 return false;
         }
         pointsList.TryGetValue(vertexToVerify.point, out Vector3d matchedPoint);
-        if (matchedPoint == vertexToVerify.point)
+        if (matchedPoint == vertexToVerify.point)//TODO this doesn't work as well as it should. I may have to ditch dictionaries here.
         {
             // GD.Print("Merging point " + v.point + " with " + vertexToVerify.point);
             vertexPoints[matchedPoint].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
