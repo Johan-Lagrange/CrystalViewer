@@ -23,14 +23,12 @@ position = Vector2i(0, 36)
 size = Vector2i(844, 159)
 access = 2
 filters = PackedStringArray(".obj")
-use_native_dialog = true
 
 [node name="StlExportDialog" type="FileDialog" parent="."]
 position = Vector2i(0, 36)
 size = Vector2i(844, 159)
 access = 2
 filters = PackedStringArray(".stl")
-use_native_dialog = true
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -187,10 +185,8 @@ text = "Export .obj
 
 [node name="TabContainer" type="TabContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
-current_tab = 2
 
 [node name="Axes" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer"]
-visible = false
 layout_mode = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes"]
@@ -439,6 +435,7 @@ Surface Area:
 Number of surfaces:"
 
 [node name="Camera" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer"]
+visible = false
 layout_mode = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera"]

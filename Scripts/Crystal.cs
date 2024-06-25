@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 public class Crystal
-{
+{    
+    public static readonly double threshold = 0.0000000001;
+
     public readonly List<List<Vector3d>> normalGroups;
     public readonly List<List<Planed>> planeGroups;
     public readonly List<List<Vector3d>> faces;
@@ -105,24 +107,24 @@ public class Crystal
         {
             s += "\n";
             foreach (Planed v in group)
-                s += v.originalNormal.ToString() + ", ";
+                s += v.originalNormal.ToString() + ", \n";
         }
         GD.Print(s);
 
         //TODO use watch for cumulative time of sections of methods
         watch.Restart();
-        List<Vertex> vertices = GenerateVertices(planeFlat);//Get all valid vertices on the crystal
+        List<Vertex> vertices = GenerateVertices2(planeFlat);//Get all valid vertices on the crystal
         watch.Stop();
         GD.Print("Vertices: " + watch.ElapsedMilliseconds);
         s = "VERTICES:\n";
         foreach (Vertex v in vertices)
         {
-            s += "planes[";
+            s += "planes: [";
             foreach (Planed p in v.planes)
             {
                 s += p.originalNormal.ToStringSingleLetter();
             }
-            s += "]";
+            s += "] point: ";
             s += v.point.ToStringWithCharComponents();
             s += "\n";
         }
@@ -239,10 +241,11 @@ public class Crystal
                 {
                     foreach (Planed p in prevPlanes)//Go through every plane previously added
                     {
-                        if (planeToAdd.Normal.Dot(p.Normal) > .9999)//Skip adding duplicate plane (plane normals are already normalized)
+                        if (planeToAdd.Normal.Dot(p.Normal) > 1 - threshold)//Skip adding duplicate plane (plane normals are already normalized)
                         {
                             if (planeToAdd.D <= p.D)
-                            {
+                            {                                
+
                                 valid = false;//This face is behind another face so we can skip it
                                 goto invalid;//Think of this as a break; we can't break 2 loops though
                             }
@@ -272,39 +275,43 @@ public class Crystal
     private static List<Vertex> GenerateVertices(List<Planed> planes)
     {
         Dictionary<Vector3d, Vertex> vertexPoints = new();
-        SortedSet<Vector3d> pointsList = new();//For quick fuzzy searching
-
-        LinkedList<Planed>[] octants = new LinkedList<Planed>[8];
+        LinkedList<Planed>[] planeOctants = new LinkedList<Planed>[8];
+        LinkedList<Vector3d>[] pointsOctants = new LinkedList<Vector3d>[8];//Pre-"Sorted" quick fuzzy searching
+        
         for (int i = 0; i < 8; i++)
-            octants[i] = new LinkedList<Planed>();
+        {
+            planeOctants[i] = new LinkedList<Planed>();
+            pointsOctants[i] = new LinkedList<Vector3d>();
+        }
         foreach (Planed p in planes)
         {
             int index = VectorToOctant(p.originalNormal);
-            octants[index].AddLast(p);
+            planeOctants[index].AddLast(p);
         }
 
-        for (int i = 0; i < planes.Count - 2; i++)
+        for (int i = 0; i < planes.Count - 2; i++)//By staggering the loops like this, we avoid checking the same combination twice
         {
             for (int j = i + 1; j < planes.Count - 1; j++)
             {
                 for (int k = j + 1; k < planes.Count; k++)
                 {
-                    if (planes[i].Normal.Dot(-planes[j].Normal) > .9999f//Two planes are opposite one another
-                    || planes[i].Normal.Dot(-planes[k].Normal) > .9999f
-                    || planes[j].Normal.Dot(-planes[k].Normal) > .9999f)
+                    if (planes[i].Normal.Dot(-planes[j].Normal) > 1 - threshold//Two planes are opposite one another
+                    || planes[i].Normal.Dot(-planes[k].Normal) > 1 - threshold
+                    || planes[j].Normal.Dot(-planes[k].Normal) > 1 - threshold)
                         continue;
 
                     Vector3d? intersection = planes[i].Intersect3(planes[j], planes[k]);
 
-                    if (intersection == null)//Only happens if two faces are parallel
-                        continue;
+                    if (intersection == null)
+                    {
+                        //GD.PrintErr("Null intersection between: " + planes[i].originalNormal.ToString() + " " + planes[j].originalNormal.ToString() + " " + planes[k].originalNormal.ToString());
+                        continue;}
 
                     Vertex vertexToVerify = new((Vector3d)intersection, planes[i], planes[j], planes[k]);
 
-                    bool verified = VerifyVertex(octants, pointsList, vertexPoints, vertexToVerify);
-                    if (verified)
+                    if (VerifyVertex(planeOctants, pointsOctants, vertexPoints, vertexToVerify))
                     {
-                        pointsList.Add(vertexToVerify.point);
+                        pointsOctants[VectorToOctant(vertexToVerify.point)].AddLast(vertexToVerify.point);
                         vertexPoints.Add(vertexToVerify.point, vertexToVerify);
                     }
                 }
@@ -320,32 +327,118 @@ public class Crystal
     /// Also checks to make sure the vertex is within or on the crystal. 
     /// Sometimes planes can generate outside of the crystal so we make sure that doesn't happen here.
     /// </summary>
-    /// <param name="octants">The list of planes that make up the crystal faces, sorted by signs into octants(3d quadrants)</param>
-    /// <param name="vertices">All existing verticies to check for duplicates against</param>
+    /// <param name="planesInOctants">The list of planes that make up the crystal faces, sorted by signs into octants(3d quadrants)</param>
+    /// <param name="pointsInOctants">All existing verticies to check for duplicates against, sorted by signs into octants(3d quadrants)</param>
+    /// <param name="veretxPoints">A dictionary corresponding each point in 'pointsInOctants' to a vertex, for when we need to merge</param>
     /// <param name="vertexToVerify">The vertex we want to validate</param>
-    /// <returns></returns>
-    private static bool VerifyVertex(IEnumerable<Planed>[] octants, SortedSet<Vector3d> pointsList, Dictionary<Vector3d, Vertex> vertexPoints, Vertex vertexToVerify)
+    /// <returns>True if this vertex is unique, false if the vertex is either: outside of the crystal, or a duplicate that we merged</returns>
+    private static bool VerifyVertex(IEnumerable<Planed>[] planesInOctants, IEnumerable<Vector3d>[] pointsInOctants, Dictionary<Vector3d, Vertex> vertexPoints, Vertex vertexToVerify)
     {
         if (vertexToVerify.point.IsZeroApprox())
             return false;
 
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 8; i++)//Look through planes that are in the same direction
         {
             if (ShouldCheckOctant(i, vertexToVerify.point) == false)
                 continue;
-            if (IsInPlanes(octants[i], vertexToVerify.point) == false)
+            if (IsInPlanes(planesInOctants[i], vertexToVerify.point) == false)
                 return false;
         }
-        pointsList.TryGetValue(vertexToVerify.point, out Vector3d matchedPoint);
-        if (matchedPoint == vertexToVerify.point)//TODO this doesn't work as well as it should. I may have to ditch dictionaries here.
+        int currentOctant = VectorToOctant(vertexToVerify.point);
+        Vector3d? match = null;
+        foreach(Vector3d v in pointsInOctants[currentOctant])
+        {
+            if(v.IsEqualApprox(vertexToVerify.point))
+            {
+                match = v;
+                break;
+            }
+        }
+        if (match != null)
         {
             // GD.Print("Merging point " + v.point + " with " + vertexToVerify.point);
-            vertexPoints[matchedPoint].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
+            vertexPoints[(Vector3d)match].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
             return false;//So we add the extra faces to one point and discard the other.
         }
         return true;
     }
+    /// <summary>
+    /// Creates a vertex from every triplet of planes IF 1) the point is on or in the crystal and 2) it is not a duplicate
+    /// </summary>
+    /// <param name="planes">The planes to find the intersection points of.</param>
+    /// <returns>A list of vertices with position and list of planes that intersect at that point. Can be more than three planes.</returns>
+    private static List<Vertex> GenerateVertices2(List<Planed> planes)
+    {
+        Dictionary<Vector3d, Vertex> vertexPoints = new();
+        List<Vector3d> vertices = new();
 
+        for (int i = 0; i < planes.Count - 2; i++)//By staggering the loops like this, we avoid checking the same combination twice
+        {
+            for (int j = i + 1; j < planes.Count - 1; j++)
+            {
+                for (int k = j + 1; k < planes.Count; k++)
+                {
+                    if (planes[i].Normal.Dot(-planes[j].Normal) > 1 - threshold//Two planes are opposite one another
+                    || planes[i].Normal.Dot(-planes[k].Normal) > 1 - threshold
+                    || planes[j].Normal.Dot(-planes[k].Normal) > 1 - threshold)
+                        continue;
+
+                    Vector3d? intersection = planes[i].Intersect3(planes[j], planes[k]);
+
+                    if (intersection == null)
+                    {
+                        //GD.PrintErr("Null intersection between: " + planes[i].originalNormal.ToString() + " " + planes[j].originalNormal.ToString() + " " + planes[k].originalNormal.ToString());
+                        continue;}
+
+                    Vertex vertexToVerify = new((Vector3d)intersection, planes[i], planes[j], planes[k]);
+
+                    if (VerifyVertex2(planes, vertices, vertexPoints, vertexToVerify))
+                    {
+                        vertices.Add(vertexToVerify.point);
+                        vertexPoints.Add(vertexToVerify.point, vertexToVerify);
+                    }
+                }
+            }
+        }
+
+        return vertexPoints.Values.ToList<Vertex>();
+    }
+
+
+    /// <summary>
+    /// Merges two vertices if they are in the same spot but has different faces
+    /// Also checks to make sure the vertex is within or on the crystal. 
+    /// Sometimes planes can generate outside of the crystal so we make sure that doesn't happen here.
+    /// </summary>
+    /// <param name="planesInOctants">The list of planes that make up the crystal faces, sorted by signs into octants(3d quadrants)</param>
+    /// <param name="pointsInOctants">All existing verticies to check for duplicates against, sorted by signs into octants(3d quadrants)</param>
+    /// <param name="veretxPoints">A dictionary corresponding each point in 'pointsInOctants' to a vertex, for when we need to merge</param>
+    /// <param name="vertexToVerify">The vertex we want to validate</param>
+    /// <returns>True if this vertex is unique, false if the vertex is either: outside of the crystal, or a duplicate that we merged</returns>
+    private static bool VerifyVertex2(IEnumerable<Planed> planes, IEnumerable<Vector3d> points, Dictionary<Vector3d, Vertex> vertexPoints, Vertex vertexToVerify)
+    {
+        if (vertexToVerify.point.IsZeroApprox())
+            return false;
+
+            if (IsInPlanes(planes, vertexToVerify.point) == false)
+                return false;
+        Vector3d? match = null;
+        foreach(Vector3d v in points)
+        {
+            if(v.IsEqualApprox(vertexToVerify.point))
+            {
+                match = v;
+                break;
+            }
+        }
+        if (match != null)
+        {
+            // GD.Print("Merging point " + v.point + " with " + vertexToVerify.point);
+            vertexPoints[(Vector3d)match].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
+            return false;//So we add the extra faces to one point and discard the other.
+        }
+        return true;
+    }
     /// <summary>
     /// Takes a list of vertices and returns a dictionary that contains each edge (not in order) that lies on a plane.
     /// </summary>
@@ -359,8 +452,8 @@ public class Crystal
         {
             for (int j = i + 1; j < vertices.Count; j++)//For every pair of vertices
             {
-                if (vertices[i].point == vertices[j].point)//Don't create an edge between a point and itself
-                    continue;
+                // if (vertices[i].point == vertices[j].point)//Don't create an edge between a point and itself
+                //     continue;
 
                 List<Planed> sharedFaces = vertices[i].SharedFaces(vertices[j]);//Check for shared faces
                 // if (sharedFaces.Count > 2)
@@ -374,10 +467,17 @@ public class Crystal
                         {
                             s += p.originalNormal.ToStringSingleLetter();
                         }
+                        s += " between 1(";
+                        foreach(Planed p in vertices[i].planes)
+                            s += p.originalNormal.ToStringSingleLetter();
+                        s += ") and 2(";
+                        foreach(Planed p in vertices[j].planes)
+                            s += p.originalNormal.ToStringSingleLetter();
+                            s += ")";
                         GD.PrintErr(s);
                     }
                     Planed p1 = sharedFaces[0];//First plane that we found a new edge on
-                    Planed p2 = sharedFaces[sharedFaces.Count - 1];//Second plane ^
+                    Planed p2 = sharedFaces[1];//Second plane ^
                     Vertex v1 = vertices[i];//First vertex that makes up the edge
                     Vertex v2 = vertices[j];//Second vertex ^
 
@@ -399,39 +499,39 @@ public class Crystal
                         // GD.Print("Adding vertex on plane " + p2.Normal + " for vertex " + v2.point + " - " + v1.point);
                         faces[p2][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 2
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        // // GD.Print("Plane 1: " + p1.Normal);
-                        // // GD.Print("Plane 2: " + p2.Normal);
-                        // // GD.Print("Vertex 1: " + v1.point);
-                        // // GD.Print("Vertex 2: " + v2.point);
-                        // // GD.PrintErr(e.GetType() + e.Message);
-                        // foreach (Plane p in faces.Keys)
-                        // {
-                        //     // GD.Print("Plane: " + p.Normal);
-                        //     foreach (Vertex v in faces[p].Keys)
-                        //     {
-                        //         string a = "", b = "";
-                        //         if (faces[p][v].a != null)
-                        //             a = faces[p][v].a.point.ToString();
-                        //         if (faces[p][v].b != null)
-                        //             b = faces[p][v].b.point.ToString();
-                        //         // GD.PrintErr("Vertex: " + v.point + ", A: " + a + ", B: " + b);
-                        //     }
-                        // }
+                        // GD.Print("Plane 1: " + p1.Normal);
+                        // GD.Print("Plane 2: " + p2.Normal);
+                        // GD.Print("Vertex 1: " + v1.point);
+                        // GD.Print("Vertex 2: " + v2.point);
+                         GD.PrintErr(e.GetType() + e.Message);
+                        foreach (Planed p in faces.Keys)
+                        {
+                            // GD.Print("Plane: " + p.Normal);
+                            foreach (Vertex v in faces[p].Keys)
+                            {
+                                string a = "", b = "";
+                                if (faces[p][v].a != null)
+                                    a = faces[p][v].a.point.ToString();
+                                if (faces[p][v].b != null)
+                                    b = faces[p][v].b.point.ToString();
+                                // GD.PrintErr("Vertex: " + v.point + ", A: " + a + ", B: " + b);
+                            }
+                        }
                     }
                 }
             }
         }
 
-        List<Planed> facesToRemove = new();
-        foreach (Planed p in faces.Keys)
-        {
-            if (faces[p].Count < 3)//Generated an invalid polygon
-                facesToRemove.Add(p);//So we remove it later
-        }
-        foreach (Planed p in facesToRemove)
-            faces.Remove(p);
+        // List<Planed> facesToRemove = new();
+        // foreach (Planed p in faces.Keys)
+        // {
+        //     if (faces[p].Count < 3)//Generated an invalid polygon
+        //         facesToRemove.Add(p);//So we remove it later
+        // }
+        // foreach (Planed p in facesToRemove)
+        //     faces.Remove(p);
         return faces;
     }
 
@@ -452,9 +552,25 @@ public class Crystal
 
         int count = 0;//To avoid infinite loops. Hopefully never needed. (Is still needed.)
 
+                string s3 = "[";
+            foreach (Planed p in start.planes)
+            {
+                s3 += p.originalNormal.ToStringSingleLetter();
+            }
+            s3 += "]";
+            s3 += start.point.ToStringWithCharComponents();
+                GD.Print("First edge: " + s3);
         edges.Add(start.point);
         while (here.point != start.point)
         {
+                string s2 = "[";
+            foreach (Planed p in here.planes)
+            {
+                s2 += p.originalNormal.ToStringSingleLetter();
+            }
+            s2 += "]";
+            s2 += here.point.ToStringWithCharComponents();
+                GD.Print("Current edge: " + s2);
             edges.Add(here.point);//Add current point to list
             tmpNext = face[here].GetNext(previous);//Get next point without backtracking
             previous = here;
@@ -462,12 +578,19 @@ public class Crystal
 
             if (here == null)
             {
-                // GD.PrintErr("Hit broken edge");
+                string s = "[";
+            foreach (Planed p in previous.planes)
+            {
+                s += p.originalNormal.ToStringSingleLetter();
+            }
+            s += "]";
+            s += previous.point.ToStringWithCharComponents();
+                GD.PrintErr("Hit broken edge: " + s);
                 return edges;
             }
             if (count++ > 20)
             {
-                // GD.PrintErr("Infinite loop in edge creation");
+                GD.PrintErr("Infinite loop in edge creation");
                 return edges;//TODO throw error here
             }
         }
@@ -871,16 +994,20 @@ public class Crystal
         /// <returns>the list of shared vertices</returns>
         public List<Planed> SharedFaces(Vertex other)
         {
-            List<Planed> sharedFaces = new();
-            for (int i = 0; i < planes.Count; i++)
-            {
-                for (int j = 0; j < other.planes.Count; j++)
-                {
-                    if (planes[i] == other.planes[j] && !sharedFaces.Contains(planes[i]))
-                        sharedFaces.Add(planes[i]);
-                }
-            }
-            return sharedFaces;
+            IEnumerable<Planed> query = from plane in planes
+                                        join otherPlane in other.planes on plane equals otherPlane
+                                        select plane;
+            return query.ToList();
+            // List<Planed> sharedFaces = new();
+            // for (int i = 0; i < planes.Count; i++)
+            // {
+            //     for (int j = 0; j < other.planes.Count; j++)
+            //     {
+            //         if (planes[i] == other.planes[j] && !sharedFaces.Contains(planes[i]))
+            //             sharedFaces.Add(planes[i]);
+            //     }
+            // }
+            // return sharedFaces;
         }
         /// <summary>
         /// Merges the two lists of shared vertices into one.

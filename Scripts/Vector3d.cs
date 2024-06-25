@@ -18,7 +18,7 @@ public struct Vector3d : IComparable
     public static Vector3d Forward { get => new(0, 0, -1); }//Godot does -1 as forward. Although the whole reason I implemented this is so that the code can be removed from godot...
     public static Vector3d Backward { get => new(0, 0, 1); }//I still left it this way to be consistent.
     public static readonly Vector3d[] BasisIdentity = { new(1, 0, 0), new(0, 1, 0), new(0, 0, 1) };
-    public static readonly double threshold = 0.00001;
+    public static readonly double threshold = 0.0000000001;
     public double X { get => x; set => x = value; }
     public double Y { get => y; set => y = value; }
     public double Z { get => z; set => z = value; }
