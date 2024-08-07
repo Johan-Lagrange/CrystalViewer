@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 public class Crystal
-{    
+{
     public static readonly double threshold = 0.0000000001;
 
     public readonly List<List<Vector3d>> normalGroups;
@@ -46,8 +46,8 @@ public class Crystal
             throw new ArgumentException("Every initial face must be given a distance!");
 
         Vector3d.ResetDebugLists();
-        string s = "";
-        System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
+        // string s = "";
+        // System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
         for (int i = 0; i < initialFaces.Count; i++)
         {
             if (initialFaces[i].IsZeroApprox() == true || distances[i] == 0)
@@ -57,10 +57,10 @@ public class Crystal
                 i--;//We would skip over the next one if we didn't do this.
             }
         }
-        watch.Stop();
-        GD.Print("First normals: " + watch.ElapsedMilliseconds);
+        // watch.Stop();
+        // GD.Print("First normals: " + watch.ElapsedMilliseconds);
 
-        watch.Restart();
+        // watch.Restart();
         normalGroups = new List<List<Vector3d>>();//List of normals for each initial face that was duplicated by the symmetry group
                                                   //Reflect every given face along the given symmetry group
         HashSet<Vector3d> vectorHashes = new() { };//For quick lookup
@@ -69,8 +69,8 @@ public class Crystal
             vectorHashes.Add(initialFaces[i]);
             normalGroups.Add(CreateCrystalSymmetry(initialFaces[i], vectorHashes, pointGroup));//Reflects every normal along the given point group's symmetry.
         }
-        watch.Stop();
-        GD.Print("Normal Groups: " + watch.ElapsedMilliseconds);
+        // watch.Stop();
+        // GD.Print("Normal Groups: " + watch.ElapsedMilliseconds);
         // s = "NORMALS:\n";
         // foreach (List<Vector3d> group in normalGroups)
         // {
@@ -80,7 +80,7 @@ public class Crystal
         // }
         // GD.Print(s);
 
-        watch.Restart();
+        // watch.Restart();
         planeGroups = GeneratePlanes(initialFaces.ToArray(), distances.ToArray(), normalGroups);//Create a plane with distance from center for every generated normal
 
 
@@ -99,71 +99,72 @@ public class Crystal
                 planesToFaceGroups.Add(plane, group);
             }
         }
-        watch.Stop();
-        GD.Print("Plane Groups: " + watch.ElapsedMilliseconds);
+        // watch.Stop();
+        // GD.Print("Plane Groups: " + watch.ElapsedMilliseconds);
 
-        s = "PLANES:\n";
-        foreach (List<Planed> group in planeGroups)
-        {
-            s += "\n";
-            foreach (Planed v in group)
-                s += v.originalNormal.ToString() + ", \n";
-        }
-        GD.Print(s);
+        // s = "PLANES:\n";
+        // foreach (List<Planed> group in planeGroups)
+        // {
+        //     s += "\n";
+        //     foreach (Planed v in group)
+        //         s += v.originalNormal.ToString() + ", \n";
+        // }
+        // GD.Print(s);
 
-        //TODO use watch for cumulative time of sections of methods
-        watch.Restart();
+        // watch.Restart();
         List<Vertex> vertices = GenerateVertices2(planeFlat);//Get all valid vertices on the crystal
-        watch.Stop();
-        GD.Print("Vertices: " + watch.ElapsedMilliseconds);
-        s = "VERTICES:\n";
-        foreach (Vertex v in vertices)
-        {
-            s += "planes: [";
-            foreach (Planed p in v.planes)
-            {
-                s += p.originalNormal.ToStringSingleLetter();
-            }
-            s += "] point: ";
-            s += v.point.ToStringWithCharComponents();
-            s += "\n";
-        }
-        GD.Print(s);
+        // watch.Stop();
+        // GD.Print("Vertices: " + watch.ElapsedMilliseconds);
+        // s = "VERTICES:\n";
+        // foreach (Vertex v in vertices)
+        // {
+        //     s += "planes: [";
+        //     foreach (Planed p in v.planes)
+        //     {
+        //         s += p.originalNormal.ToStringSingleLetter();
+        //     }
+        //     s += "] point: ";
+        //     s += v.point.ToStringWithCharComponents();
+        //     s += "\n";
+        // }
+        // GD.Print(s);
 
-        watch.Restart();
+        //TODO remove planes with only one vertex
+
+        // watch.Restart();
         //Create a dictionary that will take a plane and give an unordered list of each edge that makes up the plane's face
         Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> unorderedEdges = GenerateEdges(vertices);
-        watch.Stop();
-        GD.Print("UnorderedEdges: " + watch.ElapsedMilliseconds);
-        s = "FACES\n";
-        foreach (Planed p in unorderedEdges.Keys)
-        {
-            s += p.originalNormal.ToStringSingleLetter() + ": ";
-            foreach (Vertex v in unorderedEdges[p].Keys)
-                s += v.point.ToStringWithCharComponents() + ", ";
-            s += "\n";
-        }
-        GD.Print(s);
+        // watch.Stop();
+        // GD.Print("UnorderedEdges: " + watch.ElapsedMilliseconds);
+        // s = "FACES\n";
+        // foreach (Planed p in unorderedEdges.Keys)
+        // {
+        //     s += p.originalNormal.ToStringSingleLetter() + ": ";
+        //     foreach (Vertex v in unorderedEdges[p].Keys)
+        //         s += v.point.ToStringWithCharComponents() + ", ";
+        //     s += "\n";
+        // }
+        // GD.Print(s);
 
-        watch.Restart();
+        // watch.Restart();
 
-        s = "Faces:\n";
+        // s = "Faces:\n";
         faces = new();//The final mesh that we are building. Contains the vertices of each face in order.
         foreach (Planed plane in unorderedEdges.Keys)
         {
             List<Vector3d> face = CreateFaceFromEdges(unorderedEdges[plane]);
             if (face.Count >= 3)
             {
-                foreach (Vector3d v in face)
-                    s += v.ToStringWithCharComponents() + ", ";
-                s += "\n";
+                // foreach (Vector3d v in face)
+                //     s += v.ToStringWithCharComponents() + ", ";
+                // s += "\n";
                 faces.Add(face);
                 int index = planesToFaceGroups[plane];
                 faceGroups[index].Add(face);
             }
         }
-        GD.Print(s);
-        GD.Print("Faces: " + watch.ElapsedMilliseconds);
+        // GD.Print(s);
+        // GD.Print("Faces: " + watch.ElapsedMilliseconds);
 
     }
     /// <summary>
@@ -244,14 +245,14 @@ public class Crystal
                         if (planeToAdd.Normal.Dot(p.Normal) > 1 - threshold)//Skip adding duplicate plane (plane normals are already normalized)
                         {
                             if (planeToAdd.D <= p.D)
-                            {                                
+                            {
 
                                 valid = false;//This face is behind another face so we can skip it
                                 goto invalid;//Think of this as a break; we can't break 2 loops though
                             }
                             else
                             {
-                                GD.Print("Removed old plane" + p.originalNormal + " of larger " + planeToAdd.originalNormal);
+                                //GD.Print("Removed old plane" + p.originalNormal + " of larger " + planeToAdd.originalNormal);
                                 planesToRemove.Add(p);//Another face was behind this so we remove the old one
                             }
                         }
@@ -277,7 +278,7 @@ public class Crystal
         Dictionary<Vector3d, Vertex> vertexPoints = new();
         LinkedList<Planed>[] planeOctants = new LinkedList<Planed>[8];
         LinkedList<Vector3d>[] pointsOctants = new LinkedList<Vector3d>[8];//Pre-"Sorted" quick fuzzy searching
-        
+
         for (int i = 0; i < 8; i++)
         {
             planeOctants[i] = new LinkedList<Planed>();
@@ -305,7 +306,8 @@ public class Crystal
                     if (intersection == null)
                     {
                         //GD.PrintErr("Null intersection between: " + planes[i].originalNormal.ToString() + " " + planes[j].originalNormal.ToString() + " " + planes[k].originalNormal.ToString());
-                        continue;}
+                        continue;
+                    }
 
                     Vertex vertexToVerify = new((Vector3d)intersection, planes[i], planes[j], planes[k]);
 
@@ -346,9 +348,9 @@ public class Crystal
         }
         int currentOctant = VectorToOctant(vertexToVerify.point);
         Vector3d? match = null;
-        foreach(Vector3d v in pointsInOctants[currentOctant])
+        foreach (Vector3d v in pointsInOctants[currentOctant])
         {
-            if(v.IsEqualApprox(vertexToVerify.point))
+            if (v.IsEqualApprox(vertexToVerify.point))
             {
                 match = v;
                 break;
@@ -388,7 +390,8 @@ public class Crystal
                     if (intersection == null)
                     {
                         //GD.PrintErr("Null intersection between: " + planes[i].originalNormal.ToString() + " " + planes[j].originalNormal.ToString() + " " + planes[k].originalNormal.ToString());
-                        continue;}
+                        continue;
+                    }
 
                     Vertex vertexToVerify = new((Vector3d)intersection, planes[i], planes[j], planes[k]);
 
@@ -420,12 +423,12 @@ public class Crystal
         if (vertexToVerify.point.IsZeroApprox())
             return false;
 
-            if (IsInPlanes(planes, vertexToVerify.point) == false)
-                return false;
+        if (IsInPlanes(planes, vertexToVerify.point) == false)
+            return false;
         Vector3d? match = null;
-        foreach(Vector3d v in points)
+        foreach (Vector3d v in points)
         {
-            if(v.IsEqualApprox(vertexToVerify.point))
+            if (v.IsEqualApprox(vertexToVerify.point))
             {
                 match = v;
                 break;
@@ -468,12 +471,12 @@ public class Crystal
                             s += p.originalNormal.ToStringSingleLetter();
                         }
                         s += " between 1(";
-                        foreach(Planed p in vertices[i].planes)
+                        foreach (Planed p in vertices[i].planes)
                             s += p.originalNormal.ToStringSingleLetter();
                         s += ") and 2(";
-                        foreach(Planed p in vertices[j].planes)
+                        foreach (Planed p in vertices[j].planes)
                             s += p.originalNormal.ToStringSingleLetter();
-                            s += ")";
+                        s += ")";
                         GD.PrintErr(s);
                     }
                     Planed p1 = sharedFaces[0];//First plane that we found a new edge on
@@ -505,7 +508,7 @@ public class Crystal
                         // GD.Print("Plane 2: " + p2.Normal);
                         // GD.Print("Vertex 1: " + v1.point);
                         // GD.Print("Vertex 2: " + v2.point);
-                         GD.PrintErr(e.GetType() + e.Message);
+                        GD.PrintErr(e.GetType() + e.Message);
                         foreach (Planed p in faces.Keys)
                         {
                             // GD.Print("Plane: " + p.Normal);
@@ -552,25 +555,25 @@ public class Crystal
 
         int count = 0;//To avoid infinite loops. Hopefully never needed. (Is still needed.)
 
-                string s3 = "[";
-            foreach (Planed p in start.planes)
-            {
-                s3 += p.originalNormal.ToStringSingleLetter();
-            }
-            s3 += "]";
-            s3 += start.point.ToStringWithCharComponents();
-                GD.Print("First edge: " + s3);
+        //string s3 = "[";
+        // foreach (Planed p in start.planes)
+        // {
+        //     s3 += p.originalNormal.ToStringSingleLetter();
+        // }
+        // s3 += "]";
+        // s3 += start.point.ToStringWithCharComponents();
+        // GD.Print("First edge: " + s3);
         edges.Add(start.point);
         while (here.point != start.point)
         {
-                string s2 = "[";
-            foreach (Planed p in here.planes)
-            {
-                s2 += p.originalNormal.ToStringSingleLetter();
-            }
-            s2 += "]";
-            s2 += here.point.ToStringWithCharComponents();
-                GD.Print("Current edge: " + s2);
+            // string s2 = "[";
+            // foreach (Planed p in here.planes)
+            // {
+            //     s2 += p.originalNormal.ToStringSingleLetter();
+            // }
+            // s2 += "]";
+            // s2 += here.point.ToStringWithCharComponents();
+            // GD.Print("Current edge: " + s2);
             edges.Add(here.point);//Add current point to list
             tmpNext = face[here].GetNext(previous);//Get next point without backtracking
             previous = here;
@@ -578,19 +581,19 @@ public class Crystal
 
             if (here == null)
             {
-                string s = "[";
-            foreach (Planed p in previous.planes)
-            {
-                s += p.originalNormal.ToStringSingleLetter();
-            }
-            s += "]";
-            s += previous.point.ToStringWithCharComponents();
-                GD.PrintErr("Hit broken edge: " + s);
+                // string s = "[";
+                // foreach (Planed p in previous.planes)
+                // {
+                //     s += p.originalNormal.ToStringSingleLetter();
+                // }
+                // s += "]";
+                // s += previous.point.ToStringWithCharComponents();
+                // GD.PrintErr("Hit broken edge: " + s);
                 return edges;
             }
             if (count++ > 20)
             {
-                GD.PrintErr("Infinite loop in edge creation");
+                //GD.PrintErr("Infinite loop in edge creation");
                 return edges;//TODO throw error here
             }
         }

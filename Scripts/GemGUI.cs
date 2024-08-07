@@ -167,6 +167,11 @@ public partial class GemGUI : Control
 		StandardMaterial3D material = (StandardMaterial3D)crystal.MaterialOverride;
 		material.Roughness = (float)roughness;
 	}
+
+	public void UpdateColorList()
+	{
+
+	}
 	public void UpdateCrystalData(int param = -1)//1 = data tab. We call this from the tab menu sometimes
 	{
 		if (param != 1 && dataText.IsVisibleInTree() == false)//These calculations can be expensive so we don't do it if we don't need to.
