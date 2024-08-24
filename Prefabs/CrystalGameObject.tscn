@@ -35,7 +35,7 @@ refraction_texture = SubResource("NoiseTexture2D_phcrc")
 detail_blend_mode = 3
 detail_albedo = SubResource("NoiseTexture2D_ihcdk")
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_ot8i8"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_2lqo2"]
 _surfaces = [{
 "aabb": AABB(-1.10262, -1.10262, -1.10262, 2.20524, 2.20524, 2.20524),
 "format": 34359738375,
@@ -64,7 +64,7 @@ _surfaces = [{
 [node name="CrystalGameObject" type="MeshInstance3D"]
 transform = Transform3D(1, 0.5, 0.5, 0, 0.866025, 0.288675, 0, 0, 0.816497, 0, 0, 0)
 material_override = SubResource("StandardMaterial3D_gdl7n")
-mesh = SubResource("ArrayMesh_ot8i8")
+mesh = SubResource("ArrayMesh_2lqo2")
 script = ExtResource("1_b016c")
 AxisLengths = Vector3(1, 1, 1)
 AlphaBetaGamma = Vector3(60, 60, 60)

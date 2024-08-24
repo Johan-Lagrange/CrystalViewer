@@ -10,6 +10,9 @@ public class Crystal
     public readonly List<List<Planed>> planeGroups;
     public readonly List<List<Vector3d>> faces;
     public readonly List<List<List<Vector3d>>> faceGroups;
+    public readonly List<int> removedGroupIndices;
+    private readonly List<int> removedGroupIndicesUnshifted;
+
     /// <summary>
     /// Generates a mesh from a list of face normals and distances that will be duplicated according to symmetry. Generates a convex hull using halfspaces
     /// </summary>
@@ -45,9 +48,9 @@ public class Crystal
         if (distances.Count != initialFaces.Count)
             throw new ArgumentException("Every initial face must be given a distance!");
 
+        removedGroupIndices = new List<int>();
+        removedGroupIndicesUnshifted = new List<int>();
         Vector3d.ResetDebugLists();
-        // string s = "";
-        // System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
         for (int i = 0; i < initialFaces.Count; i++)
         {
             if (initialFaces[i].IsZeroApprox() == true || distances[i] == 0)
@@ -57,30 +60,18 @@ public class Crystal
                 i--;//We would skip over the next one if we didn't do this.
             }
         }
-        // watch.Stop();
-        // GD.Print("First normals: " + watch.ElapsedMilliseconds);
-
-        // watch.Restart();
         normalGroups = new List<List<Vector3d>>();//List of normals for each initial face that was duplicated by the symmetry group
                                                   //Reflect every given face along the given symmetry group
-        HashSet<Vector3d> vectorHashes = new() { };//For quick lookup
+        HashSet<Vector3d> vectorHashes = new() { };//For quick "does this exist" lookup. We don't want to add duplicate faces.
         for (int i = 0; i < initialFaces.Count; i++)
         {
-            vectorHashes.Add(initialFaces[i]);
-            normalGroups.Add(CreateCrystalSymmetry(initialFaces[i], vectorHashes, pointGroup));//Reflects every normal along the given point group's symmetry.
+            if (initialFaces[i].IsZeroApprox() == false && distances[i] != 0)
+            {
+                vectorHashes.Add(initialFaces[i]);
+                normalGroups.Add(CreateCrystalSymmetry(initialFaces[i], vectorHashes, pointGroup));//Reflects every normal along the given point group's symmetry.
+            }
         }
-        // watch.Stop();
-        // GD.Print("Normal Groups: " + watch.ElapsedMilliseconds);
-        // s = "NORMALS:\n";
-        // foreach (List<Vector3d> group in normalGroups)
-        // {
-        //     s += "\n";
-        //     foreach (Vector3d v in group)
-        //         s += v.ToString() + ", ";
-        // }
-        // GD.Print(s);
 
-        // watch.Restart();
         planeGroups = GeneratePlanes(initialFaces.ToArray(), distances.ToArray(), normalGroups);//Create a plane with distance from center for every generated normal
 
 
@@ -99,74 +90,27 @@ public class Crystal
                 planesToFaceGroups.Add(plane, group);
             }
         }
-        // watch.Stop();
-        // GD.Print("Plane Groups: " + watch.ElapsedMilliseconds);
 
-        // s = "PLANES:\n";
-        // foreach (List<Planed> group in planeGroups)
-        // {
-        //     s += "\n";
-        //     foreach (Planed v in group)
-        //         s += v.originalNormal.ToString() + ", \n";
-        // }
-        // GD.Print(s);
-
-        // watch.Restart();
         List<Vertex> vertices = GenerateVertices2(planeFlat);//Get all valid vertices on the crystal
-        // watch.Stop();
-        // GD.Print("Vertices: " + watch.ElapsedMilliseconds);
-        // s = "VERTICES:\n";
-        // foreach (Vertex v in vertices)
-        // {
-        //     s += "planes: [";
-        //     foreach (Planed p in v.planes)
-        //     {
-        //         s += p.originalNormal.ToStringSingleLetter();
-        //     }
-        //     s += "] point: ";
-        //     s += v.point.ToStringWithCharComponents();
-        //     s += "\n";
-        // }
-        // GD.Print(s);
 
-        //TODO remove planes with only one vertex
+        //TODO remove planes with only one vertex. This may require using a list for adjacent vertices in Vertex and only continuing when that list.length == 2
 
-        // watch.Restart();
         //Create a dictionary that will take a plane and give an unordered list of each edge that makes up the plane's face
         Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> unorderedEdges = GenerateEdges(vertices);
-        // watch.Stop();
-        // GD.Print("UnorderedEdges: " + watch.ElapsedMilliseconds);
-        // s = "FACES\n";
-        // foreach (Planed p in unorderedEdges.Keys)
-        // {
-        //     s += p.originalNormal.ToStringSingleLetter() + ": ";
-        //     foreach (Vertex v in unorderedEdges[p].Keys)
-        //         s += v.point.ToStringWithCharComponents() + ", ";
-        //     s += "\n";
-        // }
-        // GD.Print(s);
 
-        // watch.Restart();
-
-        // s = "Faces:\n";
         faces = new();//The final mesh that we are building. Contains the vertices of each face in order.
         foreach (Planed plane in unorderedEdges.Keys)
         {
             List<Vector3d> face = CreateFaceFromEdges(unorderedEdges[plane]);
             if (face.Count >= 3)
             {
-                // foreach (Vector3d v in face)
-                //     s += v.ToStringWithCharComponents() + ", ";
-                // s += "\n";
                 faces.Add(face);
                 int index = planesToFaceGroups[plane];
                 faceGroups[index].Add(face);
             }
         }
-        // GD.Print(s);
-        // GD.Print("Faces: " + watch.ElapsedMilliseconds);
-
     }
+
     /// <summary>
     /// Takes an initial vector and applies all point group operations on it, 
     /// returning a list of every vector therein, including the original. (Identity is an operation after all)
@@ -1064,6 +1008,56 @@ public class Crystal
     #endregion classes
 
     #region debug
+    private static void DebugPrintNormals(List<List<Vector3d>> normalGroups)
+    {
+        string s = "NORMALS:\n";
+        foreach (List<Vector3d> group in normalGroups)
+        {
+            s += "\n";
+            foreach (Vector3d v in group)
+                s += v.ToString() + ", ";
+        }
+        GD.Print(s);
+    }
+    private static void DebugPrintFaces(Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> unorderedEdges)
+    {
+        string s = "FACES\n";
+        foreach (Planed p in unorderedEdges.Keys)
+        {
+            s += p.originalNormal.ToStringSingleLetter() + ": ";
+            foreach (Vertex v in unorderedEdges[p].Keys)
+                s += v.point.ToStringWithCharComponents() + ", ";
+            s += "\n";
+        }
+        GD.Print(s);
+    }
+    private static void DebugPrintPlanes(List<List<Planed>> planeGroups)
+    {
+        string s = "PLANES:\n";
+        foreach (List<Planed> group in planeGroups)
+        {
+            s += "\n";
+            foreach (Planed v in group)
+                s += v.originalNormal.ToString() + ", \n";
+        }
+        GD.Print(s);
+    }
+    private static void DebugPrintVertices(List<Vertex> vertices)
+    {
+        string s = "VERTICES:\n";
+        foreach (Vertex v in vertices)
+        {
+            s += "planes: [";
+            foreach (Planed p in v.planes)
+            {
+                s += p.originalNormal.ToStringSingleLetter();
+            }
+            s += "] point: ";
+            s += v.point.ToStringWithCharComponents();
+            s += "\n";
+        }
+        GD.Print(s);
+    }
     // private static void DebugPrintVertexAdjacentEdges(Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces)
     // {
     //     foreach (Planed p in faces.Keys)

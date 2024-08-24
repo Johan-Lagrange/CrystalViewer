@@ -132,6 +132,7 @@ public partial class CrystalGameObject : MeshInstance3D
 			arrays[(int)Mesh.ArrayType.Tangent] = tangents.ToArray();
 			mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
 		}
+		GD.Print(mesh);
 		return mesh;
 	}
 
