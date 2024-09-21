@@ -4,6 +4,8 @@ using System.Linq;
 public partial class GemGUI : Control
 {
 	[Export]
+	WorldEnvironment environment;
+	[Export]
 	Camera3D camera;
 	[Export]
 	Node3D crystalParent, axes;
@@ -167,7 +169,25 @@ public partial class GemGUI : Control
 		StandardMaterial3D material = (StandardMaterial3D)crystal.MaterialOverride;
 		material.Roughness = (float)roughness;
 	}
+	public void SetBackgroundImage(string imagePath)
+	{
+		if (imagePath == "" || imagePath == null)
+		{
+			((PanoramaSkyMaterial)environment.Environment.Sky.SkyMaterial).Panorama = ResourceLoader.Load<CompressedTexture2D>("res://Assets/1008231038_HDR.jpg");
+			//We use resourceloader for internal files. 
+			//Image.LoadFromFile WILL work in editor for res:// files, 
+			//but once it's exported it won't work.
+			return;
+		}
+		try
+		{
+			((PanoramaSkyMaterial)environment.Environment.Sky.SkyMaterial).Panorama = ImageTexture.CreateFromImage(Image.LoadFromFile(imagePath));
 
+		}
+		catch (System.Exception)
+		{
+		}
+	}
 	public void UpdateColorList()
 	{
 
@@ -215,6 +235,7 @@ public partial class GemGUI : Control
 		SpinBox k = (SpinBox)spinBox.Instantiate();
 		SpinBox l = (SpinBox)spinBox.Instantiate();
 		SpinBox d = (SpinBox)spinBox.Instantiate();
+		//TODO Add color box here probably
 		d.MinValue = 0.01f;
 		d.MaxValue = 2;
 		Button x = new Button();

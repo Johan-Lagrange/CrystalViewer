@@ -55,6 +55,7 @@ public class Crystal
         {
             if (initialFaces[i].IsZeroApprox() == true || distances[i] == 0)
             {
+                removedGroupIndicesUnshifted.Add(i);
                 initialFaces.RemoveAt(i);
                 distances.RemoveAt(i);
                 i--;//We would skip over the next one if we didn't do this.
@@ -68,7 +69,12 @@ public class Crystal
             if (initialFaces[i].IsZeroApprox() == false && distances[i] != 0)
             {
                 vectorHashes.Add(initialFaces[i]);
-                normalGroups.Add(CreateCrystalSymmetry(initialFaces[i], vectorHashes, pointGroup));//Reflects every normal along the given point group's symmetry.
+                List<Vector3d> normalGroup = CreateCrystalSymmetry(initialFaces[i], vectorHashes, pointGroup);//Reflects every normal along the given point group's symmetry.
+                if (normalGroup.Count == 0)
+                {
+
+                }
+                normalGroups.Add(normalGroup);
             }
         }
 
