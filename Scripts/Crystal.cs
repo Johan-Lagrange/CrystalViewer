@@ -97,7 +97,7 @@ public class Crystal
             }
         }
 
-        List<Vertex> vertices = GenerateVertices2(planeFlat);//Get all valid vertices on the crystal
+        List<Vertex> vertices = GenerateVertices(planeFlat);//Get all valid vertices on the crystal
 
         //TODO remove planes with only one vertex. This may require using a list for adjacent vertices in Vertex and only continuing when that list.length == 2
 
@@ -218,108 +218,14 @@ public class Crystal
         return planeGroups;
     }
 
+
+
     /// <summary>
     /// Creates a vertex from every triplet of planes IF 1) the point is on or in the crystal and 2) it is not a duplicate
     /// </summary>
     /// <param name="planes">The planes to find the intersection points of.</param>
     /// <returns>A list of vertices with position and list of planes that intersect at that point. Can be more than three planes.</returns>
     private static List<Vertex> GenerateVertices(List<Planed> planes)
-    {
-        Dictionary<Vector3d, Vertex> vertexPoints = new();
-        LinkedList<Planed>[] planeOctants = new LinkedList<Planed>[8];
-        LinkedList<Vector3d>[] pointsOctants = new LinkedList<Vector3d>[8];//Pre-"Sorted" quick fuzzy searching
-
-        for (int i = 0; i < 8; i++)
-        {
-            planeOctants[i] = new LinkedList<Planed>();
-            pointsOctants[i] = new LinkedList<Vector3d>();
-        }
-        foreach (Planed p in planes)
-        {
-            int index = VectorToOctant(p.originalNormal);
-            planeOctants[index].AddLast(p);
-        }
-
-        for (int i = 0; i < planes.Count - 2; i++)//By staggering the loops like this, we avoid checking the same combination twice
-        {
-            for (int j = i + 1; j < planes.Count - 1; j++)
-            {
-                for (int k = j + 1; k < planes.Count; k++)
-                {
-                    if (planes[i].Normal.Dot(-planes[j].Normal) > 1 - threshold//Two planes are opposite one another
-                    || planes[i].Normal.Dot(-planes[k].Normal) > 1 - threshold
-                    || planes[j].Normal.Dot(-planes[k].Normal) > 1 - threshold)
-                        continue;
-
-                    Vector3d? intersection = planes[i].Intersect3(planes[j], planes[k]);
-
-                    if (intersection == null)
-                    {
-                        //GD.PrintErr("Null intersection between: " + planes[i].originalNormal.ToString() + " " + planes[j].originalNormal.ToString() + " " + planes[k].originalNormal.ToString());
-                        continue;
-                    }
-
-                    Vertex vertexToVerify = new((Vector3d)intersection, planes[i], planes[j], planes[k]);
-
-                    if (VerifyVertex(planeOctants, pointsOctants, vertexPoints, vertexToVerify))
-                    {
-                        pointsOctants[VectorToOctant(vertexToVerify.point)].AddLast(vertexToVerify.point);
-                        vertexPoints.Add(vertexToVerify.point, vertexToVerify);
-                    }
-                }
-            }
-        }
-
-        return vertexPoints.Values.ToList<Vertex>();
-    }
-
-
-    /// <summary>
-    /// Merges two vertices if they are in the same spot but has different faces
-    /// Also checks to make sure the vertex is within or on the crystal. 
-    /// Sometimes planes can generate outside of the crystal so we make sure that doesn't happen here.
-    /// </summary>
-    /// <param name="planesInOctants">The list of planes that make up the crystal faces, sorted by signs into octants(3d quadrants)</param>
-    /// <param name="pointsInOctants">All existing verticies to check for duplicates against, sorted by signs into octants(3d quadrants)</param>
-    /// <param name="veretxPoints">A dictionary corresponding each point in 'pointsInOctants' to a vertex, for when we need to merge</param>
-    /// <param name="vertexToVerify">The vertex we want to validate</param>
-    /// <returns>True if this vertex is unique, false if the vertex is either: outside of the crystal, or a duplicate that we merged</returns>
-    private static bool VerifyVertex(IEnumerable<Planed>[] planesInOctants, IEnumerable<Vector3d>[] pointsInOctants, Dictionary<Vector3d, Vertex> vertexPoints, Vertex vertexToVerify)
-    {
-        if (vertexToVerify.point.IsZeroApprox())
-            return false;
-
-        for (int i = 0; i < 8; i++)//Look through planes that are in the same direction
-        {
-            if (ShouldCheckOctant(i, vertexToVerify.point) == false)
-                continue;
-            if (IsInPlanes(planesInOctants[i], vertexToVerify.point) == false)
-                return false;
-        }
-        int currentOctant = VectorToOctant(vertexToVerify.point);
-        Vector3d? match = null;
-        foreach (Vector3d v in pointsInOctants[currentOctant])
-        {
-            if (v.IsEqualApprox(vertexToVerify.point))
-            {
-                match = v;
-                break;
-            }
-        }
-        if (match != null)
-        {
-            // GD.Print("Merging point " + v.point + " with " + vertexToVerify.point);
-            vertexPoints[(Vector3d)match].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
-            return false;//So we add the extra faces to one point and discard the other.
-        }
-        return true;
-    }
-    /// <summary>
-    /// Creates a vertex from every triplet of planes IF 1) the point is on or in the crystal and 2) it is not a duplicate
-    /// </summary>
-    /// <param name="planes">The planes to find the intersection points of.</param>
-    /// <returns>A list of vertices with position and list of planes that intersect at that point. Can be more than three planes.</returns>
-    private static List<Vertex> GenerateVertices2(List<Planed> planes)
     {
         Dictionary<Vector3d, Vertex> vertexPoints = new();
         List<Vector3d> vertices = new();
@@ -345,7 +251,7 @@ public class Crystal
 
                     Vertex vertexToVerify = new((Vector3d)intersection, planes[i], planes[j], planes[k]);
 
-                    if (VerifyVertex2(planes, vertices, vertexPoints, vertexToVerify))
+                    if (VerifyVertex(planes, vertices, vertexPoints, vertexToVerify))
                     {
                         vertices.Add(vertexToVerify.point);
                         vertexPoints.Add(vertexToVerify.point, vertexToVerify);
@@ -368,7 +274,7 @@ public class Crystal
     /// <param name="veretxPoints">A dictionary corresponding each point in 'pointsInOctants' to a vertex, for when we need to merge</param>
     /// <param name="vertexToVerify">The vertex we want to validate</param>
     /// <returns>True if this vertex is unique, false if the vertex is either: outside of the crystal, or a duplicate that we merged</returns>
-    private static bool VerifyVertex2(IEnumerable<Planed> planes, IEnumerable<Vector3d> points, Dictionary<Vector3d, Vertex> vertexPoints, Vertex vertexToVerify)
+    private static bool VerifyVertex(IEnumerable<Planed> planes, IEnumerable<Vector3d> points, Dictionary<Vector3d, Vertex> vertexPoints, Vertex vertexToVerify)
     {
         if (vertexToVerify.point.IsZeroApprox())
             return false;
@@ -570,54 +476,6 @@ public class Crystal
                 return false;
         }
         return true;
-    }
-
-    /// <summary>
-    /// Takes a vector and returns its 'octant index' (which side of the x, y, and z axis it is on) depending on sign of components. 0 is considered positive.
-    /// </summary>
-    /// <param name="v">The vector to find which octant index it is in</param>
-    /// <returns>Encoded octant. bit is positive if the octant is on the positive side of the axis.
-    /// Encoded like this: ZYX
-    /// negative Z, positive Y, positive X would be (binary)011 = (int)3
-    /// Components that are zero are assumed positive when placed in octants, 
-    /// but not when checking against octants- That would include unnecessary octants in calculations.</returns>
-    public static int VectorToOctant(Vector3d v)
-    {
-        return ((v.x >= 0) ? 1 : 0)
-        + ((v.y >= 0) ? 2 : 0)
-        + ((v.z >= 0) ? 4 : 0);
-    }
-
-    /// <summary>
-    /// Optimization. Returns true for any octant that can hold a positive dot product with the given vector.
-    /// </summary>
-    /// <param name="n">Encoded octant. bit is positive if the octant is on the positive side of the axis.
-    /// Encoded like this: ZYX
-    /// negative Z, positive Y, positive X would be (binary)011 = (int)3
-    /// Components that are zero are assumed positive when placed in octants, 
-    /// but not when checking against octants- That would include unnecessary octants in calculations.</param>
-    /// <param name="v">Vector to check against octants. Zero components are disregarded</param>
-    /// <returns>True if the given octant can hold a vector with a positive dot product with v</returns>
-    private static bool ShouldCheckOctant(int n, Vector3d v)
-    {
-        //https://stackoverflow.com/questions/2431732/checking-if-a-bit-is-set-or-not#2431759
-        bool GetBit(int x, int pos) => (x & (1 << pos)) != 0;
-        if (v.x != 0)
-        {
-            if (GetBit(n, 0) == (v.x >= 0))//Is on this half of the x axis
-                return true;
-        }
-        if (v.y != 0)
-        {
-            if (GetBit(n, 1) == (v.y >= 0))//Is on this half of the y axis
-                return true;
-        }
-        if (v.z != 0)
-        {
-            if (GetBit(n, 2) == (v.z >= 0))//Is on this half of the z axis
-                return true;
-        }
-        return false;
     }
 
     /// <summary>

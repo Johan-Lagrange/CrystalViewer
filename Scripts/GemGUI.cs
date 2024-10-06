@@ -182,7 +182,6 @@ public partial class GemGUI : Control
 		try
 		{
 			((PanoramaSkyMaterial)environment.Environment.Sky.SkyMaterial).Panorama = ImageTexture.CreateFromImage(Image.LoadFromFile(imagePath));
-
 		}
 		catch (System.Exception)
 		{
