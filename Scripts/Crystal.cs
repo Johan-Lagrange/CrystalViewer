@@ -262,7 +262,7 @@ public class Crystal
                             prev = current;//Making sure we don't lose our place..
                             current = current.Next;
                             planeGroups.Remove(prev);//Group contains redundant face, so entire group can be removed due to symmetry
-                            goto removedInvalidGroup;
+                            goto removedInvalidGroup;//I would break here but then I would skip a node and potentially run into a nullref exception.
                         }
                     }
                 }
@@ -478,7 +478,7 @@ public class Crystal
                 }
             }
         }
-
+        //TODO: Invalid planes still change what the vertices have as connections, we remove them too late here.
         // List<Planed> facesToRemove = new();
         // foreach (Planed p in faces.Keys)
         // {
@@ -968,20 +968,18 @@ public class Crystal
     #endregion classes
 
     #region debug
-    private static void DebugPrintNormals(List<List<Vector3d>> normalGroups)
+    private static void DebugPrintNormals(List<List<Vector3d>> normalGroups, string s = "NORMALS:\n")
     {
-        string s = "NORMALS:\n";
         foreach (List<Vector3d> group in normalGroups)
         {
-            s += "\n";
             foreach (Vector3d v in group)
                 s += v.ToString() + ", ";
+            s += "\n";
         }
         GD.Print(s);
     }
-    private static void DebugPrintFaces(Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> unorderedEdges)
+    private static void DebugPrintFaces(Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> unorderedEdges, string s = "FACES\n")
     {
-        string s = "FACES\n";
         foreach (Planed p in unorderedEdges.Keys)
         {
             s += p.originalNormal.ToStringSingleLetter() + ": ";
@@ -991,9 +989,8 @@ public class Crystal
         }
         GD.Print(s);
     }
-    private static void DebugPrintPlanes(List<List<Planed>> planeGroups)
+    private static void DebugPrintPlanes(List<List<Planed>> planeGroups, string s = "PLANES:\n")
     {
-        string s = "PLANES:\n";
         foreach (List<Planed> group in planeGroups)
         {
             s += "\n";
@@ -1002,9 +999,8 @@ public class Crystal
         }
         GD.Print(s);
     }
-    private static void DebugPrintVertices(List<Vertex> vertices)
+    private static void DebugPrintVertices(List<Vertex> vertices, string s = "VERTICES:\n")
     {
-        string s = "VERTICES:\n";
         foreach (Vertex v in vertices)
         {
             s += "planes: [";
