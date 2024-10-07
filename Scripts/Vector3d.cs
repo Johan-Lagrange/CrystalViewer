@@ -9,6 +9,7 @@ using System.Linq;
 /// </summary>
 public struct Vector3d : IComparable
 {
+    //TODO maybe make NAN vectors instead of returning null for intersect3?
     public static Vector3d Zero { get => new(0, 0, 0); }
     public static Vector3d One { get => new(1, 1, 1); }
     public static Vector3d Right { get => new(1, 0, 0); }

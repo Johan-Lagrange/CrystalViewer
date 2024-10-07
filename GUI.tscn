@@ -625,7 +625,6 @@ text = "+"
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/SaveLoadExport/ExportStl" to="StlExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/SaveLoadExport/ExportObj" to="ObjExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Background/SetBG" to="BackgroundDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
-[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Background/ResetBG" to="." method="SetBackgroundImage" binds= [""]]
 [connection signal="tab_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer" to="." method="UpdateCrystalData"]
 [connection signal="item_selected" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/SymmetryType/OptionButton" to="." method="SetCrystalSystem"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/A" to="." method="SetA"]

@@ -1,6 +1,10 @@
 
 public struct Planed
 {
+    /// <summary>
+    /// Outwards facing vector of the plane. Always has magnitude of one
+    /// </summary>
+    /// <value></value>
     public Vector3d Normal { get => normal; set => normal = value; }
     public double Distance { get => distance; set => distance = value; }
     public double D { get => distance; set => distance = value; }

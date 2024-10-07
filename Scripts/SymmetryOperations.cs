@@ -199,34 +199,34 @@ public static class SymmetryOperations
 		new[] {DiZ, InvTetZPos, DiY}, //14 BarFourTwoM
 		new[] {DiZ, TetZPos, DiY, Inv}, //15 FourSlashMMM
 
-		new[] {TriXYZPos}, //16 Three Rhombohedral
-		new[] {TriXYZPos, Inv}, //17 BarThree Rhombohedral
-		new[] {TriXYZPos, DiX_Y}, //18 ThreeTwo Rhombohedral
-		new[] {TriXYZPos, MirX_Y},//19 ThreeM Rhombohedral
-		new[] {TriXYZPos, DiX_Y, Inv},//20 BarThreeM Rhombohedral
+		new[] {TriXYZPos, TriXYZNeg}, //16 Three Rhombohedral
+		new[] {TriXYZPos, TriXYZNeg, Inv }, //17 BarThree Rhombohedral
+		new[] {TriXYZPos, TriXYZNeg, DiX_Y}, //18 ThreeTwo Rhombohedral
+		new[] {TriXYZPos, TriXYZNeg, MirX_Y},//19 ThreeM Rhombohedral
+		new[] {TriXYZPos, TriXYZNeg, DiX_Y, Inv},//20 BarThreeM Rhombohedral
 
-		new[] {TriZPos}, //21 Three Hexagonal
-		new[] {TriZPos, Inv}, //22 BarThree Hexagonal
-		new[] {TriZPos, DiX_Y}, //23 ThreeOneTwo Hexagonal
-		new[] {TriZPos, DiXY}, //24 ThreeTwoOne Hexagonal
-		new[] {TriZPos, MirXY},//25 ThreeMOne Hexagonal
-		new[] {TriZPos, MirX_Y},//26 ThreeOneM Hexagonal
-		new[] {TriZPos, DiX_Y, Inv},//27 BarThreeOneM Hexagonal
-		new[] {TriZPos, DiXY, Inv},//28 BarThreeMOne Hexagonal
+		new[] {TriZPos, TriZNeg}, //21 Three Hexagonal
+		new[] {TriZPos, TriZNeg, Inv}, //22 BarThree Hexagonal
+		new[] {TriZPos, TriZNeg, DiX_Y}, //23 ThreeOneTwo Hexagonal
+		new[] {TriZPos, TriZNeg, DiXY}, //24 ThreeTwoOne Hexagonal
+		new[] {TriZPos, TriZNeg, MirXY},//25 ThreeMOne Hexagonal
+		new[] {TriZPos, TriZNeg, MirX_Y},//26 ThreeOneM Hexagonal
+		new[] {TriZPos, TriZNeg, DiX_Y, Inv},//27 BarThreeOneM Hexagonal
+		new[] {TriZPos, TriZNeg, DiXY, Inv},//28 BarThreeMOne Hexagonal
 
-		new[] {TriZPos, DiZ}, //29 Six
-		new[] {TriZPos, MirZ}, //30 BarSix
-		new[] {TriZPos, DiZ, Inv}, //31 SixSlashM
-		new[] {TriZPos, DiZ, DiXY}, //32 SixTwoTwo
-		new[] {TriZPos, DiZ, MirXY}, //33 SixMM
-		new[] {TriZPos, MirZ, MirXY}, //34 BarSixMTwo
-		new[] {TriZPos, DiZ, DiXY, Inv}, //35 SixSlashMMM
+		new[] {TriZPos, TriZNeg, DiZ}, //29 Six
+		new[] {TriZPos, TriZNeg, MirZ}, //30 BarSix
+		new[] {TriZPos, TriZNeg, DiZ, Inv}, //31 SixSlashM
+		new[] {TriZPos, TriZNeg, DiZ, DiXY}, //32 SixTwoTwo
+		new[] {TriZPos, TriZNeg, DiZ, MirXY}, //33 SixMM
+		new[] {TriZPos, TriZNeg, MirZ, MirXY}, //34 BarSixMTwo
+		new[] {TriZPos, TriZNeg, DiZ, DiXY, Inv}, //35 SixSlashMMM
 
-		new[] {DiZ, DiY, TriXYZPos}, //36 TwoThree
-		new[] {DiZ, DiY, TriXYZPos, Inv}, //37 MBarThree
-		new[] {DiZ, DiY, TriXYZPos, DiXY}, //38 FourThreeTwo
-		new[] {DiZ, DiY, TriXYZPos, MirX_Y}, //39 BarFourThreeM
-		new[] {DiZ, DiY, TriXYZPos, DiXY, Inv}, //40 MBarThreeM
+		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg}, //36 TwoThree
+		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg, Inv}, //37 MBarThree
+		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg, DiXY}, //38 FourThreeTwo
+		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg, MirX_Y}, //39 BarFourThreeM
+		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg, DiXY, Inv}, //40 MBarThreeM
 	};
 
 	//#region allows you to specify a collapsable area of code in most editors.
@@ -235,7 +235,9 @@ public static class SymmetryOperations
 	public static Vector3d DiX(Vector3d v) => new(v.X, -v.Y, -v.Z);//Diad along X Axis
 	public static Vector3d DiY(Vector3d v) => new(-v.X, v.Y, -v.Z);
 	public static Vector3d DiZ(Vector3d v) => new(-v.X, -v.Y, v.Z);
+	//(1, 1, 1), (-1, 0, 1), (0, -1, 1): (-1, -1, 1), (1, 0, 1), (0, 1, 1)
 	public static Vector3d DiXY(Vector3d v) => new(v.Y, v.X, -v.Z);
+	//(1, 1, 1), (-1, 0, 1), (0, 1, 1), (-1, -1, 1), (1, 0, 1), (0, -1, 1): (1, 1, -1), (0, -1, -1), (1, 0, -1), (-1, -1, -1), (0, 1, -1), (-1, 0, -1)
 	public static Vector3d DiX_Y(Vector3d v) => new(-v.Y, -v.X, -v.Z);
 	public static Vector3d DiXZ(Vector3d v) => new(v.Z, -v.Y, v.X);//Seitz 2(1 0 1)
 	public static Vector3d Di_XZ(Vector3d v) => new(-v.Z, -v.Y, -v.X);//Seitz 2(-1 0 1)
@@ -250,8 +252,13 @@ public static class SymmetryOperations
 	// public static Vector3d TriYPos(Vector3d v) => new(v.X - v.Z, v.Y, -v.Z);
 	// public static Vector3d TriYNeg(Vector3d v) => new(-v.X, v.Y, -v.X + v.Y);
 
-	public static Vector3d TriZPos(Vector3d v) => new(-v.Y, v.X - v.Y, v.Z);
-	public static Vector3d TriZNeg(Vector3d v) => new(-v.X + v.Y, -v.X, v.Z);
+	//TODO I'm using a rotation matrix, but is that much better? It only works with gamma=90 but our target is gamma=120. However the supplied versions don't seem to keep magnitude, whereas these do.
+	// GD.Print(Math.Cos(2 * Math.PI / 3)); //= -.5
+	//GD.Print(Math.Sin(2 * Math.PI / 3)); //= sqrt3/2 = 0.8660254037844387	
+	public static Vector3d TriZPos(Vector3d v) => new(v.X * 0.8660254037844387 + v.Y * -.5, v.X * -.5 + v.Y * -0.8660254037844387, v.Z);
+	public static Vector3d TriZNeg(Vector3d v) => new(v.X * -0.8660254037844387 + v.Y * -.5, v.X * -.5 + v.Y * 0.8660254037844387, v.Z);
+	// public static Vector3d TriZPos(Vector3d v) => new(-v.Y, v.X - v.Y, v.Z);
+	// public static Vector3d TriZNeg(Vector3d v) => new(-v.X + v.Y, -v.X, v.Z);
 
 	public static Vector3d TriXYZPos(Vector3d v) => new(v.Z, v.X, v.Y);//Tri along 1, 1, 1
 	public static Vector3d TriXYZNeg(Vector3d v) => new(v.Y, v.Z, v.X);

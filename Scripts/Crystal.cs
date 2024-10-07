@@ -75,7 +75,8 @@ public class Crystal
             normalGroups.Add(normalGroup);
         }
 
-        planeGroups = GeneratePlanes(initialFaces.ToArray(), distances.ToArray(), normalGroups);//Create a plane with distance from center for every generated normal
+        //DebugPrintNormals(normalGroups);
+        planeGroups = GeneratePlanes2(initialFaces.ToArray(), distances.ToArray(), normalGroups);//Create a plane with distance from center for every generated normal
 
 
         faceGroups = new List<List<List<Vector3d>>>();
@@ -90,7 +91,14 @@ public class Crystal
         {
             foreach (Planed plane in planeGroups[group])
             {
-                planesToFaceGroups.Add(plane, group);
+                try
+                {
+                    planesToFaceGroups.Add(plane, group);
+                }
+                catch (Exception e)
+                {
+                    //TODO purge duplicates
+                }
             }
         }
 
@@ -129,24 +137,24 @@ public class Crystal
     {
         List<Vector3d> vectorList = new() { v };//To keep vectors in order
         vectorHashes.Add(v);
-        foreach (Func<Vector3d, Vector3d> Operation in SymmetryOperations.PointGroupPositions[(int)group])
+        foreach (Func<Vector3d, Vector3d> Operation in SymmetryOperations.PointGroupOperations[(int)group])
         {
             ApplyOperation(vectorList, vectorHashes, Operation);
         }
 
-        /*Hexagonal crystals don't render correctly unless we do this.
-        I think it has to do with -Z being forward in Godot. 
-        It's strange that no other shape groups have this isssue though,
-        May be because this is the only one that includes X and Y in one component.
-        And yes I have tried messing around with the function and swapping variables, didn't work.*/
-        if ((int)group >= 21 && (int)group <= 35)//Point groups that use the hexagonal method.
-        {
-            for (int j = 0; j < vectorList.Count; j++)
-            {
-                Vector3d v2 = vectorList[j];
-                vectorList[j] = new Vector3d(v2.x, -v2.y, v2.z);
-            }
-        }
+        // /*Hexagonal crystals don't render correctly unless we do this.
+        // I think it has to do with -Z being forward in Godot. 
+        // It's strange that no other shape groups have this isssue though,
+        // May be because this is the only one that includes X and Y in one component.
+        // And yes I have tried messing around with the function and swapping variables, didn't work.*/
+        // if ((int)group >= 21 && (int)group <= 35)//Point groups that use the hexagonal method.
+        // {
+        //     for (int j = 0; j < vectorList.Count; j++)
+        //     {
+        //         Vector3d v2 = vectorList[j];
+        //         vectorList[j] = new Vector3d(v2.x, -v2.y, v2.z);
+        //     }
+        // }
         return vectorList;
     }
     /// <summary>
@@ -194,11 +202,10 @@ public class Crystal
                 {
                     foreach (Planed p in prevPlanes)//Go through every plane previously added
                     {
-                        if (planeToAdd.Normal.Dot(p.Normal) > 1 - threshold)//Skip adding duplicate plane (plane normals are already normalized)
+                        if (planeToAdd.Normal.Dot(p.Normal) > 1 - threshold)//Skip adding duplicate plane (plane normals are already normalized to length 1)
                         {
                             if (planeToAdd.D <= p.D)
                             {
-
                                 valid = false;//This face is behind another face so we can skip it
                                 goto invalid;//Think of this as a break; we can't break 2 loops though
                             }
@@ -220,6 +227,59 @@ public class Crystal
         return planeGroups;
     }
 
+    private static List<List<Planed>> GeneratePlanes2(Vector3d[] initialFaces, double[] distances, List<List<Vector3d>> normals)
+    {
+        LinkedList<List<Planed>> planeGroups = new();
+        //TODO normals[0] can be empty
+        //Add first face group to avoid "fencepost" issues where we stop prematurely.
+        planeGroups.AddLast(normals[0].Select(v => new Planed(v, distances[0])).ToList<Planed>());
+        int i = 0;
+
+        for (int givenFace = 1; givenFace < initialFaces.Length; givenFace++)
+        {
+            Planed planeToAdd = new Planed(initialFaces[givenFace], distances[givenFace]);//Create new plane to add
+
+            LinkedListNode<List<Planed>> current = planeGroups.First;
+            LinkedListNode<List<Planed>> prev;
+            do
+            {
+                foreach (Planed p in current.Value)
+                {
+                    i++;
+                    if (i > 10000)
+                        throw new Exception("Infinite loop");
+                    if (planeToAdd.Normal.Dot(p.Normal) > 1 - threshold)//Skip adding duplicate plane (plane normals are already normalized to length 1)
+                    {
+                        if (planeToAdd.D >= p.D)
+                        {
+                            GD.Print("thisPlaneInvalid");
+                            goto thisPlaneInvalid;//This face is behind another face so we can skip it
+                            //Think of this as a break; we can't break 2 loops though
+                        }
+                        else
+                        {
+                            GD.Print("removedInvalidGroup");
+                            prev = current;//Making sure we don't lose our place..
+                            current = current.Next;
+                            planeGroups.Remove(prev);//Group contains redundant face, so entire group can be removed due to symmetry
+                            goto removedInvalidGroup;
+                        }
+                    }
+                }
+
+                current = current.Next;
+            removedInvalidGroup:;
+            }
+            while (current != null);
+
+            //Found to be a valid face
+            GD.Print("Adding face");
+            planeGroups.AddLast(normals[givenFace].Select(v => new Planed(v, distances[givenFace])).ToList<Planed>());
+
+        thisPlaneInvalid:;
+        }
+        return planeGroups.ToList<List<Planed>>();
+    }
 
 
     /// <summary>
@@ -259,12 +319,21 @@ public class Crystal
 
                     if (VerifyVertex(planes, validatedPoints, validatedPointHashes, mirroredPoints, faceVertices, vertexToVerify))
                     {
-                        // if (pointGroup != SymmetryOperations.PointGroup.None
-                        // && pointGroup != SymmetryOperations.PointGroup.One
-                        // && mirroredPoints.Contains(vertexToVerify.point) == false)
-                        // {
-                        //     CreateCrystalSymmetry(vertexToVerify.point, vectorHashes, pointGroup).ForEach(v => mirroredPoints.Add(v));
-                        // }
+                        if (pointGroup != SymmetryOperations.PointGroup.None
+                        && pointGroup != SymmetryOperations.PointGroup.One
+                        && mirroredPoints.Contains((Vector3d)intersection) == false)
+                        {
+                            List<Vector3d> mirrored = CreateCrystalSymmetry(vertexToVerify.point, vectorHashes, pointGroup);
+                            foreach (Vector3d v in mirrored)
+                            {
+                                if (IsInPlanes(planes, v) == false)
+                                {
+                                    DebugPrintNormals(new List<List<Vector3d>>() { mirrored });
+                                    GD.PrintErr(vertexToVerify.point + ": " + v);
+                                }
+                            }
+                            mirrored.ForEach(v => mirroredPoints.Add(v));
+                        }
 
                         validatedPoints.AddLast(vertexToVerify.point);
                         validatedPointHashes.Add(vertexToVerify.point);
@@ -290,7 +359,7 @@ public class Crystal
 
         if (validatedPointHashes.Contains(vertexToVerify.point))
         {
-            GD.Print("Matched " + vertexToVerify.point);
+            //GD.Print("Matched " + vertexToVerify.point);
             faceVertices[vertexToVerify.point].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
             return false;//So we add the extra faces to one point and discard the other.
         }
@@ -305,17 +374,19 @@ public class Crystal
                 // GD.Print("Merging point " + v.point + " with " + vertexToVerify.point);
 
 
-                GD.Print("Merged " + v + " with " + vertexToVerify.point);
+                //GD.Print("Merged " + v + " with " + vertexToVerify.point);
                 faceVertices[v].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
                 return false;//So we add the extra faces to one point and discard the other.
             }
         }
 
         //TODO fix mirrored points. Broken in 6/mmm
-        // if (mirroredPoints.Contains(vertexToVerify.point))
-        // {
-        //     return true;
-        // }
+        if (mirroredPoints.Contains(vertexToVerify.point))
+        {
+            //GD.Print("Matched Mirrored " + vertexToVerify.point);
+
+            return true;
+        }
 
         if (IsInPlanes(planes, vertexToVerify.point))//Slightly more expensive. Should be last resort.
             return true;
@@ -340,8 +411,8 @@ public class Crystal
                 //     continue;
 
                 List<Planed> sharedFaces = vertices[i].SharedFaces(vertices[j]);//Check for shared faces
-                // if (sharedFaces.Count > 2)
-                //     // GD.PrintErr("Vertices share more than two faces!");
+                                                                                // if (sharedFaces.Count > 2)
+                                                                                //     // GD.PrintErr("Vertices share more than two faces!");
                 if (sharedFaces.Count >= 2)//If they share TWO faces, that means they have an edge together
                 {
                     if (sharedFaces.Count > 2)
@@ -376,11 +447,11 @@ public class Crystal
                         // GD.Print(v1.point + "-" + v2.point);
                         // GD.Print("Adding vertex on plane " + p1.Normal + " for vertex " + v1.point + " - " + v2.point);
                         faces[p1][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 1
-                        // GD.Print("Adding vertex on plane " + p1.Normal + " for vertex " + v2.point + " - " + v1.point);
+                                                    // GD.Print("Adding vertex on plane " + p1.Normal + " for vertex " + v2.point + " - " + v1.point);
                         faces[p1][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 1
-                        // GD.Print("Adding vertex on plane " + p2.Normal + " for vertex " + v1.point + " - " + v2.point);
+                                                    // GD.Print("Adding vertex on plane " + p2.Normal + " for vertex " + v1.point + " - " + v2.point);
                         faces[p2][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 2
-                        // GD.Print("Adding vertex on plane " + p2.Normal + " for vertex " + v2.point + " - " + v1.point);
+                                                    // GD.Print("Adding vertex on plane " + p2.Normal + " for vertex " + v2.point + " - " + v1.point);
                         faces[p2][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 2
                     }
                     catch (Exception e)
