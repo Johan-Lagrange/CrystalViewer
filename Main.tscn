@@ -58,6 +58,7 @@ near = 0.001
 [node name="CrystalParent" type="Node3D" parent="."]
 
 [node name="Crystal" parent="CrystalParent" instance=ExtResource("1_m7r4q")]
+transform = Transform3D(1, 0.5, 0.5, 0, 0.866025, 0.288675, 0, 0, 0.816497, 0, 0, 0)
 mesh = SubResource("ArrayMesh_fqrfh")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_6f11m")
