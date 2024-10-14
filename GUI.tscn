@@ -506,6 +506,7 @@ text = "Show Axes:
 
 [node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Show Axes"]
 layout_mode = 2
+button_pressed = true
 
 [node name="AxisScale" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
 layout_mode = 2

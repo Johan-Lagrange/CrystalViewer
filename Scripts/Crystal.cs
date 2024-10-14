@@ -102,8 +102,6 @@ public class Crystal
             }
         }
 
-        //6/mmm with pointgroup: 
-        //6/mmm without pointgroup: 9113, 7697, 7519, 7840, 7632
         Stopwatch watch = new Stopwatch();
         watch.Start();
         List<Vertex> vertices = GenerateVertices(planeFlat, pointGroup);//Get all valid vertices on the crystal
@@ -252,13 +250,13 @@ public class Crystal
                     {
                         if (planeToAdd.D >= p.D)
                         {
-                            GD.Print("thisPlaneInvalid");
+                            //GD.Print("thisPlaneInvalid");
                             goto thisPlaneInvalid;//This face is behind another face so we can skip it
                             //Think of this as a break; we can't break 2 loops though
                         }
                         else
                         {
-                            GD.Print("removedInvalidGroup");
+                            //GD.Print("removedInvalidGroup");
                             prev = current;//Making sure we don't lose our place..
                             current = current.Next;
                             planeGroups.Remove(prev);//Group contains redundant face, so entire group can be removed due to symmetry
@@ -273,7 +271,7 @@ public class Crystal
             while (current != null);
 
             //Found to be a valid face
-            GD.Print("Adding face");
+            //GD.Print("Adding face");
             planeGroups.AddLast(normals[givenFace].Select(v => new Planed(v, distances[givenFace])).ToList<Planed>());
 
         thisPlaneInvalid:;
@@ -294,6 +292,7 @@ public class Crystal
         HashSet<Vector3d> mirroredPoints = new();
         HashSet<Vector3d> vectorHashes = new();
         HashSet<Vector3d> validatedPointHashes = new();
+        int[] typesOfMatches = new int[4];
 
         for (int i = 0; i < planes.Count - 2; i++)//By staggering the loops like this, we avoid checking the same combination twice
         {
@@ -317,10 +316,11 @@ public class Crystal
 
                     Vertex vertexToVerify = new((Vector3d)intersection, planes[i], planes[j], planes[k]);
 
-                    if (VerifyVertex(planes, validatedPoints, validatedPointHashes, mirroredPoints, faceVertices, vertexToVerify))
+                    if (VerifyVertex(planes, validatedPoints, validatedPointHashes, mirroredPoints, faceVertices, vertexToVerify, typesOfMatches))
                     {
                         if (pointGroup != SymmetryOperations.PointGroup.None
                         && pointGroup != SymmetryOperations.PointGroup.One
+                        && ((int)pointGroup < 21 || (int)pointGroup > 35)//tri operations work differently so we can't mirror like this.
                         && mirroredPoints.Contains((Vector3d)intersection) == false)
                         {
                             List<Vector3d> mirrored = CreateCrystalSymmetry(vertexToVerify.point, vectorHashes, pointGroup);
@@ -342,7 +342,7 @@ public class Crystal
                 }
             }
         }
-
+        GD.Print($"VerifiedHash:{typesOfMatches[0]}, VerifiedNear:{typesOfMatches[1]}, mirroredHash{typesOfMatches[2]}, insidePlanes:{typesOfMatches[3]}");
         return faceVertices.Values.ToList();
     }
 
@@ -352,7 +352,7 @@ public class Crystal
     /// Also checks to make sure the vertex is within or on the crystal. 
     /// Sometimes planes can generate outside of the crystal so we make sure that doesn't happen here.
     /// </summary>
-    private static bool VerifyVertex(IEnumerable<Planed> planes, IEnumerable<Vector3d> validatedPoints, HashSet<Vector3d> validatedPointHashes, HashSet<Vector3d> mirroredPoints, Dictionary<Vector3d, Vertex> faceVertices, Vertex vertexToVerify)
+    private static bool VerifyVertex(IEnumerable<Planed> planes, IEnumerable<Vector3d> validatedPoints, HashSet<Vector3d> validatedPointHashes, HashSet<Vector3d> mirroredPoints, Dictionary<Vector3d, Vertex> faceVertices, Vertex vertexToVerify, int[] typesOfMatches)
     {
         if (vertexToVerify.point.IsZeroApprox())
             return false;
@@ -361,6 +361,7 @@ public class Crystal
         {
             //GD.Print("Matched " + vertexToVerify.point);
             faceVertices[vertexToVerify.point].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
+            typesOfMatches[0]++;
             return false;//So we add the extra faces to one point and discard the other.
         }
 
@@ -376,6 +377,7 @@ public class Crystal
 
                 //GD.Print("Merged " + v + " with " + vertexToVerify.point);
                 faceVertices[v].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
+                typesOfMatches[1]++;
                 return false;//So we add the extra faces to one point and discard the other.
             }
         }
@@ -385,12 +387,15 @@ public class Crystal
         {
             //GD.Print("Matched Mirrored " + vertexToVerify.point);
 
+            typesOfMatches[2]++;
             return true;
         }
 
         if (IsInPlanes(planes, vertexToVerify.point))//Slightly more expensive. Should be last resort.
+        {
+            typesOfMatches[3]++;
             return true;
-
+        }
         return false;
     }
 

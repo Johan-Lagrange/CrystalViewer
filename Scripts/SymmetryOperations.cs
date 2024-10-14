@@ -246,19 +246,19 @@ public static class SymmetryOperations
 	public static Vector3d DiXXY(Vector3d v) => new(v.X, v.X - v.Y, -v.Z);//Seitz 2(2 1 0)
 	public static Vector3d DiXYY(Vector3d v) => new(-v.X + v.Y, v.Y, -v.Z);//Seitz 2(1 2 0)
 
-	// public static Vector3d TriXPos(Vector3d v) => new(v.X, -v.Z, v.Y - v.Z);
-	// public static Vector3d TriXNeg(Vector3d v) => new(v.X, -v.Y + v.Z, -v.Y);
+	public static Vector3d TriXPos(Vector3d v) => new(v.X, -v.Z, v.Y - v.Z);
+	public static Vector3d TriXNeg(Vector3d v) => new(v.X, -v.Y + v.Z, -v.Y);
 
-	// public static Vector3d TriYPos(Vector3d v) => new(v.X - v.Z, v.Y, -v.Z);
-	// public static Vector3d TriYNeg(Vector3d v) => new(-v.X, v.Y, -v.X + v.Y);
+	public static Vector3d TriYPos(Vector3d v) => new(v.X - v.Z, v.Y, -v.Z);
+	public static Vector3d TriYNeg(Vector3d v) => new(-v.X, v.Y, -v.X + v.Y);
 
 	//TODO I'm using a rotation matrix, but is that much better? It only works with gamma=90 but our target is gamma=120. However the supplied versions don't seem to keep magnitude, whereas these do.
 	// GD.Print(Math.Cos(2 * Math.PI / 3)); //= -.5
 	//GD.Print(Math.Sin(2 * Math.PI / 3)); //= sqrt3/2 = 0.8660254037844387	
-	public static Vector3d TriZPos(Vector3d v) => new(v.X * 0.8660254037844387 + v.Y * -.5, v.X * -.5 + v.Y * -0.8660254037844387, v.Z);
-	public static Vector3d TriZNeg(Vector3d v) => new(v.X * -0.8660254037844387 + v.Y * -.5, v.X * -.5 + v.Y * 0.8660254037844387, v.Z);
-	// public static Vector3d TriZPos(Vector3d v) => new(-v.Y, v.X - v.Y, v.Z);
-	// public static Vector3d TriZNeg(Vector3d v) => new(-v.X + v.Y, -v.X, v.Z);
+	// public static Vector3d TriZPos(Vector3d v) => new(v.X * 0.8660254037844387 + v.Y * -.5, v.X * -.5 + v.Y * -0.8660254037844387, v.Z);
+	// public static Vector3d TriZNeg(Vector3d v) => new(v.X * -0.8660254037844387 + v.Y * -.5, v.X * -.5 + v.Y * 0.8660254037844387, v.Z);
+	public static Vector3d TriZPos(Vector3d v) => new(-v.Y, v.X - v.Y, v.Z);
+	public static Vector3d TriZNeg(Vector3d v) => new(-v.X + v.Y, -v.X, v.Z);
 
 	public static Vector3d TriXYZPos(Vector3d v) => new(v.Z, v.X, v.Y);//Tri along 1, 1, 1
 	public static Vector3d TriXYZNeg(Vector3d v) => new(v.Y, v.Z, v.X);
