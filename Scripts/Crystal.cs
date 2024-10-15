@@ -107,6 +107,7 @@ public class Crystal
     List<Vertex> vertices = GenerateVertices(planeFlat, pointGroup);//Get all valid vertices on the crystal
     GD.Print(watch.ElapsedMilliseconds + "ms");
     //TODO remove planes with only one vertex. This may require using a list for adjacent vertices in Vertex and only continuing when that list.length == 2
+    RemoveInvalidPlanes(vertices);
 
     //Create a dictionary that will take a plane and give an unordered list of each edge that makes up the plane's face
     Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> unorderedEdges = GenerateEdges(vertices);
@@ -385,6 +386,32 @@ public class Crystal
     return faceVertices.Values.ToList();
   }
 
+  private static void RemoveInvalidPlanes(List<Vertex> vertices)
+  {
+    int i = 0;
+    Dictionary<Planed, LinkedList<Vertex>> planeVertices = new();
+    foreach (Vertex v in vertices)
+    {
+      foreach (Planed vp in v.planes)
+      {
+        if (planeVertices.ContainsKey(vp) == false)
+          planeVertices.Add(vp, new());
+        planeVertices[vp].AddLast(v);
+      }
+    }
+    foreach (Planed p in planeVertices.Keys)
+    {
+      if (planeVertices[p].Count < 3)
+      {
+        foreach (Vertex pv in planeVertices[p])
+        {
+          i++;
+          pv.planes.Remove(p);
+        }
+      }
+    }
+    GD.Print($"Removed {i} invalid planes");
+  }
 
   /// <summary>
   /// Takes a list of vertices and returns a dictionary that contains each edge (not in order) that lies on a plane.
