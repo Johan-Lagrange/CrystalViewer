@@ -227,7 +227,7 @@ public class Crystal
 
     private static List<List<Planed>> GeneratePlanes2(Vector3d[] initialFaces, double[] distances, List<List<Vector3d>> normals)
     {
-        LinkedList<List<Planed>> planeGroups = new();
+        LinkedList<List<Planed>> planeGroups = new();//We do this since we modify the list as we are traversing it.
         //TODO normals[0] can be empty
         //Add first face group to avoid "fencepost" issues where we stop prematurely.
         planeGroups.AddLast(normals[0].Select(v => new Planed(v, distances[0])).ToList<Planed>());
@@ -246,7 +246,7 @@ public class Crystal
                     i++;
                     if (i > 10000)
                         throw new Exception("Infinite loop");
-                    if (planeToAdd.Normal.Dot(p.Normal) > 1 - threshold)//Skip adding duplicate plane (plane normals are already normalized to length 1)
+                    if (planeToAdd.Normal.Dot(p.Normal) >= (1 - threshold))//Skip adding duplicate plane (plane normals are already normalized to length 1)
                     {
                         if (planeToAdd.D >= p.D)
                         {
@@ -287,58 +287,102 @@ public class Crystal
     /// <returns>A list of vertices with position and list of planes that intersect at that point. Can be more than three planes.</returns>
     private static List<Vertex> GenerateVertices(List<Planed> planes, SymmetryOperations.PointGroup pointGroup = SymmetryOperations.PointGroup.None)
     {
-        Dictionary<Vector3d, Vertex> faceVertices = new();
+        Dictionary<Vector3d, Vertex> faceVertices = new(); //Vertices on each face
         LinkedList<Vector3d> validatedPoints = new();
         HashSet<Vector3d> mirroredPoints = new();
         HashSet<Vector3d> vectorHashes = new();
         HashSet<Vector3d> validatedPointHashes = new();
         int[] typesOfMatches = new int[4];
 
-        for (int i = 0; i < planes.Count - 2; i++)//By staggering the loops like this, we avoid checking the same combination twice
+        for (int i = 0; i < planes.Count - 2; i++)//For every plane triplet, generate a vertex and validate
         {
             for (int j = i + 1; j < planes.Count - 1; j++)
             {
                 for (int k = j + 1; k < planes.Count; k++)
-                {
+                {//By staggering the loops like this, we avoid checking the same combination twice
+
                     //Dot product of opposite vectors of length 1 should be -1
                     if (planes[i].Normal.Dot(planes[j].Normal) < -(1 - threshold)//Two planes are opposite one another
                     || planes[i].Normal.Dot(planes[k].Normal) < -(1 - threshold)
                     || planes[j].Normal.Dot(planes[k].Normal) < -(1 - threshold))
-                        continue;
+                        continue;//Made of opposing planes; Skip
 
                     Vector3d? intersection = planes[i].Intersect3(planes[j], planes[k]);
 
                     if (intersection == null)
                     {
-                        //GD.PrintErr("Null intersection between: " + planes[i].originalNormal.ToString() + " " + planes[j].originalNormal.ToString() + " " + planes[k].originalNormal.ToString());
+                        //Should not happen
+                        GD.PrintErr("Null intersection between: " + planes[i].originalNormal.ToString() + " " + planes[j].originalNormal.ToString() + " " + planes[k].originalNormal.ToString());
                         continue;
                     }
 
                     Vertex vertexToVerify = new((Vector3d)intersection, planes[i], planes[j], planes[k]);
+                    if (vertexToVerify.point.IsZeroApprox())
+                        continue;
 
-                    if (VerifyVertex(planes, validatedPoints, validatedPointHashes, mirroredPoints, faceVertices, vertexToVerify, typesOfMatches))
+                    if (faceVertices.Keys.Contains(vertexToVerify.point))
                     {
-                        if (pointGroup != SymmetryOperations.PointGroup.None
+                        //GD.Print("Matched " + vertexToVerify.point);
+                        faceVertices[vertexToVerify.point].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
+                        typesOfMatches[0]++;
+                        continue;//So we add the extra faces to one point and discard the other.
+                    }
+
+                    foreach (Vector3d v in validatedPoints)//Check if we match any currently generated vertices.
+                    {
+                        //Since we use v here and floating points can be slightly off, we can't use Enumerable.Contains here.
+                        //If we did, we'd just be left with vertex to verify, 
+                        //which may have a different hash in the dictionary, and thus we couldn't merge vertices.
+                        if (v.IsEqualApprox(vertexToVerify.point))
+                        {
+                            // GD.Print("Merging point " + v.point + " with " + vertexToVerify.point);
+
+
+                            //GD.Print("Merged " + v + " with " + vertexToVerify.point);
+                            faceVertices[v].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
+                            typesOfMatches[1]++;
+                            continue;//So we add the extra faces to one point and discard the other.
+                        }
+                    }
+
+                    if (pointGroup != SymmetryOperations.PointGroup.None
+                        && pointGroup != SymmetryOperations.PointGroup.One
+                        && ((int)pointGroup < 21 || (int)pointGroup > 35)
+                        && mirroredPoints.Contains(vertexToVerify.point))
+                    {
+                        //GD.Print("Matched Mirrored " + vertexToVerify.point);
+                        typesOfMatches[2]++;
+                    }
+                    else if (IsInPlanes(planes, vertexToVerify.point))
+                    {
+                        typesOfMatches[3]++;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    if (pointGroup != SymmetryOperations.PointGroup.None
                         && pointGroup != SymmetryOperations.PointGroup.One
                         && ((int)pointGroup < 21 || (int)pointGroup > 35)//tri operations work differently so we can't mirror like this.
                         && mirroredPoints.Contains((Vector3d)intersection) == false)
+                    {
+                        List<Vector3d> mirrored = CreateCrystalSymmetry(vertexToVerify.point, vectorHashes, pointGroup);
+                        foreach (Vector3d v in mirrored)
                         {
-                            List<Vector3d> mirrored = CreateCrystalSymmetry(vertexToVerify.point, vectorHashes, pointGroup);
-                            foreach (Vector3d v in mirrored)
+                            if (IsInPlanes(planes, v) == false)
                             {
-                                if (IsInPlanes(planes, v) == false)
-                                {
-                                    DebugPrintNormals(new List<List<Vector3d>>() { mirrored });
-                                    GD.PrintErr(vertexToVerify.point + ": " + v);
-                                }
+                                //Should not happen as vertices are subject to the same symmetry as planes, and we just verified the vertex we are applying symmetry to is within the planes.
+                                DebugPrintNormals(new List<List<Vector3d>>() { mirrored });
+                                GD.PrintErr(vertexToVerify.point + ": " + v);
                             }
-                            mirrored.ForEach(v => mirroredPoints.Add(v));
                         }
-
-                        validatedPoints.AddLast(vertexToVerify.point);
-                        validatedPointHashes.Add(vertexToVerify.point);
-                        faceVertices.Add(vertexToVerify.point, vertexToVerify);
+                        mirrored.ForEach(v => mirroredPoints.Add(v));
                     }
+
+                    validatedPoints.AddLast(vertexToVerify.point);
+                    validatedPointHashes.Add(vertexToVerify.point);
+                    faceVertices.Add(vertexToVerify.point, vertexToVerify);
                 }
             }
         }
@@ -346,58 +390,6 @@ public class Crystal
         return faceVertices.Values.ToList();
     }
 
-
-    /// <summary>
-    /// Merges two vertices if they are in the same spot but has different faces
-    /// Also checks to make sure the vertex is within or on the crystal. 
-    /// Sometimes planes can generate outside of the crystal so we make sure that doesn't happen here.
-    /// </summary>
-    private static bool VerifyVertex(IEnumerable<Planed> planes, IEnumerable<Vector3d> validatedPoints, HashSet<Vector3d> validatedPointHashes, HashSet<Vector3d> mirroredPoints, Dictionary<Vector3d, Vertex> faceVertices, Vertex vertexToVerify, int[] typesOfMatches)
-    {
-        if (vertexToVerify.point.IsZeroApprox())
-            return false;
-
-        if (validatedPointHashes.Contains(vertexToVerify.point))
-        {
-            //GD.Print("Matched " + vertexToVerify.point);
-            faceVertices[vertexToVerify.point].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
-            typesOfMatches[0]++;
-            return false;//So we add the extra faces to one point and discard the other.
-        }
-
-        foreach (Vector3d v in validatedPoints)//Check if we match any currently generated vertices.
-        {
-            //Since we use v here and floating points can be slightly off, we can't use Enumerable.Contains here.
-            //If we did, we'd just be left with vertex to verify, 
-            //which may have a different hash in the dictionary, and thus we couldn't merge vertices.
-            if (v.IsEqualApprox(vertexToVerify.point))
-            {
-                // GD.Print("Merging point " + v.point + " with " + vertexToVerify.point);
-
-
-                //GD.Print("Merged " + v + " with " + vertexToVerify.point);
-                faceVertices[v].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
-                typesOfMatches[1]++;
-                return false;//So we add the extra faces to one point and discard the other.
-            }
-        }
-
-        //TODO fix mirrored points. Broken in 6/mmm
-        if (mirroredPoints.Contains(vertexToVerify.point))
-        {
-            //GD.Print("Matched Mirrored " + vertexToVerify.point);
-
-            typesOfMatches[2]++;
-            return true;
-        }
-
-        if (IsInPlanes(planes, vertexToVerify.point))//Slightly more expensive. Should be last resort.
-        {
-            typesOfMatches[3]++;
-            return true;
-        }
-        return false;
-    }
 
     /// <summary>
     /// Takes a list of vertices and returns a dictionary that contains each edge (not in order) that lies on a plane.
