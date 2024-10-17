@@ -1,4 +1,6 @@
 
+using System;
+
 public struct Planed
 {
     /// <summary>
@@ -60,4 +62,19 @@ public struct Planed
     + (Normal.z * 5).GetHashCode()
     + (Distance * 7).GetHashCode()).GetHashCode();//We use coprime numbers to ensure the hash is more likely to be unique
 
+    public static Vector3d? Intersect3(Planed plane1, Planed plane2, Planed plane3)
+    {
+        Vector3d normal0 = plane1.normal;
+        Vector3d normal1 = plane2.normal;
+        Vector3d normal2 = plane3.normal;
+        double denom = normal0.Cross(normal1).Dot(normal2);
+
+        if (denom * denom < 0.0000001)
+            return null;
+
+        return ((Vector3d.Cross(normal1, normal2) * plane1.D) +
+                (Vector3d.Cross(normal2, normal0) * plane2.D) +
+                (Vector3d.Cross(normal0, normal1) * plane3.D)) /
+                denom;
+    }
 }

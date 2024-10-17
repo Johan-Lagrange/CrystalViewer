@@ -62,25 +62,15 @@ public class Crystal
         i--;//We would skip over the next one if we didn't do this.
       }
     }
-    normalGroups = new List<List<Vector3d>>();//List of normals for each initial face that was duplicated by the symmetry group
-                                              //Reflect every given face along the given symmetry group
-    HashSet<Vector3d> vectorHashes = new() { };//For quick "does this exist" lookup. We don't want to add duplicate faces.
-    for (int i = 0; i < initialFaces.Count; i++)
-    {
-      List<Vector3d> normalGroup = CreateCrystalSymmetry(initialFaces[i], vectorHashes, pointGroup);//Reflects every normal along the given point group's symmetry.
-      if (normalGroup.Count == 0)
-      {
-
-      }
-      normalGroups.Add(normalGroup);
-    }
+    normalGroups = GenerateSymmetry(initialFaces, pointGroup);
 
     //DebugPrintNormals(normalGroups);
-    planeGroups = GeneratePlanes2(initialFaces.ToArray(), distances.ToArray(), normalGroups);//Create a plane with distance from center for every generated normal
+    planeGroups = GeneratePlanes2(initialFaces, distances, normalGroups);//Create a plane with distance from center for every generated normal
 
 
     faceGroups = new List<List<List<Vector3d>>>();
-    foreach (List<Planed> list in planeGroups) { faceGroups.Add(new List<List<Vector3d>>()); }
+    foreach (List<Planed> list in planeGroups)
+      faceGroups.Add(new List<List<Vector3d>>());
 
 
     List<Planed> planeFlat = planeGroups.SelectMany(plane => plane).ToList<Planed>();//Easier to iterate over
@@ -125,6 +115,23 @@ public class Crystal
     }
   }
 
+  public static List<List<Vector3d>> GenerateSymmetry(IEnumerable<Vector3d> initialFaces, SymmetryOperations.PointGroup pointGroup)
+  {
+    List<List<Vector3d>> normalGroups = new List<List<Vector3d>>();//List of normals for each initial face that was duplicated by the symmetry group
+                                                                   //Reflect every given face along the given symmetry group
+    HashSet<Vector3d> vectorHashes = new() { };//For quick "does this exist" lookup. We don't want to add duplicate faces.
+    foreach (Vector3d v in initialFaces)
+    {
+      List<Vector3d> normalGroup = CreateCrystalSymmetry(v, vectorHashes, pointGroup);//Reflects every normal along the given point group's symmetry.
+      if (normalGroup.Count == 0)
+      {
+        throw new Exception("Empty normal group!");
+      }
+      normalGroups.Add(normalGroup);
+    }
+    return normalGroups;
+  }
+
   /// <summary>
   /// Takes an initial vector and applies all point group operations on it, 
   /// returning a list of every vector therein, including the original. (Identity is an operation after all)
@@ -134,7 +141,8 @@ public class Crystal
   /// <returns>A list of vectors, including the original, that are made from the symmetry operations</returns>
   public static List<Vector3d> CreateCrystalSymmetry(Vector3d v, HashSet<Vector3d> vectorHashes, SymmetryOperations.PointGroup group)
   {
-    List<Vector3d> vectorList = new() { v };//To keep vectors in order
+    LinkedList<Vector3d> vectorList = new();//To keep vectors in order
+    vectorList.AddFirst(v);
     vectorHashes.Add(v);
     foreach (Func<Vector3d, Vector3d> Operation in SymmetryOperations.PointGroupOperations[(int)group])
     {
@@ -154,39 +162,35 @@ public class Crystal
     //         vectorList[j] = new Vector3d(v2.x, -v2.y, v2.z);
     //     }
     // }
-    return vectorList;
+    return vectorList.ToList<Vector3d>();
   }
   /// <summary>
   /// Applies a symmetry operation to every vector in a list, and adds every result to the list.
   /// </summary>
   /// <param name="vectorList">List of vectors to operate upon and expand</param>
   /// <param name="symmetryOperation">The symmetry operation to do</param>
-  public static void ApplyOperation(List<Vector3d> vectorList, HashSet<Vector3d> vectorHashes, Func<Vector3d, Vector3d> symmetryOperation)
+  public static void ApplyOperation(LinkedList<Vector3d> vectorList, HashSet<Vector3d> vectorHashes, Func<Vector3d, Vector3d> symmetryOperation, bool skipApproxVerify = false)
   {
     int count = vectorList.Count;//Get the count before we add to the list, so we can add to the list we're reading without causing an infinite loop by looking at stuff we just added
+    LinkedListNode<Vector3d> current = vectorList.First;
     for (int i = 0; i < count; i++)
     {
-      Vector3d v = symmetryOperation(vectorList[i]);
+      Vector3d v = symmetryOperation(current.Value);
 
-      if (vectorHashes.Contains(v))
-        continue;
-
-      vectorList.Add(v);
-      vectorHashes.Add(v);
+      if (vectorHashes.Contains(v) == false && (skipApproxVerify || vectorList.Contains(v) == false))
+      {
+        vectorList.AddLast(v);
+        vectorHashes.Add(v);
+      }
+      current = current.Next;
     }
   }
 
-  /// <summary>
-  /// Generates the crystal's planes from faces, distances, and normals
-  /// </summary>
-  /// <param name="initialFaces"></param>
-  /// <param name="distances"></param>
-  /// <param name="normals"></param>
-  /// <returns></returns>
-  private static List<List<Planed>> GeneratePlanes(Vector3d[] initialFaces, double[] distances, List<List<Vector3d>> normals)
+
+  private static List<List<Planed>> GeneratePlanes(IList<Vector3d> initialFaces, IList<double> distances, List<List<Vector3d>> normals)
   {
     List<List<Planed>> planeGroups = new();
-    for (int givenFace = 0; givenFace < initialFaces.Length; givenFace++)
+    for (int givenFace = 0; givenFace < initialFaces.Count; givenFace++)
     {
       List<Vector3d> normalsList = normals[givenFace];
       List<Planed> newPlanes = new List<Planed>();
@@ -226,7 +230,7 @@ public class Crystal
     return planeGroups;
   }
 
-  private static List<List<Planed>> GeneratePlanes2(Vector3d[] initialFaces, double[] distances, List<List<Vector3d>> normals)
+  private static List<List<Planed>> GeneratePlanes2(IList<Vector3d> initialFaces, IList<double> distances, List<List<Vector3d>> normals)
   {
     LinkedList<List<Planed>> planeGroups = new();//We do this since we modify the list as we are traversing it.
                                                  //TODO normals[0] can be empty
@@ -234,7 +238,7 @@ public class Crystal
     planeGroups.AddLast(normals[0].Select(v => new Planed(v, distances[0])).ToList<Planed>());
     int i = 0;
 
-    for (int givenFace = 1; givenFace < initialFaces.Length; givenFace++)
+    for (int givenFace = 1; givenFace < initialFaces.Count; givenFace++)
     {
       Planed planeToAdd = new Planed(initialFaces[givenFace], distances[givenFace]);//Create new plane to add
 
@@ -286,7 +290,7 @@ public class Crystal
   /// </summary>
   /// <param name="planes">The planes to find the intersection points of.</param>
   /// <returns>A list of vertices with position and list of planes that intersect at that point. Can be more than three planes.</returns>
-  private static List<Vertex> GenerateVertices(List<Planed> planes, SymmetryOperations.PointGroup pointGroup = SymmetryOperations.PointGroup.None)
+  private static List<Vertex> GenerateVertices(IList<Planed> planes, SymmetryOperations.PointGroup pointGroup = SymmetryOperations.PointGroup.None)
   {
     Dictionary<Vector3d, Vertex> faceVertices = new(); //Vertices on each face
     LinkedList<Vector3d> validatedPoints = new();
@@ -295,13 +299,19 @@ public class Crystal
     HashSet<Vector3d> validatedPointHashes = new();
     int[] typesOfMatches = new int[4];
 
+    Planed p1, p2, p3;
+
     for (int i = 0; i < planes.Count - 2; i++)//For every plane triplet, generate a vertex and validate
     {
       for (int j = i + 1; j < planes.Count - 1; j++)
       {
         for (int k = j + 1; k < planes.Count; k++)
         {//By staggering the loops like this, we avoid checking the same combination twice
-          Vector3d? intersection = planes[i].Intersect3(planes[j], planes[k]);
+          p1 = planes[i];
+          p2 = planes[j];
+          p3 = planes[k];
+
+          Vector3d? intersection = Planed.Intersect3(p1, p2, p3);
 
           if (intersection == null || ((Vector3d)intersection).IsZeroApprox())
           {
@@ -313,10 +323,10 @@ public class Crystal
           if (((Vector3d)intersection).IsZeroApprox())
           {
             //Should not happen as we don't allow planes with distance zero
-            GD.PrintErr($"Null intersection between: {planes[i].originalNormal.ToString() + planes[i].distance} {planes[j].originalNormal.ToString() + planes[j].distance} {planes[k].originalNormal.ToString() + planes[k].distance}");
+            throw new Exception($"Null intersection between: {p1.originalNormal.ToString() + p1.distance} {p2.originalNormal.ToString() + p2.distance} {p3.originalNormal.ToString() + p3.distance}");
           }
 
-          Vertex vertexToVerify = new((Vector3d)intersection, planes[i], planes[j], planes[k]);
+          Vertex vertexToVerify = new((Vector3d)intersection, p1, p2, p3);
 
           if (faceVertices.ContainsKey(vertexToVerify.point))
           {
@@ -386,9 +396,9 @@ public class Crystal
     return faceVertices.Values.ToList();
   }
 
-  private static void RemoveInvalidPlanes(List<Vertex> vertices)
+  private static void RemoveInvalidPlanes(IEnumerable<Vertex> vertices)
   {
-    int i = 0;
+    int removed = 0;
     Dictionary<Planed, LinkedList<Vertex>> planeVertices = new();
     foreach (Vertex v in vertices)
     {
@@ -405,12 +415,12 @@ public class Crystal
       {
         foreach (Vertex pv in planeVertices[p])
         {
-          i++;
+          removed++;
           pv.planes.Remove(p);
         }
       }
     }
-    GD.Print($"Removed {i} invalid planes");
+    GD.Print($"Removed {removed} invalid planes");
   }
 
   /// <summary>
@@ -418,7 +428,7 @@ public class Crystal
   /// </summary>
   /// <param name="vertices">The vertices to check for conections. A connection exists if two vertices share two planes</param>
   /// <returns>A dictionary that contains all surrounding edges (not in order) of each plane</returns>
-  private static Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> GenerateEdges(List<Vertex> vertices)
+  private static Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> GenerateEdges(IList<Vertex> vertices)
   {
     Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> faces = new();
 
@@ -426,8 +436,8 @@ public class Crystal
     {
       for (int j = i + 1; j < vertices.Count; j++)//For every pair of vertices
       {
-        // if (vertices[i].point == vertices[j].point)//Don't create an edge between a point and itself
-        //     continue;
+        if (vertices[i].point.IsEqualApprox(vertices[j].point))//Don't create an edge between a point and itself
+          throw new Exception("Two separate points have the same position");
 
         List<Planed> sharedFaces = vertices[i].SharedFaces(vertices[j]);//Check for shared faces
                                                                         // if (sharedFaces.Count > 2)
@@ -497,13 +507,14 @@ public class Crystal
         }
       }
     }
-    //TODO: Invalid planes still change what the vertices have as connections, we remove them too late here.
+    // //TODO: Invalid planes still change what the vertices have as connections, we remove them too late here.
     // List<Planed> facesToRemove = new();
-    // foreach (Planed p in faces.Keys)
-    // {
-    //     if (faces[p].Count < 3)//Generated an invalid polygon
-    //         facesToRemove.Add(p);//So we remove it later
-    // }
+    foreach (Planed p in faces.Keys)
+    {
+      if (faces[p].Count < 3)//Generated an invalid polygon
+        throw new Exception("Invalid planes still present, dang it.");
+      //     facesToRemove.Add(p);//So we remove it later
+    }
     // foreach (Planed p in facesToRemove)
     //     faces.Remove(p);
     return faces;
@@ -963,9 +974,9 @@ public class Crystal
       if (a != null && a.point.IsEqualApprox(v.point))//if we don't check null and short circuit then we'd get a null reference exception
         throw new Exception("Was given a point twice!");
       if (b != null && b.point.IsEqualApprox(v.point))
-        throw new Exception("Was given a point twice!");
+        throw new Exception("Was given b point twice!");
       if (b != null)
-        throw new Exception("Was given more than two vertices, this should not happen: " + a.point + " " + b.point + " " + v.point);
+        throw new Exception("Was given more than two vertices, this should not happen: " + a.point.ToStringSingleLetter() + " " + b.point.ToStringSingleLetter() + " " + v.point.ToStringSingleLetter());
 
       if (a == null)
         a = v;
