@@ -65,7 +65,7 @@ public class Crystal
     normalGroups = GenerateSymmetry(initialFaces, pointGroup);
 
     //DebugPrintNormals(normalGroups);
-    planeGroups = GeneratePlanes2(initialFaces, distances, normalGroups);//Create a plane with distance from center for every generated normal
+    planeGroups = GeneratePlanes(normalGroups, distances);//Create a plane with distance from center for every generated normal
 
 
     faceGroups = new List<List<List<Vector3d>>>();
@@ -186,50 +186,7 @@ public class Crystal
   }
 
 
-  private static List<List<Planed>> GeneratePlanes(IList<Vector3d> initialFaces, IList<double> distances, List<List<Vector3d>> normals)
-  {
-    List<List<Planed>> planeGroups = new();
-    for (int givenFace = 0; givenFace < initialFaces.Count; givenFace++)
-    {
-      List<Vector3d> normalsList = normals[givenFace];
-      List<Planed> newPlanes = new List<Planed>();
-      planeGroups.Add(newPlanes);
-
-      foreach (Vector3d normal in normalsList)//Verify and add planes for each type of normal
-      {
-        Planed planeToAdd = new Planed(normal, distances[givenFace]);//Create new plane to add
-        List<Planed> planesToRemove = new();
-        bool valid = true;
-        foreach (List<Planed> prevPlanes in planeGroups)//Go through each group of planes we added
-        {
-          foreach (Planed p in prevPlanes)//Go through every plane previously added
-          {
-            if (planeToAdd.Normal.Dot(p.Normal) > 1 - threshold)//Skip adding duplicate plane (plane normals are already normalized to length 1)
-            {
-              if (planeToAdd.D <= p.D)
-              {
-                valid = false;//This face is behind another face so we can skip it
-                goto invalid;//Think of this as a break; we can't break 2 loops though
-              }
-              else
-              {
-                //GD.Print("Removed old plane" + p.originalNormal + " of larger " + planeToAdd.originalNormal);
-                planesToRemove.Add(p);//Another face was behind this so we remove the old one
-              }
-            }
-          }
-          foreach (Planed pp in planesToRemove)
-            prevPlanes.Remove(pp);//Remove faces that are behind(but same direction) the one we just added
-        }
-        if (valid)
-          newPlanes.Add(planeToAdd);
-        invalid:;
-      }
-    }
-    return planeGroups;
-  }
-
-  private static List<List<Planed>> GeneratePlanes2(IList<Vector3d> initialFaces, IList<double> distances, List<List<Vector3d>> normals)
+  private static List<List<Planed>> GeneratePlanes(List<List<Vector3d>> normals, IList<double> distances)
   {
     LinkedList<List<Planed>> planeGroups = new();//We do this since we modify the list as we are traversing it.
                                                  //TODO normals[0] can be empty
@@ -237,9 +194,9 @@ public class Crystal
     planeGroups.AddLast(normals[0].Select(v => new Planed(v, distances[0])).ToList<Planed>());
     int i = 0;
 
-    for (int givenFace = 1; givenFace < initialFaces.Count; givenFace++)
+    for (int givenFace = 1; givenFace < normals.Count; givenFace++)
     {
-      Planed planeToAdd = new Planed(initialFaces[givenFace], distances[givenFace]);//Create new plane to add
+      Planed planeToAdd = new Planed(normals[givenFace][0], distances[givenFace]);//Create new plane to add
 
       LinkedListNode<List<Planed>> current = planeGroups.First;
       LinkedListNode<List<Planed>> prev;
