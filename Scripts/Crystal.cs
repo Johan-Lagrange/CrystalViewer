@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using Godot;
 public class Crystal
 {
@@ -46,7 +47,7 @@ public class Crystal
       List<double> distances,
       SymmetryOperations.PointGroup pointGroup)
   {
-    if (distances.Count != initialFaces.Count)
+        if (distances.Count != initialFaces.Count)
       throw new ArgumentException("Every initial face must be given a distance!");
 
     removedGroupIndices = new List<int>();
@@ -191,51 +192,54 @@ public class Crystal
     LinkedList<List<Planed>> planeGroups = new();//We do this since we modify the list as we are traversing it.
                                                  //TODO normals[0] can be empty
                                                  //Add first face group to avoid "fencepost" issues where we stop prematurely.
-    planeGroups.AddLast(normals[0].Select(v => new Planed(v, distances[0])).ToList<Planed>());
-    int i = 0;
+                                                 //planeGroups.AddFirst(normals[0].Select(v => new Planed(v, distances[0])).ToList<Planed>());
+    int debugLoopCount = 0;
 
-    for (int givenFace = 1; givenFace < normals.Count; givenFace++)
+    for (int faceGroup = 0; faceGroup < normals.Count; faceGroup++)
     {
-      Planed planeToAdd = new Planed(normals[givenFace][0], distances[givenFace]);//Create new plane to add
+      if (normals[faceGroup].Count == 0)//Skip checking any empty groups
+        continue;
 
-      LinkedListNode<List<Planed>> current = planeGroups.First;
-      LinkedListNode<List<Planed>> prev;
-      do
+      Planed planeToAdd = new Planed(normals[faceGroup][0], distances[faceGroup]);
+      //Since every plane in a facegroup follows the same properties due to symmetry, we only verify the first one
+
+      LinkedListNode<List<Planed>> currentGroup = planeGroups.First;
+
+      while (currentGroup != null)
       {
-        foreach (Planed p in current.Value)
+        foreach (Planed p in currentGroup.Value)//Check each plane in a given group
         {
-          i++;
-          if (i > 10000)
+          debugLoopCount++;
+          if (debugLoopCount > 10000)
             throw new Exception("Infinite loop");
-          if (planeToAdd.Normal.Dot(p.Normal) >= (1 - threshold))//Skip adding duplicate plane (plane normals are already normalized to length 1)
+
+          if (planeToAdd.Normal.Dot(p.Normal) < (1 - threshold))//Not duplicate so we skip duplicate procedure (plane normals are already normalized to length 1)
+            continue;
+
+          //Found duplicate plane: Remove (or skip) the one one the outside
+          if (planeToAdd.D < p.D)
           {
-            if (planeToAdd.D >= p.D)
-            {
-              //GD.Print("thisPlaneInvalid");
-              goto thisPlaneInvalid;//This face is behind another face so we can skip it
-                                    //Think of this as a break; we can't break 2 loops though
-            }
-            else
-            {
-              //GD.Print("removedInvalidGroup");
-              prev = current;//Making sure we don't lose our place..
-              current = current.Next;
-              planeGroups.Remove(prev);//Group contains redundant face, so entire group can be removed due to symmetry
-              goto removedInvalidGroup;//I would break here but then I would skip a node and potentially run into a nullref exception.
-            }
+            //TODO this doesn't work if first group is the one being removed
+            LinkedListNode<List<Planed>> prevGroup = currentGroup;//Making sure we don't lose our place.. (we can't do current.previous as current.next may be null and that has no previous)
+            currentGroup = currentGroup.Next;
+            planeGroups.Remove(prevGroup);//Group contains a redundant face, so entire group can be removed due to symmetry
+            goto removedInvalidGroup;//I would break here but then I would skip a node and potentially run into a nullref exception.
+          }
+          else
+          {
+            goto thisGroupInvalid;//This face is behind another face so we can skip it
+                                  //Think of this as a break; we can't break 2 loops though
           }
         }
 
-        current = current.Next;
+        currentGroup = currentGroup.Next;
       removedInvalidGroup:;
       }
-      while (current != null);
 
       //Found to be a valid face
-      //GD.Print("Adding face");
-      planeGroups.AddLast(normals[givenFace].Select(v => new Planed(v, distances[givenFace])).ToList<Planed>());
+      planeGroups.AddLast(normals[faceGroup].Select(v => new Planed(v, distances[faceGroup])).ToList<Planed>());
 
-    thisPlaneInvalid:;
+    thisGroupInvalid:;
     }
     return planeGroups.ToList<List<Planed>>();
   }
@@ -255,7 +259,7 @@ public class Crystal
     HashSet<Vector3d> mirroredPoints = new();
     HashSet<Vector3d> vectorHashes = new();
     HashSet<Vector3d> validatedPointHashes = new();
-    int[] typesOfMatches = new int[6];
+    int[] debugTypesOfMatches = new int[6];
 
     Planed p1, p2, p3;
 
@@ -276,7 +280,7 @@ public class Crystal
             //Either two planes are parallel or all 3 planes make a tube 
             //and thus don't meet at 1 point
             //..oor they all meet at zero
-            typesOfMatches[4]++;
+            debugTypesOfMatches[4]++;
             continue;
           }
           if (((Vector3d)intersection).IsZeroApprox())
@@ -291,14 +295,14 @@ public class Crystal
           if (faceVertices.ContainsKey(vertexToVerify.point))
           {
             faceVertices[vertexToVerify.point].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
-            typesOfMatches[0]++;
+            debugTypesOfMatches[0]++;
             continue;//So we add the extra faces to the pre existing point and skip adding the new one.
           }
           else if (ApproxSearch(faceVertices.Keys, vertexToVerify.point, out Vector3d? match))//Check if we match any currently generated vertices.
           {
             //Since we use v here and floating points can be slightly off, we can't use Enumerable.Contains here.
             faceVertices[(Vector3d)match].MergeVertices(vertexToVerify);//Two different plane triplets made the same point. That means the point has more than 3 faces. 
-            typesOfMatches[1]++;
+            debugTypesOfMatches[1]++;
             continue;//So we add the extra faces to the pre existing point and skip adding the new one.
           }
 
@@ -309,17 +313,17 @@ public class Crystal
               && mirroredPoints.Contains(vertexToVerify.point))
           {
             //Valid and new point
-            typesOfMatches[2]++;
+            debugTypesOfMatches[2]++;
           }
           else if (IsInPlanes(planes, vertexToVerify.point))
           {
             //Valid and new point
-            typesOfMatches[3]++;
+            debugTypesOfMatches[3]++;
           }
           else
           {
             //Was not in planes so invalid and skip adding
-            typesOfMatches[5]++;
+            debugTypesOfMatches[5]++;
             continue;
           }
 
@@ -346,7 +350,7 @@ public class Crystal
         }
       }
     }
-    GD.Print($"VerifiedHash:{typesOfMatches[0]}, VerifiedNear:{typesOfMatches[1]}, mirroredHash{typesOfMatches[2]}, insidePlanes:{typesOfMatches[3]}, noIntersection:{typesOfMatches[4]}, notInPlanes:{typesOfMatches[5]}");
+    GD.Print($"VerifiedHash:{debugTypesOfMatches[0]}, VerifiedNear:{debugTypesOfMatches[1]}, mirroredHash{debugTypesOfMatches[2]}, insidePlanes:{debugTypesOfMatches[3]}, noIntersection:{debugTypesOfMatches[4]}, notInPlanes:{debugTypesOfMatches[5]}");
     return faceVertices.Values.ToList();
   }
 
