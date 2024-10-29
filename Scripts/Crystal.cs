@@ -159,6 +159,7 @@ public class Crystal
     }
     return vectorList.ToList<Vector3d>();
   }
+
   /// <summary>
   /// Applies a symmetry operation to every vector in a list, and adds every result to the list.
   /// </summary>
@@ -172,7 +173,7 @@ public class Crystal
     {
       Vector3d v = symmetryOperation(current.Value);
 
-      if (vectorHashes.Contains(v) == false && (skipApproxVerify || vectorList.Contains(v) == false))
+      if (vectorHashes.Contains(v) == false && (skipApproxVerify || ApproxSearch(vectorHashes, v) == false))
       {
         vectorList.AddLast(v);
         vectorHashes.Add(v);
@@ -180,7 +181,6 @@ public class Crystal
       current = current.Next;
     }
   }
-
 
   private static List<List<Planed>> GeneratePlanes(List<List<Vector3d>> normals, IList<double> distances)
   {
@@ -258,7 +258,6 @@ public class Crystal
 
     foreach (Tuple<Planed, Planed, Planed> triplet in GetUniqueTriplets<Planed>(planes))
     {
-
       Vector3d? intersection = Planed.Intersect3(triplet.Item1, triplet.Item2, triplet.Item3);
 
       if (intersection == null)
@@ -341,7 +340,7 @@ public class Crystal
         }
       }
     }
-    GD.Print($"Removed {removed} invalid planes");
+    //GD.Print($"Removed {removed} invalid planes");
   }
 
   /// <summary>
