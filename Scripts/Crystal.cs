@@ -63,7 +63,7 @@ public class Crystal
         i--;//We would skip over the next one if we didn't do this.
       }
     }
-    normalGroups = GenerateSymmetry(initialFaces, pointGroup);
+    normalGroups = GenerateSymmetryGroups(initialFaces, pointGroup);
 
     planeGroups = GeneratePlanes(normalGroups, distances);//Create a plane with distance from center for every generated normal
 
@@ -108,14 +108,14 @@ public class Crystal
     }
   }
 
-  public static List<List<Vector3d>> GenerateSymmetry(IEnumerable<Vector3d> initialFaces, SymmetryOperations.PointGroup pointGroup)
+  public static List<List<Vector3d>> GenerateSymmetryGroups(IEnumerable<Vector3d> initialFaces, SymmetryOperations.PointGroup pointGroup)
   {
     List<List<Vector3d>> normalGroups = new List<List<Vector3d>>();//List of normals for each initial face that was duplicated by the symmetry group
                                                                    //Reflect every given face along the given symmetry group
     HashSet<Vector3d> vectorHashes = new() { };//For quick "does this exist" lookup. We don't want to add duplicate faces.
     foreach (Vector3d v in initialFaces)
     {
-      List<Vector3d> normalGroup = CreateCrystalSymmetry(v, vectorHashes, pointGroup);//Reflects every normal along the given point group's symmetry.
+      List<Vector3d> normalGroup = GenerateSymmetryList(v, vectorHashes, pointGroup);//Reflects every normal along the given point group's symmetry.
       if (normalGroup.Count == 0)
       {
         throw new Exception("Empty normal group!");
@@ -132,7 +132,7 @@ public class Crystal
   /// <param name="v">The initial vector to do symmetry stuff on</param>
   /// <param name="group">The crystal's point group. Used to get a list of operations</param>
   /// <returns>A list of vectors, including the original, that are made from the symmetry operations</returns>
-  public static List<Vector3d> CreateCrystalSymmetry(Vector3d v, HashSet<Vector3d> vectorHashes, SymmetryOperations.PointGroup group)
+  public static List<Vector3d> GenerateSymmetryList(Vector3d v, HashSet<Vector3d> vectorHashes, SymmetryOperations.PointGroup group)
   {
     LinkedList<Vector3d> vectorList = new();//To keep vectors in order
     vectorList.AddFirst(v);
@@ -198,7 +198,7 @@ public class Crystal
 
       LinkedListNode<List<Planed>> currentGroup = planeGroups.First;
       bool valid = true;
-      
+
       while (currentGroup != null)
       {
         Planed? overlap = OverlapOrNull(currentGroup.Value, planeToAdd);
@@ -256,17 +256,7 @@ public class Crystal
     HashSet<Vector3d> mirroredPoints = new(); //Verified points that are mirrored according to the crystal's symmetry.
     HashSet<Vector3d> vectorHashes = new(); //Used to avoid creating duplicate vectors
 
-    //Returns a new unique plane triplet every time it is called.
-    //Added for code readability.
-    IEnumerable<Tuple<Planed, Planed, Planed>> GetTriplets()
-    {
-      for (int i = 0; i < planes.Count - 2; i++)//For every plane triplet, generate a vertex and validate
-        for (int j = i + 1; j < planes.Count - 1; j++)
-          for (int k = j + 1; k < planes.Count; k++)//By staggering the loops like this, we avoid checking the same combination twice
-            yield return new Tuple<Planed, Planed, Planed>(planes[i], planes[j], planes[k]);
-    }
-
-    foreach (Tuple<Planed, Planed, Planed> triplet in GetTriplets())
+    foreach (Tuple<Planed, Planed, Planed> triplet in GetUniqueTriplets<Planed>(planes))
     {
 
       Vector3d? intersection = Planed.Intersect3(triplet.Item1, triplet.Item2, triplet.Item3);
@@ -295,7 +285,7 @@ public class Crystal
         {
           //Use the fact that crystals are symmetric to create a fast lookup table of vertices that must be on the crystal.
           //This way we can avoid checking each new point against every plane on the crystal.
-          CreateCrystalSymmetry(vertexToVerify.point, vectorHashes, pointGroup).ForEach(v => mirroredPoints.Add(v));
+          GenerateSymmetryList(vertexToVerify.point, vectorHashes, pointGroup).ForEach(v => mirroredPoints.Add(v));
         }
       }
     }
@@ -363,69 +353,68 @@ public class Crystal
   {
     Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> faces = new();
 
-    for (int i = 0; i < vertices.Count - 1; i++)
+    foreach (Tuple<Vertex, Vertex> pair in GetUniquePairs<Vertex>(vertices))
     {
-      for (int j = i + 1; j < vertices.Count; j++)//For every pair of vertices
+      if (pair.Item2.point.IsEqualApprox(pair.Item2.point))//Don't create an edge between a point and itself
+        throw new Exception("Two separate points have the same position");
+
+      List<Planed> sharedFaces = pair.Item2.SharedFaces(pair.Item2);//Check for shared faces
+
+      if (sharedFaces.Count >= 2)//If they share TWO faces, that means they have an edge together
       {
-        if (vertices[i].point.IsEqualApprox(vertices[j].point))//Don't create an edge between a point and itself
-          throw new Exception("Two separate points have the same position");
-
-        List<Planed> sharedFaces = vertices[i].SharedFaces(vertices[j]);//Check for shared faces
-
-        if (sharedFaces.Count >= 2)//If they share TWO faces, that means they have an edge together
+        if (sharedFaces.Count > 2)
         {
-          if (sharedFaces.Count > 2)
+          string s = "TOO MANY SHARED FACES: ";
+          foreach (Planed p in sharedFaces)
           {
-            string s = "TOO MANY SHARED FACES: ";
-            foreach (Planed p in sharedFaces)
-            {
-              s += p.originalNormal.ToStringSingleLetter();
-            }
-            s += " between 1(";
-            foreach (Planed p in vertices[i].Planes)
-              s += p.originalNormal.ToStringSingleLetter();
-            s += ") and 2(";
-            foreach (Planed p in vertices[j].Planes)
-              s += p.originalNormal.ToStringSingleLetter();
-            s += ")";
-            GD.PrintErr(s);
+            s += p.originalNormal.ToStringSingleLetter();
           }
-          Planed p1 = sharedFaces[0];//First plane that we found a new edge on
-          Planed p2 = sharedFaces[1];//Second plane ^
-          Vertex v1 = vertices[i];//First vertex that makes up the edge
-          Vertex v2 = vertices[j];//Second vertex ^
+          s += " between 1(";
+          foreach (Planed p in pair.Item2.Planes)
+            s += p.originalNormal.ToStringSingleLetter();
+          s += ") and 2(";
+          foreach (Planed p in pair.Item2.Planes)
+            s += p.originalNormal.ToStringSingleLetter();
+          s += ")";
+          GD.PrintErr(s);
+        }
+        Planed p1 = sharedFaces[0];//First plane that we found a new edge on
+        Planed p2 = sharedFaces[1];//Second plane ^
+        Vertex v1 = pair.Item2;//First vertex that makes up the edge
+        Vertex v2 = pair.Item2;//Second vertex ^
 
-          if (faces.ContainsKey(p1) == false) faces.Add(p1, new());//Create new dictionary if this is our first time looking at these planes
-          if (faces.ContainsKey(p2) == false) faces.Add(p2, new());
-          if (faces[p1].ContainsKey(v1) == false) faces[p1].Add(v1, new());//Create new edge if it doesnt exist yet
-          if (faces[p1].ContainsKey(v2) == false) faces[p1].Add(v2, new());//... In both directions
-          if (faces[p2].ContainsKey(v1) == false) faces[p2].Add(v1, new());//... On both planes.
-          if (faces[p2].ContainsKey(v2) == false) faces[p2].Add(v2, new());
-          try
+        if (faces.ContainsKey(p1) == false) faces.Add(p1, new());//Create new dictionary if this is our first time looking at these planes
+        if (faces.ContainsKey(p2) == false) faces.Add(p2, new());
+        if (faces[p1].ContainsKey(v1) == false) faces[p1].Add(v1, new());//Create new edge if it doesnt exist yet
+        if (faces[p1].ContainsKey(v2) == false) faces[p1].Add(v2, new());//... In both directions
+        if (faces[p2].ContainsKey(v1) == false) faces[p2].Add(v1, new());//... On both planes.
+        if (faces[p2].ContainsKey(v2) == false) faces[p2].Add(v2, new());
+        try
+        {
+          faces[p1][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 1
+          faces[p1][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 1
+          faces[p2][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 2
+          faces[p2][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 2
+        }
+        catch (Exception e)
+        {
+          GD.PrintErr(e.GetType() + e.Message);
+          foreach (Planed p in faces.Keys)
           {
-            faces[p1][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 1
-            faces[p1][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 1
-            faces[p2][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 2
-            faces[p2][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 2
-          }
-          catch (Exception e)
-          {
-            GD.PrintErr(e.GetType() + e.Message);
-            foreach (Planed p in faces.Keys)
+            foreach (Vertex v in faces[p].Keys)
             {
-              foreach (Vertex v in faces[p].Keys)
-              {
-                string a = "", b = "";
-                if (faces[p][v].a != null)
-                  a = faces[p][v].a.point.ToString();
-                if (faces[p][v].b != null)
-                  b = faces[p][v].b.point.ToString();
-              }
+              string a = "", b = "";
+              if (faces[p][v].a != null)
+                a = faces[p][v].a.point.ToString();
+              if (faces[p][v].b != null)
+                b = faces[p][v].b.point.ToString();
             }
           }
         }
       }
     }
+
+
     foreach (Planed p in faces.Keys)
     {
       if (faces[p].Count < 3)//Generated an invalid polygon
@@ -660,6 +649,20 @@ public class Crystal
     }
     matched = null;
     return false;
+  }
+
+  public static IEnumerable<Tuple<T, T>> GetUniquePairs<T>(IList<T> list)
+  {
+    for (int i = 0; i < list.Count - 1; i++)//For every plane triplet, generate a vertex and validate
+      for (int j = i + 1; j < list.Count; j++)
+        yield return new Tuple<T, T>(list[i], list[j]);
+  }
+  public static IEnumerable<Tuple<T, T, T>> GetUniqueTriplets<T>(IList<T> list)
+  {
+    for (int i = 0; i < list.Count - 2; i++)//For every plane triplet, generate a vertex and validate
+      for (int j = i + 1; j < list.Count - 1; j++)
+        for (int k = j + 1; k < list.Count; j++)
+          yield return new Tuple<T, T, T>(list[i], list[j], list[k]);
   }
   #endregion math
 
