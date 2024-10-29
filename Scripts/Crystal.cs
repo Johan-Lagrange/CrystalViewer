@@ -197,41 +197,51 @@ public class Crystal
       //Since every plane in a facegroup follows the same properties due to symmetry, we only verify the first one
 
       LinkedListNode<List<Planed>> currentGroup = planeGroups.First;
-
+      bool valid = true;
+      
       while (currentGroup != null)
       {
-        foreach (Planed p in currentGroup.Value)//Check each plane in a given group
-        {
-          if (planeToAdd.Normal.Dot(p.Normal) < (1 - threshold))//Not duplicate so we skip duplicate procedure (plane normals are already normalized to length 1)
-            continue;
+        Planed? overlap = OverlapOrNull(currentGroup.Value, planeToAdd);
 
-          //Found duplicate plane: Remove (or skip) the one one the outside
-          if (planeToAdd.D < p.D)
-          {
-            LinkedListNode<List<Planed>> prevGroup = currentGroup;//Making sure we don't lose our place.. (we can't do current.previous as current.next may be null and that has no previous)
-            currentGroup = currentGroup.Next;
-            planeGroups.Remove(prevGroup);//Group contains a redundant face, so entire group can be removed due to symmetry
-            goto removedInvalidGroup;//I would break here but then I would skip a node and potentially run into a nullref exception.
-          }
-          else
-          {
-            goto thisGroupInvalid;//This face is behind another face so we can skip it
-                                  //Think of this as a break; we can't break 2 loops though
-          }
+        if (overlap == null)
+        {
+          currentGroup = currentGroup.Next;
+          continue;
         }
 
-        currentGroup = currentGroup.Next;
-      removedInvalidGroup:;
+        //Found duplicate plane: Remove (or skip) the one one the outside
+        if (planeToAdd.D < ((Planed)overlap).D)
+        {
+          LinkedListNode<List<Planed>> prevGroup = currentGroup;//Making sure we don't lose our place.. (we can't do current.previous as current.next may be null and that has no previous)
+          currentGroup = currentGroup.Next;
+          planeGroups.Remove(prevGroup);//Group contains a redundant face, so entire group can be removed due to symmetry
+        }
+        else
+        {
+          //This face is behind another face so we can skip adding it
+          valid = false;
+          break;
+        }
       }
 
       //Found to be a valid face
-      planeGroups.AddLast(normals[faceGroup].Select(v => new Planed(v, distances[faceGroup])).ToList<Planed>());
-
-    thisGroupInvalid:;
+      if (valid == true)
+        planeGroups.AddLast(normals[faceGroup].Select(v => new Planed(v, distances[faceGroup])).ToList<Planed>());
     }
     return planeGroups.ToList<List<Planed>>();
   }
 
+
+  private static Planed? OverlapOrNull(List<Planed> planes, Planed planeToCheck)
+  {
+    foreach (Planed p in planes)
+    {
+      //plane normals are already normalized to length 1
+      if (planeToCheck.Normal.Dot(p.Normal) > (1 - threshold))
+        return p;
+    }
+    return null;
+  }
 
   /// <summary>
   /// Creates a vertex from every triplet of planes IF 1) the point is on or in the crystal and 2) it is not a duplicate
