@@ -354,10 +354,10 @@ public class Crystal
 
     foreach (Tuple<Vertex, Vertex> pair in GetUniquePairs<Vertex>(vertices))
     {
-      if (pair.Item2.point.IsEqualApprox(pair.Item2.point))//Don't create an edge between a point and itself
+      if (pair.Item1.point.IsEqualApprox(pair.Item2.point))//Don't create an edge between a point and itself
         throw new Exception("Two separate points have the same position");
 
-      List<Planed> sharedFaces = pair.Item2.SharedFaces(pair.Item2);//Check for shared faces
+      List<Planed> sharedFaces = pair.Item1.SharedFaces(pair.Item2);//Check for shared faces
 
       if (sharedFaces.Count >= 2)//If they share TWO faces, that means they have an edge together
       {
@@ -369,7 +369,7 @@ public class Crystal
             s += p.originalNormal.ToStringSingleLetter();
           }
           s += " between 1(";
-          foreach (Planed p in pair.Item2.Planes)
+          foreach (Planed p in pair.Item1.Planes)
             s += p.originalNormal.ToStringSingleLetter();
           s += ") and 2(";
           foreach (Planed p in pair.Item2.Planes)
@@ -379,7 +379,7 @@ public class Crystal
         }
         Planed p1 = sharedFaces[0];//First plane that we found a new edge on
         Planed p2 = sharedFaces[1];//Second plane ^
-        Vertex v1 = pair.Item2;//First vertex that makes up the edge
+        Vertex v1 = pair.Item1;//First vertex that makes up the edge
         Vertex v2 = pair.Item2;//Second vertex ^
 
         if (faces.ContainsKey(p1) == false) faces.Add(p1, new());//Create new dictionary if this is our first time looking at these planes
@@ -660,7 +660,7 @@ public class Crystal
   {
     for (int i = 0; i < list.Count - 2; i++)//For every plane triplet, generate a vertex and validate
       for (int j = i + 1; j < list.Count - 1; j++)
-        for (int k = j + 1; k < list.Count; j++)
+        for (int k = j + 1; k < list.Count; k++)
           yield return new Tuple<T, T, T>(list[i], list[j], list[k]);
   }
   #endregion math
@@ -742,7 +742,7 @@ public class Crystal
     v x y z <- referenced as 2
     n x y z <- referenced as 1
     f v1 v2 v3 v4... 
-    f v1/uv1/n1 v2/uv2/n2 v3/uv3/n3...
+    f v1/uv1/n1 v2/uv2/n2 v3/uv3/n3... <- v, uv, and n are not in the file, just here for readability
     f v1//n1 v2//n2 v3//n3... <- we use normals but not UVs so we leave the UV slot empty
     */
 
