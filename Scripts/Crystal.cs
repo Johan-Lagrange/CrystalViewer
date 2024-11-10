@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using Godot;
 public class Crystal
 {
@@ -108,6 +106,12 @@ public class Crystal
     }
   }
 
+  /// <summary>
+  /// Creates a list of vectors according to the symmetry group, for every vector given
+  /// </summary>
+  /// <param name="initialFaces">List of initial vectors to apply symmetry to</param>
+  /// <param name="pointGroup">Named after a group of operations that creates a symmetry group</param>
+  /// <returns>A list of lists, which each contain an initial face and all the versions created by the symmetry group</returns>
   public static List<List<Vector3d>> GenerateSymmetryGroups(IEnumerable<Vector3d> initialFaces, SymmetryOperations.PointGroup pointGroup)
   {
     List<List<Vector3d>> normalGroups = new List<List<Vector3d>>();//List of normals for each initial face that was duplicated by the symmetry group
@@ -130,6 +134,7 @@ public class Crystal
   /// returning a list of every vector therein, including the original. (Identity is an operation after all)
   /// </summary>
   /// <param name="v">The initial vector to do symmetry stuff on</param>
+  /// <param name="vectorHashes"></param>
   /// <param name="group">The crystal's point group. Used to get a list of operations</param>
   /// <returns>A list of vectors, including the original, that are made from the symmetry operations</returns>
   public static List<Vector3d> GenerateSymmetryList(Vector3d v, HashSet<Vector3d> vectorHashes, SymmetryOperations.PointGroup group)
@@ -164,7 +169,9 @@ public class Crystal
   /// Applies a symmetry operation to every vector in a list, and adds every result to the list.
   /// </summary>
   /// <param name="vectorList">List of vectors to operate upon and expand</param>
+  /// <param name="vectorHashes">Hash set for quick lookup of duplicates</param>
   /// <param name="symmetryOperation">The symmetry operation to do</param>
+  /// <param name="skipApproxVerify">Skip "fuzzy" searches of duplicate vectors if true</param>
   public static void ApplyOperation(LinkedList<Vector3d> vectorList, HashSet<Vector3d> vectorHashes, Func<Vector3d, Vector3d> symmetryOperation, bool skipApproxVerify = false)
   {
     int count = vectorList.Count;//Get the count before we add to the list, so we can add to the list we're reading without causing an infinite loop by looking at stuff we just added
@@ -182,6 +189,12 @@ public class Crystal
     }
   }
 
+  /// <summary>
+  /// Takes a list of normals groups and distances for the groups, and generates plane groups from that.
+  /// </summary>
+  /// <param name="normals">A list of normal groups</param>
+  /// <param name="distances">Distances for each normal group</param>
+  /// <returns>A list of plane groups</returns>
   private static List<List<Planed>> GeneratePlanes(List<List<Vector3d>> normals, IList<double> distances)
   {
     LinkedList<List<Planed>> planeGroups = new();//We do this since we modify the list as we are traversing it.
@@ -231,7 +244,12 @@ public class Crystal
     return planeGroups.ToList<List<Planed>>();
   }
 
-
+  /// <summary>
+  /// Searches for an overlap between planes in list and given plane. Returns found plane if found, null if not found.
+  /// </summary>
+  /// <param name="planes">List of planes to check for overlap.</param>
+  /// <param name="planeToCheck">Plane to check for overlaps of.</param>
+  /// <returns>Matching plane from original list if overlap is found, null otherwise.</returns>
   private static Planed? OverlapOrNull(List<Planed> planes, Planed planeToCheck)
   {
     foreach (Planed p in planes)
@@ -246,7 +264,8 @@ public class Crystal
   /// <summary>
   /// Creates a vertex from every triplet of planes IF 1) the point is on or in the crystal and 2) it is not a duplicate
   /// </summary>
-  /// <param name="planes">The planes to find the intersection points of.</param>
+  /// <param name="planeGroups">The planes to find the intersection points of.</param>
+  /// <param name="pointGroup">The point group to use for quick vertex generation of previously verified points.</param>
   /// <returns>A list of vertices with position and list of planes that intersect at that point. Can be more than three planes.</returns>
   private static List<Vertex> GenerateVertices(List<List<Planed>> planeGroups, SymmetryOperations.PointGroup pointGroup = SymmetryOperations.PointGroup.None)
   {
@@ -292,6 +311,15 @@ public class Crystal
     return faceVertices.Values.ToList();
   }
 
+  /// <summary>
+  /// Returns true if vertex is within planes and has no duplicates.
+  /// Will merge duplicates if one is found.
+  /// </summary>
+  /// <param name="planes">Planes to check if vertex is within</param>
+  /// <param name="faceVertices">Vertices to merge with if duplicate is found</param>
+  /// <param name="mirroredPoints">Locations known to be on crystal, but not generated as vertices yet</param>
+  /// <param name="vertexToVerify">Vertex we want to verify, or merge if duplicate.</param>
+  /// <returns>True if the vertex is on the plane and has no duplicates.</returns>
   private static bool VerifyVertex(List<Planed> planes, Dictionary<Vector3d, Vertex> faceVertices, HashSet<Vector3d> mirroredPoints, Vertex vertexToVerify)
   {
     if (vertexToVerify.point.IsZeroApprox())
@@ -316,6 +344,10 @@ public class Crystal
     return false;
   }
 
+  /// <summary>
+  /// Scans for planes with invalid numbers of vertices, and removes them if found
+  /// </summary>
+  /// <param name="vertices">Vertices with planes to validate.</param>
   private static void RemoveInvalidPlanes(IEnumerable<Vertex> vertices)
   {
     int removed = 0;
@@ -656,6 +688,7 @@ public class Crystal
       for (int j = i + 1; j < list.Count; j++)
         yield return new Tuple<T, T>(list[i], list[j]);
   }
+
   public static IEnumerable<Tuple<T, T, T>> GetUniqueTriplets<T>(IList<T> list)
   {
     for (int i = 0; i < list.Count - 2; i++)//For every plane triplet, generate a vertex and validate
@@ -746,7 +779,7 @@ public class Crystal
     f v1//n1 v2//n2 v3//n3... <- we use normals but not UVs so we leave the UV slot empty
     */
 
-    m ??= Vector3d.BasisIdentity;
+    m ??= Vector3d.BasisIdentity;//can't set it to basis in params
 
     if (fileName.EndsWith(".obj") == false)
       fileName += ".obj";
