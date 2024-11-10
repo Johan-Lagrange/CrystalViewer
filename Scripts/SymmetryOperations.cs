@@ -45,70 +45,69 @@ public static class SymmetryOperations
 
 	public static string GetNameOfSymmetryClass(PointGroup group)
 	{
-		switch (group)
-		{
-			//Just good practice
-			case PointGroup.None: return "Pedial";
+		//Point group index corresponds with name index here
+		string[] names = new string[] {     
+		//Just good practice
+		"Pedial",//None
 
-			//Triclinic
-			case PointGroup.One: return "Pedial";
-			case PointGroup.BarOne: return "Pinacoidal";
+		//Triclinic
+		"Pedial",//One
+		"Pinacoidal",//BarOne
 
-			//Monoclinic
-			case PointGroup.Two: return "Sphenoidal";
-			case PointGroup.M: return "Domatic";
-			case PointGroup.TwoSlashM: return "Prismatic";
+		//Monoclinic
+		"Sphenoidal",//Two
+		"Domatic",//M
+		"Prismatic",//TwoSlashM
 
-			//Orthorhombic
-			case PointGroup.TwoTwoTwo: return "Rhombic-disphenoidal";
-			case PointGroup.MMTwo: return "Rhombic-pyramidal";
-			case PointGroup.MMM: return "Rhombic-dipyramidal";
+		//Orthorhombic
+		"Rhombic-disphenoidal",//TwoTwoTwo
+		"Rhombic-pyramidal",//MMTwo
+		"Rhombic-dipyramidal",//MMM
 
-			//Tetragonal
-			case PointGroup.Four: return "Tetragonal-Pyramidal";
-			case PointGroup.BarFour: return "Tetragonal-disphenoidal";
-			case PointGroup.FourSlashM: return "Tetragonal-dipyramidal";
-			case PointGroup.FourTwoTwo: return "Tetragonal-trapezohedral";
-			case PointGroup.FourMM: return "Ditetragonal-pyramidal";
-			case PointGroup.BarFourTwoM: return "Tetragonal-scalenohedral";
-			case PointGroup.FourSlashMMM: return "Ditetragonal-dipyramidal";
+		//Tetragonal
+		"Tetragonal-Pyramidal",//Four
+		"Tetragonal-disphenoidal",//BarFour
+		"Tetragonal-dipyramidal",//FourSlashM
+		"Tetragonal-trapezohedral",//FourTwoTwo
+		"Ditetragonal-pyramidal",//FourMM
+		"Tetragonal-scalenohedral",//BarFourTwoM
+		"Ditetragonal-dipyramidal",//FourSlashMMM
 
-			//Hexagonal with rhombohedral axes
-			case PointGroup.ThreeRhombohedral: return "Trigonal-pyramidal";
-			case PointGroup.BarThreeRhombohedral: return "Rhombohedral";
-			case PointGroup.ThreeTwoRhombohedral: return "Trigonal-trapezohedral";
-			case PointGroup.ThreeMRhombohedral: return "Ditrigonal-pyramidal";
-			case PointGroup.BarThreeMRhombohedral: return "Hexagonal-scalenohedral";
+		//Hexagonal with rhombohedral axes
+		"Trigonal-pyramidal",//ThreeRhombohedral
+		"Rhombohedral",//BarThreeRhombohedral
+		"Trigonal-trapezohedral",//ThreeTwoRhombohedral
+		"Ditrigonal-pyramidal",//ThreeMRhombohedral
+		"Hexagonal-scalenohedral",//BarThreeMRhombohedral
 
-			//Hexagonal with hexagonal axes
-			case PointGroup.ThreeHexagonal: return "Trigonal-pyramidal";
-			case PointGroup.BarThreeHexagonal: return "Rhombohedral";
-			case PointGroup.ThreeOneTwoHexagonal: return "Trigonal-trapezohedral";
-			case PointGroup.ThreeTwoOneHexagonal: return "Trigonal-trapezohedral";
-			case PointGroup.ThreeMOneHexagonal: return "Ditrigonal-pyramidal";
-			case PointGroup.ThreeOneMHexagonal: return "Ditrigonal-pyramidal";
-			case PointGroup.BarThreeOneMHexagonal: return "Hexagonal-scalenohedral";
-			case PointGroup.BarThreeMOneHexagonal: return "Hexagonal-scalenohedral";
+		//Hexagonal with hexagonal axes
+		"Trigonal-pyramidal",//ThreeHexagonal
+		"Rhombohedral",//BarThreeHexagonal
+		"Trigonal-trapezohedral",//ThreeOneTwoHexagonal
+		"Trigonal-trapezohedral",//ThreeTwoOneHexagonal
+		"Ditrigonal-pyramidal",//ThreeMOneHexagonal
+		"Ditrigonal-pyramidal",//ThreeOneMHexagonal
+		"Hexagonal-scalenohedral",//BarThreeOneMHexagonal
+		"Hexagonal-scalenohedral",//BarThreeMOneHexagonal
 
-			//Hexagonal
-			case PointGroup.Six: return "Hexagonal-pyramidal";
-			case PointGroup.BarSix: return "Trigonal-dipyramidal";
-			case PointGroup.SixSlashM: return "Hexagonal-dipyramidal";
-			case PointGroup.SixTwoTwo: return "Hexagonal-trapezohedral";
-			case PointGroup.SixMM: return "Dihexagonal-pyramidal";
-			case PointGroup.BarSixMTwo: return "Ditrigonal-dipyramidal";
-			case PointGroup.SixSlashMMM: return "Dihexagonal-dipyramidal";
+		//Hexagonal
+		"Hexagonal-pyramidal",//Six
+		"Trigonal-dipyramidal",//BarSix
+		"Hexagonal-dipyramidal",//SixSlashM
+		"Hexagonal-trapezohedral",//SixTwoTwo
+		"Dihexagonal-pyramidal",//SixMM
+		"Ditrigonal-dipyramidal",//BarSixMTwo
+		"Dihexagonal-dipyramidal",//SixSlashMMM
 
-			//Cubic
-			case PointGroup.TwoThree: return "Tetaroidal";
-			case PointGroup.MBarThree: return "Diploidal";
-			case PointGroup.FourThreeTwo: return "Gyroidal";
-			case PointGroup.BarFourThreeM: return "Hextetrahedral";
-			case PointGroup.MBarThreeM: return "Hexoctahedral";
+		//Cubic
+		 "Tetaroidal",//TwoThree
+		 "Diploidal",//MBarThree
+		 "Gyroidal",//FourThreeTwo
+		 "Hextetrahedral",//BarFourThreeM
+		 "Hexoctahedral",//MBarThreeM
+		};
 
-			//More good practice
-			default: return "";
-		}
+		return names[(int)group];
 	}
 
 	/// <summary>
@@ -235,9 +234,7 @@ public static class SymmetryOperations
 	public static Vector3d DiX(Vector3d v) => new(v.X, -v.Y, -v.Z);//Diad along X Axis
 	public static Vector3d DiY(Vector3d v) => new(-v.X, v.Y, -v.Z);
 	public static Vector3d DiZ(Vector3d v) => new(-v.X, -v.Y, v.Z);
-	//(1, 1, 1), (-1, 0, 1), (0, -1, 1): (-1, -1, 1), (1, 0, 1), (0, 1, 1)
 	public static Vector3d DiXY(Vector3d v) => new(v.Y, v.X, -v.Z);
-	//(1, 1, 1), (-1, 0, 1), (0, 1, 1), (-1, -1, 1), (1, 0, 1), (0, -1, 1): (1, 1, -1), (0, -1, -1), (1, 0, -1), (-1, -1, -1), (0, 1, -1), (-1, 0, -1)
 	public static Vector3d DiX_Y(Vector3d v) => new(-v.Y, -v.X, -v.Z);
 	public static Vector3d DiXZ(Vector3d v) => new(v.Z, -v.Y, v.X);//Seitz 2(1 0 1)
 	public static Vector3d Di_XZ(Vector3d v) => new(-v.Z, -v.Y, -v.X);//Seitz 2(-1 0 1)
@@ -252,9 +249,9 @@ public static class SymmetryOperations
 	public static Vector3d TriYPos(Vector3d v) => new(v.X - v.Z, v.Y, -v.Z);
 	public static Vector3d TriYNeg(Vector3d v) => new(-v.X, v.Y, -v.X + v.Y);
 
-	//TODO I'm using a rotation matrix, but is that much better? It only works with gamma=90 but our target is gamma=120. However the supplied versions don't seem to keep magnitude, whereas these do.
-	// GD.Print(Math.Cos(2 * Math.PI / 3)); //= -.5
-	//GD.Print(Math.Sin(2 * Math.PI / 3)); //= sqrt3/2 = 0.8660254037844387	
+	//These commented methods use a rotation matrix, but is that much better? It only works with gamma=90 but our target is gamma=120. However the supplied versions don't seem to keep magnitude, whereas these do. These create perfectly hexagonal crystals, however.
+	// Math.Cos(2 * Math.PI / 3) //= -.5
+	// Math.Sin(2 * Math.PI / 3) //= sqrt3/2 = 0.8660254037844387	
 	// public static Vector3d TriZPos(Vector3d v) => new(v.X * 0.8660254037844387 + v.Y * -.5, v.X * -.5 + v.Y * -0.8660254037844387, v.Z);
 	// public static Vector3d TriZNeg(Vector3d v) => new(v.X * -0.8660254037844387 + v.Y * -.5, v.X * -.5 + v.Y * 0.8660254037844387, v.Z);
 	public static Vector3d TriZPos(Vector3d v) => new(-v.Y, v.X - v.Y, v.Z);
