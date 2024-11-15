@@ -1,9 +1,11 @@
 using Godot;
 using System.Collections.Generic;
 
-[Tool]
 public partial class CrystalGameObject : MeshInstance3D
 {
+	[Export]
+	StandardMaterial3D baseMaterial;
+	LinkedList<StandardMaterial3D> materialList = new LinkedList<StandardMaterial3D>();
 	ArrayMesh mesh;
 	[ExportGroup("Crystal Parameters")]
 	[Export]
@@ -43,7 +45,7 @@ public partial class CrystalGameObject : MeshInstance3D
 	bool UpdateTheMesh { get { return true; } set { UpdateMesh(); } }
 	[Export]
 	bool UseLatticeVectors { get => usingLatticeVectors; set { usingLatticeVectors = !usingLatticeVectors; UpdateLatticeVectors(); } }
-	private bool usingLatticeVectors;
+	private bool usingLatticeVectors = true;
 	// Called when the node enters the scene tree for the first time.
 	[ExportGroup("Crystal Faces")]
 	[Export]
@@ -165,6 +167,20 @@ public partial class CrystalGameObject : MeshInstance3D
 		crystal = new Crystal(normalsd, doubles, _pointGroup);
 		ArrayMesh mesh = CreateArrayMeshFromCrystal(crystal);
 		Mesh = mesh;
+
+		if (Mesh.GetSurfaceCount() > materialList.Count)
+		{
+			for (int i = materialList.Count; i < Mesh.GetSurfaceCount(); i++)
+			{
+				materialList.AddLast((StandardMaterial3D)baseMaterial.Duplicate(true));
+			}
+		}
+		LinkedListNode<StandardMaterial3D> currentNode = materialList.First;
+		for (int i = 0; i < Mesh.GetSurfaceCount(); i++)
+		{
+			SetSurfaceOverrideMaterial(i, currentNode.Value);
+			currentNode = currentNode.Next;
+		}
 	}
 	public void UpdateFromParameters()
 	{

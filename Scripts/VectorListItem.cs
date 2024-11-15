@@ -8,14 +8,17 @@ using Godot;
 public partial class VectorListItem : Node
 {
 	[Signal]
-	public delegate void UpdateEventHandler(int idx, Vector3 normal, float distance);
+	public delegate void UpdateEventHandler(int idx, Vector3 normal, float distance); [Signal]
+	public delegate void UpdateColorEventHandler(Color c, int idx);
+
 	[Signal]
 	public delegate void DeletEventHandler(int idx);
-	public Vector3 vector = Vector3.One;
-	public float distance = 1;
-	public int index = 0;
+	public Vector3 vector;
+	public float distance;
+	public int index;
 	public SpinBox[] boxes = new SpinBox[4];
 	//TODO color: Handle when face doesn't correspond to color.
+	public ColorPickerButton colorButton;
 	public Button button;
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -30,22 +33,23 @@ public partial class VectorListItem : Node
 	{
 		EmitSignal("Update", index, vector, distance);
 	}
-
-	// private void EmitUpdate()
-	// {
-	// 	;
-	// }
-	public void SetValues(Vector3 v, float d)
+	private void EmitUpdateColorSignal(Color color)
+	{
+		EmitSignal("UpdateColor", color, index);
+	}
+	public void SetValues(Vector3 v, float d, Color c)
 	{
 		vector = v; distance = d;
 		boxes[0].SetValueNoSignal(v.X);
 		boxes[1].SetValueNoSignal(v.Y);
 		boxes[2].SetValueNoSignal(v.Z);
 		boxes[3].SetValueNoSignal(d);
+		colorButton.Color = c;
 	}
 	public void SetX(double x) { vector.X = (float)x; EmitUpdateSignal(); }
 	public void SetY(double y) { vector.Y = (float)y; EmitUpdateSignal(); }
 	public void SetZ(double z) { vector.Z = (float)z; EmitUpdateSignal(); }
 	public void SetDistance(double d) { this.distance = (float)d; EmitUpdateSignal(); }
+	public void SetColor(Color c) { EmitUpdateColorSignal(c); }
 	public void Remove() { EmitSignal("Delet", index); }
 }

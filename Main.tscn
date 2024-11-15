@@ -1,10 +1,10 @@
-[gd_scene load_steps=7 format=4 uid="uid://u72fhf8awel2"]
+[gd_scene load_steps=26 format=4 uid="uid://u72fhf8awel2"]
 
 [ext_resource type="PackedScene" uid="uid://cfiw5qxv3027y" path="res://GUI.tscn" id="1_kdw77"]
 [ext_resource type="PackedScene" uid="uid://b226ro6gyacgx" path="res://Prefabs/CrystalGameObject.tscn" id="1_m7r4q"]
 [ext_resource type="Environment" uid="uid://7nfjkebtyooe" path="res://Prefabs/Environment.tres" id="2_s2r1g"]
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_4op4l"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_0odm4"]
 _surfaces = [{
 "aabb": AABB(-1.10262, -1.10262, -1.10262, 2.20524, 2.20524, 2.20524),
 "format": 34359738375,
@@ -28,10 +28,101 @@ _surfaces = [{
 "vertex_data": PackedByteArray("0Xs7v186iT9Rd0W/sSKNv4SKbD/jhfy8nU5Zv6+OsL660Qm/0Xs7v186iT9Rd0W/nU5Zv6+OsL660Qm/0Xs7vzHSab5Rd0W/UXdFP9F7Oz9fOom/UXdFP9F7Oz8x0mk+utEJP51OWT+vjrA+UXdFP9F7Oz9fOom/utEJP51OWT+vjrA+44X8PLEijT+Eimy/XzqJv1F3RT/Rezs/MdJpPlF3RT/Rezs/r46wPrrRCT+dTlk/XzqJv1F3RT/Rezs/r46wPrrRCT+dTlk/hIpsv+OF/DyxIo0/utEJv51OWb+vjrC+UXdFv9F7O78x0mm+UXdFv9F7O79fOok/utEJv51OWb+vjrC+UXdFv9F7O79fOok/44X8vLEijb+Eimw/0Xs7P186ib9Rd0U/0Xs7PzHSaT5Rd0U/nU5ZP6+OsD660Qk/0Xs7P186ib9Rd0U/nU5ZP6+OsD660Qk/sSKNP4SKbL/jhfw8XzqJP1F3Rb/Rezu/hIpsP+OF/LyxIo2/r46wvrrRCb+dTlm/XzqJP1F3Rb/Rezu/r46wvrrRCb+dTlm/MdJpvlF3Rb/Rezu/AACpqlpad7gAAKmqWlp3uAAAqapaWne4AACpqlpad7gAAKmqWlp3uAAAqapaWne4qqpU1f9//7+qqlTV/3//v6qqVNX/f/+/qqpU1f9//7+qqlTV/3//v6qqVNX/f/+//3+qqv///7//f6qq////v/9/qqr///+//3+qqv///7//f6qq////v/9/qqr///+/VFWqKv8//89UVaoq/z//z1RVqir/P//PVFWqKv8//89UVaoq/z//z1RVqir/P//PVNX/f/9///9U1f9//3///1TV/3//f///VNX/f/9///9U1f9//3///1TV/3//f///VNUAAEpLd/hU1QAASkt3+FTVAABKS3f4VNUAAEpLd/hU1QAASkt3+FTVAABKS3f4")
 }]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6f11m"]
-albedo_color = Color(1, 0.0823529, 1, 1)
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_46b8f"]
+frequency = 0.0031
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ona60"]
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_s20dh"]
+noise = SubResource("FastNoiseLite_46b8f")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_ybiq5"]
+frequency = 0.0011
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_17e0g"]
+noise = SubResource("FastNoiseLite_ybiq5")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_dueq0"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_hj5ee"]
+noise = SubResource("FastNoiseLite_dueq0")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_px5o7"]
+transparency = 1
+shading_mode = 2
+albedo_color = Color(0.145098, 0.552941, 0.431373, 0.870588)
+metallic = 1.0
+roughness = 0.03
+emission = Color(0.145098, 0.552941, 0.431373, 1)
+emission_energy_multiplier = 0.16
+rim_tint = 0.63
+rim_texture = SubResource("NoiseTexture2D_hj5ee")
+refraction_scale = 0.0
+refraction_texture = SubResource("NoiseTexture2D_17e0g")
+detail_blend_mode = 3
+detail_albedo = SubResource("NoiseTexture2D_s20dh")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_l6p0u"]
+frequency = 0.0031
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_l82s5"]
+noise = SubResource("FastNoiseLite_l6p0u")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_hhxbn"]
+frequency = 0.0011
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_hrj4u"]
+noise = SubResource("FastNoiseLite_hhxbn")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_5pxy6"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_ry6df"]
+noise = SubResource("FastNoiseLite_5pxy6")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cbtwg"]
+transparency = 1
+shading_mode = 2
+albedo_color = Color(0.145098, 0.552941, 0.431373, 0.870588)
+metallic = 1.0
+roughness = 0.03
+emission = Color(0.145098, 0.552941, 0.431373, 1)
+emission_energy_multiplier = 0.16
+rim_tint = 0.63
+rim_texture = SubResource("NoiseTexture2D_ry6df")
+refraction_scale = 0.0
+refraction_texture = SubResource("NoiseTexture2D_hrj4u")
+detail_blend_mode = 3
+detail_albedo = SubResource("NoiseTexture2D_l82s5")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_376vn"]
+frequency = 0.0031
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_640kf"]
+noise = SubResource("FastNoiseLite_376vn")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_cybk0"]
+frequency = 0.0011
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_vetxw"]
+noise = SubResource("FastNoiseLite_cybk0")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_4pxac"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_xj3kn"]
+noise = SubResource("FastNoiseLite_4pxac")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nhonx"]
+transparency = 1
+shading_mode = 2
+albedo_color = Color(0.145098, 0.552941, 0.431373, 0.870588)
+metallic = 1.0
+roughness = 0.03
+emission = Color(0.145098, 0.552941, 0.431373, 1)
+emission_energy_multiplier = 0.16
+rim_tint = 0.63
+rim_texture = SubResource("NoiseTexture2D_xj3kn")
+refraction_scale = 0.0
+refraction_texture = SubResource("NoiseTexture2D_vetxw")
+detail_blend_mode = 3
+detail_albedo = SubResource("NoiseTexture2D_640kf")
 
 [node name="Main" type="Node"]
 
@@ -58,10 +149,10 @@ near = 0.001
 [node name="CrystalParent" type="Node3D" parent="."]
 
 [node name="Crystal" parent="CrystalParent" instance=ExtResource("1_m7r4q")]
-mesh = SubResource("ArrayMesh_4op4l")
-skeleton = NodePath("../..")
-surface_material_override/0 = SubResource("StandardMaterial3D_6f11m")
-surface_material_override/1 = SubResource("StandardMaterial3D_ona60")
+mesh = SubResource("ArrayMesh_0odm4")
+surface_material_override/0 = SubResource("StandardMaterial3D_px5o7")
+surface_material_override/1 = SubResource("StandardMaterial3D_cbtwg")
+surface_material_override/2 = SubResource("StandardMaterial3D_nhonx")
 
 [editable path="CrystalParent/Crystal"]
 [editable path="CrystalParent/Crystal/Axes/A"]

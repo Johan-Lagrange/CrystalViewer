@@ -12,6 +12,8 @@ public partial class GemGUI : Control
 	[Export]
 	CrystalGameObject crystal;
 	[Export]
+	StandardMaterial3D baseMaterial;
+	[Export]
 	Label dataText;
 	[Export]
 	OptionButton crystalSystem;
@@ -19,6 +21,7 @@ public partial class GemGUI : Control
 	SpinBox[] crystalParams = new SpinBox[6];
 	[Export]
 	Range scaleSlider;
+	private Color baseColor;
 	private bool rotate = false;
 	private bool autoUpdate = true;
 	private bool updatedParamsThisFrame = false;
@@ -35,14 +38,17 @@ public partial class GemGUI : Control
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		baseColor = baseMaterial.AlbedoColor;
+		GD.Print(baseColor.ToString());
 		AddNewNormal();
 		AddNewNormal();
 		AddNewNormal();
 		AddNewNormal();
-		listItems[0].SetValues(new(3, 1, 0), 1);//Defaults
-		listItems[1].SetValues(new(0, 5, 1), .9f);
-		listItems[2].SetValues(new(-1, -1, -1), 1);
-		listItems[3].SetValues(new(-2, 0, -1), 1);
+		listItems[0].SetValues(new(3, 1, 0), 1, baseColor);//Defaults
+		listItems[1].SetValues(new(0, 5, 1), .9f, baseColor);
+		listItems[2].SetValues(new(-1, -1, -1), 1, baseColor);
+		listItems[3].SetValues(new(-2, 0, -1), 1, baseColor);
+
 		foreach (VectorListItem item in listItems)
 		{
 			SetNormals(item.index, item.vector, item.distance);
@@ -153,20 +159,43 @@ public partial class GemGUI : Control
 		StandardMaterial3D mat = (StandardMaterial3D)crystal.MaterialOverride;
 		mat.CullMode = cull ? BaseMaterial3D.CullModeEnum.Back : BaseMaterial3D.CullModeEnum.Disabled;
 	}
-	public void SetColor(Color color)
+	public void SetColor(Color color, int index = -1)
 	{
-		StandardMaterial3D material = (StandardMaterial3D)crystal.MaterialOverride;
+		if (index == -1)
+		{
+			baseColor = color;
+			for (int i = 0; i < crystal.GetSurfaceOverrideMaterialCount(); i++)
+				SetColor(color, i);
+			foreach (VectorListItem item in listItems)
+			{
+				item.colorButton.Color = color;
+			}
+			return;
+		}
+		StandardMaterial3D material = (StandardMaterial3D)crystal.GetSurfaceOverrideMaterial(index);
 		material.AlbedoColor = color;
 	}
-	public void SetRefraction(double refraction)
+	public void SetRefraction(double refraction, int index = -1)
 	{
-		StandardMaterial3D material = (StandardMaterial3D)crystal.MaterialOverride;
+		if (index == -1)
+		{
+			for (int i = 0; i < crystal.GetSurfaceOverrideMaterialCount(); i++)
+				SetRefraction(refraction, i);
+			return;
+		}
+		StandardMaterial3D material = (StandardMaterial3D)crystal.GetSurfaceOverrideMaterial(index);
 		material.RefractionEnabled = refraction != 0;
 		material.RefractionScale = (float)refraction;
 	}
-	public void SetRoughness(double roughness)//NOTE: Floats in godot signals are doubles in C#
+	public void SetRoughness(double roughness, int index = -1)//NOTE: Floats in godot signals are doubles in C#
 	{
-		StandardMaterial3D material = (StandardMaterial3D)crystal.MaterialOverride;
+		if (index == -1)
+		{
+			for (int i = 0; i < crystal.GetSurfaceOverrideMaterialCount(); i++)
+				SetRoughness(roughness, i);
+			return;
+		}
+		StandardMaterial3D material = (StandardMaterial3D)crystal.GetSurfaceOverrideMaterial(index);
 		material.Roughness = (float)roughness;
 	}
 	public void SetBackgroundImage(string imagePath)
@@ -237,6 +266,7 @@ public partial class GemGUI : Control
 		//TODO Add color box here probably
 		d.MinValue = 0.01f;
 		d.MaxValue = 2;
+		ColorPickerButton c = new ColorPickerButton();
 		Button x = new Button();
 		x.Text = "X";
 
@@ -244,24 +274,29 @@ public partial class GemGUI : Control
 		listItem.boxes[1] = k;
 		listItem.boxes[2] = l;
 		listItem.boxes[3] = d;
+		listItem.colorButton = c;
 		listItem.button = x;
 
-		listItem.SetValues(Vector3.One, 1);
+		listItem.SetValues(Vector3.One, 1, baseColor);
 		SetNormals(listItem.index, listItem.vector, listItem.distance);
 
 		h.ValueChanged += listItem.SetX;//Callback methods to update when number is changed
 		k.ValueChanged += listItem.SetY;
 		l.ValueChanged += listItem.SetZ;
 		d.ValueChanged += listItem.SetDistance;
+		c.ColorChanged += listItem.SetColor;
+
 		x.Pressed += listItem.Remove;
 
 		listItem.Update += SetNormals;
+		listItem.UpdateColor += SetColor;
 		listItem.Delet += RemoveNormals;
 
 		vectorList.AddChild(h);
 		vectorList.AddChild(k);
 		vectorList.AddChild(l);
 		vectorList.AddChild(d);
+		vectorList.AddChild(c);
 		vectorList.AddChild(x);
 	}
 	public void SetNormals(int idx, Vector3 normal, float distance)
@@ -288,6 +323,7 @@ public partial class GemGUI : Control
 		listItems[idx].boxes[1].QueueFree();
 		listItems[idx].boxes[2].QueueFree();
 		listItems[idx].boxes[3].QueueFree();
+		listItems[idx].colorButton.QueueFree();
 		listItems[idx].button.QueueFree();
 		listItems[idx].QueueFree();
 

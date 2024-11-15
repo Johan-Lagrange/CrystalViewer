@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://cfiw5qxv3027y"]
+[gd_scene load_steps=4 format=3 uid="uid://cfiw5qxv3027y"]
 
 [ext_resource type="Script" path="res://Scripts/GemGUI.cs" id="1_agdt7"]
+[ext_resource type="Material" uid="uid://2gdagefefm83" path="res://Assets/BaseSurfaceMaterial.tres" id="2_l7is2"]
 [ext_resource type="PackedScene" uid="uid://cs8vuarc3uhj0" path="res://Prefabs/CrystalFaceSpinBox.tscn" id="2_r18ld"]
 
 [node name="GUI" type="Control" node_paths=PackedStringArray("dataText", "crystalSystem", "crystalParams", "scaleSlider", "vectorList")]
@@ -11,6 +12,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_agdt7")
+baseMaterial = ExtResource("2_l7is2")
 dataText = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/DataText")
 crystalSystem = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/SymmetryType/OptionButton")
 crystalParams = [NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/A"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/B"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/C"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Alpha"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Beta"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Gamma")]
@@ -587,7 +589,7 @@ text = "Face Normals:"
 
 [node name="GridContainer" type="GridContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer"]
 layout_mode = 2
-columns = 5
+columns = 6
 
 [node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer"]
 layout_mode = 2
@@ -609,6 +611,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "distance"
 
+[node name="Label5" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "col"
+
 [node name="AddNewFace" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer"]
 layout_mode = 2
 tooltip_text = "Add a new face to the crystal"
@@ -619,9 +626,9 @@ text = "+"
 [connection signal="file_selected" from="StlExportDialog" to="." method="ExportSTL"]
 [connection signal="gui_input" from="HBoxContainer/DragArea" to="." method="GetDragInput"]
 [connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Update/CheckBox" to="." method="SetAutoUpdate"]
-[connection signal="color_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Color/ColorPickerButton" to="." method="SetColor"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Refraction/HSlider" to="." method="SetRefraction"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Roughness/HSlider" to="." method="SetRoughness"]
+[connection signal="color_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Color/ColorPickerButton" to="." method="SetColor" binds= [-1]]
+[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Refraction/HSlider" to="." method="SetRefraction" binds= [-1]]
+[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Roughness/HSlider" to="." method="SetRoughness" binds= [-1]]
 [connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/CullMode/CheckBox" to="." method="SetCullBackface"]
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/SaveLoadExport/ExportStl" to="StlExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
 [connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/SaveLoadExport/ExportObj" to="ObjExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
