@@ -74,9 +74,8 @@ public class Crystal
         {
           planesToFaceGroups.Add(plane, group);
         }
-        catch (Exception e)
+        catch
         {
-          GD.PrintErr(e.Message);
         }
       }
     }
@@ -394,19 +393,19 @@ public class Crystal
       {
         if (sharedFaces.Count > 2)
         {
-          string s = "TOO MANY SHARED FACES: ";
-          foreach (Planed p in sharedFaces)
-          {
-            s += p.originalNormal.ToStringSingleLetter();
-          }
-          s += " between 1(";
-          foreach (Planed p in pair.Item1.Planes)
-            s += p.originalNormal.ToStringSingleLetter();
-          s += ") and 2(";
-          foreach (Planed p in pair.Item2.Planes)
-            s += p.originalNormal.ToStringSingleLetter();
-          s += ")";
-          GD.PrintErr(s);
+          // string s = "TOO MANY SHARED FACES: ";
+          // foreach (Planed p in sharedFaces)
+          // {
+          //   s += p.originalNormal.ToStringSingleLetter();
+          // }
+          // s += " between 1(";
+          // foreach (Planed p in pair.Item1.Planes)
+          //   s += p.originalNormal.ToStringSingleLetter();
+          // s += ") and 2(";
+          // foreach (Planed p in pair.Item2.Planes)
+          //   s += p.originalNormal.ToStringSingleLetter();
+          // s += ")";
+          // GD.PrintErr(s);
         }
         Planed p1 = sharedFaces[0];//First plane that we found a new edge on
         Planed p2 = sharedFaces[1];//Second plane ^
@@ -428,18 +427,18 @@ public class Crystal
         }
         catch (Exception e)
         {
-          GD.PrintErr(e.GetType() + e.Message);
-          foreach (Planed p in faces.Keys)
-          {
-            foreach (Vertex v in faces[p].Keys)
-            {
-              string a = "", b = "";
-              if (faces[p][v].a != null)
-                a = faces[p][v].a.point.ToString();
-              if (faces[p][v].b != null)
-                b = faces[p][v].b.point.ToString();
-            }
-          }
+          // GD.PrintErr(e.GetType() + e.Message);
+          // foreach (Planed p in faces.Keys)
+          // {
+          //   foreach (Vertex v in faces[p].Keys)
+          //   {
+          //     string a = "", b = "";
+          //     if (faces[p][v].a != null)
+          //       a = faces[p][v].a.point.ToString();
+          //     if (faces[p][v].b != null)
+          //       b = faces[p][v].b.point.ToString();
+          //   }
+          // }
         }
       }
     }
@@ -986,52 +985,52 @@ public class Crystal
   #endregion classes
 
   #region debug
-  private static void DebugPrintNormals(List<List<Vector3d>> normalGroups, string s = "NORMALS:\n")
-  {
-    foreach (List<Vector3d> group in normalGroups)
-    {
-      foreach (Vector3d v in group)
-        s += v.ToString() + ", ";
-      s += "\n";
-    }
-    GD.Print(s);
-  }
-  private static void DebugPrintFaces(Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> unorderedEdges, string s = "FACES\n")
-  {
-    foreach (Planed p in unorderedEdges.Keys)
-    {
-      s += p.originalNormal.ToStringSingleLetter() + ": ";
-      foreach (Vertex v in unorderedEdges[p].Keys)
-        s += v.point.ToStringWithCharComponents() + ", ";
-      s += "\n";
-    }
-    GD.Print(s);
-  }
-  private static void DebugPrintPlanes(List<List<Planed>> planeGroups, string s = "PLANES:\n")
-  {
-    foreach (List<Planed> group in planeGroups)
-    {
-      s += "\n";
-      foreach (Planed v in group)
-        s += v.originalNormal.ToString() + ", \n";
-    }
-    GD.Print(s);
-  }
-  private static void DebugPrintVertices(List<Vertex> vertices, string s = "VERTICES:\n")
-  {
-    foreach (Vertex v in vertices)
-    {
-      s += "planes: [";
-      foreach (Planed p in v.Planes)
-      {
-        s += p.originalNormal.ToStringSingleLetter();
-      }
-      s += "] point: ";
-      s += v.point.ToStringWithCharComponents();
-      s += "\n";
-    }
-    GD.Print(s);
-  }
+  // private static void DebugPrintNormals(List<List<Vector3d>> normalGroups, string s = "NORMALS:\n")
+  // {
+  //   foreach (List<Vector3d> group in normalGroups)
+  //   {
+  //     foreach (Vector3d v in group)
+  //       s += v.ToString() + ", ";
+  //     s += "\n";
+  //   }
+  //   GD.Print(s);
+  // }
+  // private static void DebugPrintFaces(Dictionary<Planed, Dictionary<Vertex, AdjacentEdges>> unorderedEdges, string s = "FACES\n")
+  // {
+  //   foreach (Planed p in unorderedEdges.Keys)
+  //   {
+  //     s += p.originalNormal.ToStringSingleLetter() + ": ";
+  //     foreach (Vertex v in unorderedEdges[p].Keys)
+  //       s += v.point.ToStringWithCharComponents() + ", ";
+  //     s += "\n";
+  //   }
+  //   GD.Print(s);
+  // }
+  // private static void DebugPrintPlanes(List<List<Planed>> planeGroups, string s = "PLANES:\n")
+  // {
+  //   foreach (List<Planed> group in planeGroups)
+  //   {
+  //     s += "\n";
+  //     foreach (Planed v in group)
+  //       s += v.originalNormal.ToString() + ", \n";
+  //   }
+  //   GD.Print(s);
+  // }
+  // private static void DebugPrintVertices(List<Vertex> vertices, string s = "VERTICES:\n")
+  // {
+  //   foreach (Vertex v in vertices)
+  //   {
+  //     s += "planes: [";
+  //     foreach (Planed p in v.Planes)
+  //     {
+  //       s += p.originalNormal.ToStringSingleLetter();
+  //     }
+  //     s += "] point: ";
+  //     s += v.point.ToStringWithCharComponents();
+  //     s += "\n";
+  //   }
+  //   GD.Print(s);
+  // }
   // private static void DebugPrintVertexAdjacentEdges(Dictionary<Plane, Dictionary<Vertex, AdjacentEdges>> faces)
   // {
   //     foreach (Planed p in faces.Keys)

@@ -183,7 +183,7 @@ public partial class CrystalGameObject : MeshInstance3D
 		for (int materialIndex = 0; materialIndex < materialList.Count; materialIndex++)
 		{
 			int surfaceOverrideIndex = crystal.FindSurfaceMadeByIndex(materialIndex);
-			GD.Print(surfaceOverrideIndex);
+
 			if (surfaceOverrideIndex != -1 && surfaceOverrideIndex < mesh.GetSurfaceCount())
 			{
 				SetSurfaceOverrideMaterial(surfaceOverrideIndex, materialList[materialIndex]);
