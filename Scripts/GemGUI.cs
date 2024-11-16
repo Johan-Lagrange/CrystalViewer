@@ -164,39 +164,46 @@ public partial class GemGUI : Control
 		if (index == -1)
 		{
 			baseColor = color;
-			for (int i = 0; i < crystal.GetSurfaceOverrideMaterialCount(); i++)
+			for (int i = 0; i < crystal.materialList.Count; i++)
 				SetColor(color, i);
 			foreach (VectorListItem item in listItems)
 			{
 				item.colorButton.Color = color;
 			}
-			return;
 		}
-		StandardMaterial3D material = (StandardMaterial3D)crystal.GetSurfaceOverrideMaterial(index);
-		material.AlbedoColor = color;
+		else
+		{
+			StandardMaterial3D material = crystal.materialList[index];
+			material.AlbedoColor = color;
+		}
 	}
 	public void SetRefraction(double refraction, int index = -1)
 	{
 		if (index == -1)
 		{
-			for (int i = 0; i < crystal.GetSurfaceOverrideMaterialCount(); i++)
+			for (int i = 0; i < crystal.materialList.Count; i++)
 				SetRefraction(refraction, i);
-			return;
+
 		}
-		StandardMaterial3D material = (StandardMaterial3D)crystal.GetSurfaceOverrideMaterial(index);
-		material.RefractionEnabled = refraction != 0;
-		material.RefractionScale = (float)refraction;
+		else
+		{
+			StandardMaterial3D material = crystal.materialList[index];
+			material.RefractionEnabled = refraction != 0;
+			material.RefractionScale = (float)refraction;
+		}
 	}
 	public void SetRoughness(double roughness, int index = -1)//NOTE: Floats in godot signals are doubles in C#
 	{
 		if (index == -1)
 		{
-			for (int i = 0; i < crystal.GetSurfaceOverrideMaterialCount(); i++)
+			for (int i = 0; i < crystal.materialList.Count; i++)
 				SetRoughness(roughness, i);
-			return;
 		}
-		StandardMaterial3D material = (StandardMaterial3D)crystal.GetSurfaceOverrideMaterial(index);
-		material.Roughness = (float)roughness;
+		else
+		{
+			StandardMaterial3D material = crystal.materialList[index];
+			material.Roughness = (float)roughness;
+		}
 	}
 	public void SetBackgroundImage(string imagePath)
 	{
@@ -215,10 +222,6 @@ public partial class GemGUI : Control
 		catch (System.Exception)
 		{
 		}
-	}
-	public void UpdateColorList()
-	{
-
 	}
 	public void UpdateCrystalData(int param = -1)//1 = data tab. We call this from the tab menu sometimes
 	{

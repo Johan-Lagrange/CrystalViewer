@@ -5,7 +5,7 @@ public partial class CrystalGameObject : MeshInstance3D
 {
 	[Export]
 	StandardMaterial3D baseMaterial;
-	LinkedList<StandardMaterial3D> materialList = new LinkedList<StandardMaterial3D>();
+	public List<StandardMaterial3D> materialList = new List<StandardMaterial3D>();
 	ArrayMesh mesh;
 	[ExportGroup("Crystal Parameters")]
 	[Export]
@@ -76,6 +76,11 @@ public partial class CrystalGameObject : MeshInstance3D
 	public float GetVolume()
 	{
 		return (float)Crystal.CalculateVolume(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
+	}
+
+	public int FindSurfaceMadeByIndex(int initialIndex)
+	{
+		return crystal.FindSurfaceMadeByIndex(initialIndex);
 	}
 
 	private void UpdateLatticeVectors()
@@ -168,18 +173,21 @@ public partial class CrystalGameObject : MeshInstance3D
 		ArrayMesh mesh = CreateArrayMeshFromCrystal(crystal);
 		Mesh = mesh;
 
-		if (Mesh.GetSurfaceCount() > materialList.Count)
+		if (crystal.initialFaces.Count > materialList.Count)
 		{
-			for (int i = materialList.Count; i < Mesh.GetSurfaceCount(); i++)
+			for (int i = materialList.Count; i < crystal.initialFaces.Count; i++)
 			{
-				materialList.AddLast((StandardMaterial3D)baseMaterial.Duplicate(true));
+				materialList.Add((StandardMaterial3D)baseMaterial.Duplicate(true));
 			}
 		}
-		LinkedListNode<StandardMaterial3D> currentNode = materialList.First;
-		for (int i = 0; i < Mesh.GetSurfaceCount(); i++)
+		for (int materialIndex = 0; materialIndex < materialList.Count; materialIndex++)
 		{
-			SetSurfaceOverrideMaterial(i, currentNode.Value);
-			currentNode = currentNode.Next;
+			int surfaceOverrideIndex = crystal.FindSurfaceMadeByIndex(materialIndex);
+			GD.Print(surfaceOverrideIndex);
+			if (surfaceOverrideIndex != -1 && surfaceOverrideIndex < mesh.GetSurfaceCount())
+			{
+				SetSurfaceOverrideMaterial(surfaceOverrideIndex, materialList[materialIndex]);
+			}
 		}
 	}
 	public void UpdateFromParameters()
