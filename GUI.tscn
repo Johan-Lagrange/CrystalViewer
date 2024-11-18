@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://cfiw5qxv3027y"]
+[gd_scene load_steps=4 format=3 uid="uid://cfiw5qxv3027y"]
 
 [ext_resource type="Script" path="res://Scripts/GemGUI.cs" id="1_agdt7"]
+[ext_resource type="Material" uid="uid://2gdagefefm83" path="res://Assets/BaseSurfaceMaterial.tres" id="2_l7is2"]
 [ext_resource type="PackedScene" uid="uid://cs8vuarc3uhj0" path="res://Prefabs/CrystalFaceSpinBox.tscn" id="2_r18ld"]
 
 [node name="GUI" type="Control" node_paths=PackedStringArray("dataText", "crystalSystem", "crystalParams", "scaleSlider", "vectorList")]
@@ -11,6 +12,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_agdt7")
+baseMaterial = ExtResource("2_l7is2")
 dataText = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data/VBoxContainer/DataText")
 crystalSystem = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/SymmetryType/OptionButton")
 crystalParams = [NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/A"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/B"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/C"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Alpha"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Beta"), NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer2/Gamma")]
@@ -18,16 +20,30 @@ scaleSlider = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/TabContainer
 vectorList = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer")
 spinBox = ExtResource("2_r18ld")
 
-[node name="ObjExportDialog" type="FileDialog" parent="."]
+[node name="BackgroundDialog" type="FileDialog" parent="."]
+title = "Open a File"
 position = Vector2i(0, 36)
-size = Vector2i(844, 159)
+size = Vector2i(844, 500)
+min_size = Vector2i(500, 500)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+use_native_dialog = true
+
+[node name="ObjExportDialog" type="FileDialog" parent="."]
+title = "Export Crystal as .obj"
+initial_position = 1
+size = Vector2i(743, 500)
+min_size = Vector2i(500, 500)
 access = 2
 filters = PackedStringArray(".obj")
 use_native_dialog = true
 
 [node name="StlExportDialog" type="FileDialog" parent="."]
-position = Vector2i(0, 36)
-size = Vector2i(844, 159)
+title = "Export Crystal as .stl"
+initial_position = 1
+size = Vector2i(743, 600)
+min_size = Vector2i(500, 500)
 access = 2
 filters = PackedStringArray(".stl")
 use_native_dialog = true
@@ -57,63 +73,63 @@ layout_mode = 2
 [node name="Crystal Settings" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings"]
+[node name="File_Material" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings"]
 layout_mode = 2
 
-[node name="Update" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
+[node name="Update" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material"]
 layout_mode = 2
 size_flags_horizontal = 8
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Update"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Update"]
 layout_mode = 2
 text = "Auto Update:"
 
-[node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Update"]
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Update"]
 layout_mode = 2
 tooltip_text = "Should this update/re calculate every time a parameter is changed. Can get expensive!"
 button_pressed = true
 
-[node name="Crystal" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
+[node name="Crystal" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 8
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Crystal"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Crystal"]
 layout_mode = 2
 text = "Crystal Species:"
 
-[node name="OptionButton" type="OptionButton" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Crystal"]
+[node name="OptionButton" type="OptionButton" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Crystal"]
 layout_mode = 2
 
-[node name="Color" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
+[node name="Color" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material"]
 layout_mode = 2
 size_flags_horizontal = 8
 tooltip_text = "The color/opacity of the crystal"
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Color"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Color"]
 layout_mode = 2
 text = "Crystal Color:"
 
-[node name="ColorPickerButton" type="ColorPickerButton" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Color"]
+[node name="ColorPickerButton" type="ColorPickerButton" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Color"]
 layout_mode = 2
 tooltip_text = "The color/opacity of the crystal"
 text = "                                     "
 color = Color(0.145098, 0.552941, 0.431373, 0.870588)
 
-[node name="Refraction" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
+[node name="Refraction" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material"]
 layout_mode = 2
 size_flags_horizontal = 8
 tooltip_text = "Amount of refraction shader to apply. Almost certainly not accurate. Middle disables refraction."
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Refraction"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Refraction"]
 layout_mode = 2
 text = "'Refraction' Amount:"
 
-[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Refraction"]
+[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Refraction"]
 custom_minimum_size = Vector2(160.195, 0)
 layout_mode = 2
 tooltip_text = "Amount of refraction shader to apply. Almost certainly not accurate. Middle disables refraction."
@@ -123,17 +139,17 @@ step = 0.1
 tick_count = 3
 ticks_on_borders = true
 
-[node name="Roughness" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
+[node name="Roughness" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material"]
 layout_mode = 2
 size_flags_horizontal = 8
 tooltip_text = "Amount of roughness shader to apply. "
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Roughness"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Roughness"]
 layout_mode = 2
 text = "Roughness:"
 
-[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Roughness"]
+[node name="HSlider" type="HSlider" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Roughness"]
 custom_minimum_size = Vector2(160.195, 0)
 layout_mode = 2
 tooltip_text = "Amount of roughness shader to apply. "
@@ -145,53 +161,66 @@ exp_edit = true
 tick_count = 3
 ticks_on_borders = true
 
-[node name="CullMode" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
+[node name="CullMode" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 8
 alignment = 1
 
-[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/CullMode"]
+[node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/CullMode"]
 layout_mode = 2
 text = "Cull mode:"
 
-[node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/CullMode"]
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/CullMode"]
 layout_mode = 2
 button_pressed = true
 
-[node name="SaveLoadExport" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer"]
+[node name="SaveLoadExport" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material"]
 layout_mode = 2
 size_flags_horizontal = 8
 alignment = 1
 
-[node name="Save" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport"]
+[node name="Save" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/SaveLoadExport"]
 visible = false
 layout_mode = 2
 text = "Save"
 
-[node name="Load" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport"]
+[node name="Load" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/SaveLoadExport"]
 visible = false
 layout_mode = 2
 text = "Load"
 
-[node name="ExportStl" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport"]
+[node name="ExportStl" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/SaveLoadExport"]
 layout_mode = 2
 tooltip_text = "Export this crystal to a .stl file"
 text = "Export .stl"
 
-[node name="ExportObj" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport"]
+[node name="ExportObj" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/SaveLoadExport"]
 layout_mode = 2
 tooltip_text = "Export this crystal to a .stl file"
 text = "Export .obj
 "
 
+[node name="Background" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material"]
+layout_mode = 2
+size_flags_horizontal = 8
+alignment = 1
+
+[node name="SetBG" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Background"]
+layout_mode = 2
+text = "Set Background"
+
+[node name="ResetBG" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Background"]
+layout_mode = 2
+text = "Reset Background"
+
 [node name="TabContainer" type="TabContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
-current_tab = 2
+current_tab = 0
 
 [node name="Axes" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer"]
-visible = false
 layout_mode = 2
+metadata/_tab_index = 0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes"]
 layout_mode = 2
@@ -209,12 +238,12 @@ text = "Symmetry Type:"
 [node name="OptionButton" type="OptionButton" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/SymmetryType"]
 layout_mode = 2
 tooltip_text = "The list of symmetry operations to apply to the given faces"
-item_count = 49
+action_mode = 1
 selected = 22
 fit_to_longest_item = false
 allow_reselect = true
+item_count = 49
 popup/item_0/text = "None"
-popup/item_0/id = 0
 popup/item_1/text = "Triclinic"
 popup/item_1/id = 1
 popup/item_1/separator = true
@@ -427,6 +456,7 @@ select_all_on_focus = true
 [node name="Data" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer"]
 visible = false
 layout_mode = 2
+metadata/_tab_index = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Data"]
 layout_mode = 2
@@ -439,7 +469,9 @@ Surface Area:
 Number of surfaces:"
 
 [node name="Camera" type="PanelContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer"]
+visible = false
 layout_mode = 2
+metadata/_tab_index = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera"]
 layout_mode = 2
@@ -484,6 +516,7 @@ text = "Show Axes:
 
 [node name="CheckBox" type="CheckBox" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer/Show Axes"]
 layout_mode = 2
+button_pressed = true
 
 [node name="AxisScale" type="HBoxContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Camera/VBoxContainer"]
 layout_mode = 2
@@ -564,7 +597,7 @@ text = "Face Normals:"
 
 [node name="GridContainer" type="GridContainer" parent="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer"]
 layout_mode = 2
-columns = 5
+columns = 6
 
 [node name="Label" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer"]
 layout_mode = 2
@@ -586,21 +619,28 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "distance"
 
+[node name="Label5" type="Label" parent="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "col"
+
 [node name="AddNewFace" type="Button" parent="HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxContainer/GridContainer"]
 layout_mode = 2
 tooltip_text = "Add a new face to the crystal"
 text = "+"
 
+[connection signal="file_selected" from="BackgroundDialog" to="." method="SetBackgroundImage"]
 [connection signal="file_selected" from="ObjExportDialog" to="." method="ExportOBJ"]
 [connection signal="file_selected" from="StlExportDialog" to="." method="ExportSTL"]
 [connection signal="gui_input" from="HBoxContainer/DragArea" to="." method="GetDragInput"]
-[connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Update/CheckBox" to="." method="SetAutoUpdate"]
-[connection signal="color_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Color/ColorPickerButton" to="." method="SetColor"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Refraction/HSlider" to="." method="SetRefraction"]
-[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/Roughness/HSlider" to="." method="SetRoughness"]
-[connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/CullMode/CheckBox" to="." method="SetCullBackface"]
-[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport/ExportStl" to="StlExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
-[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/VBoxContainer/SaveLoadExport/ExportObj" to="ObjExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
+[connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Update/CheckBox" to="." method="SetAutoUpdate"]
+[connection signal="color_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Color/ColorPickerButton" to="." method="SetColor" binds= [-1]]
+[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Refraction/HSlider" to="." method="SetRefraction" binds= [-1]]
+[connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Roughness/HSlider" to="." method="SetRoughness" binds= [-1]]
+[connection signal="toggled" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/CullMode/CheckBox" to="." method="SetCullBackface"]
+[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/SaveLoadExport/ExportStl" to="StlExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
+[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/SaveLoadExport/ExportObj" to="ObjExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
+[connection signal="pressed" from="HBoxContainer/ScrollContainer/VBoxContainer/Crystal Settings/File_Material/Background/SetBG" to="BackgroundDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
 [connection signal="tab_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer" to="." method="UpdateCrystalData"]
 [connection signal="item_selected" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/SymmetryType/OptionButton" to="." method="SetCrystalSystem"]
 [connection signal="value_changed" from="HBoxContainer/ScrollContainer/VBoxContainer/TabContainer/Axes/VBoxContainer/GridContainer/A" to="." method="SetA"]

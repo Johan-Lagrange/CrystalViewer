@@ -1,10 +1,10 @@
-[gd_scene load_steps=26 format=4 uid="uid://u72fhf8awel2"]
+[gd_scene load_steps=27 format=4 uid="uid://b226ro6gyacgx"]
 
-[ext_resource type="PackedScene" uid="uid://cfiw5qxv3027y" path="res://GUI.tscn" id="1_kdw77"]
-[ext_resource type="PackedScene" uid="uid://b226ro6gyacgx" path="res://Prefabs/CrystalGameObject.tscn" id="1_m7r4q"]
-[ext_resource type="Environment" uid="uid://7nfjkebtyooe" path="res://Prefabs/Environment.tres" id="2_s2r1g"]
+[ext_resource type="Script" path="res://Scripts/CrystalGameObject.cs" id="1_b016c"]
+[ext_resource type="Material" uid="uid://2gdagefefm83" path="res://Assets/BaseSurfaceMaterial.tres" id="1_tkvdc"]
+[ext_resource type="PackedScene" uid="uid://x33tjj1pcrt7" path="res://Prefabs/AxisArrow.tscn" id="2_7uuxe"]
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_0odm4"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_41jqy"]
 _surfaces = [{
 "aabb": AABB(-1.10262, -1.10262, -1.10262, 2.20524, 2.20524, 2.20524),
 "format": 34359738375,
@@ -28,24 +28,24 @@ _surfaces = [{
 "vertex_data": PackedByteArray("0Xs7v186iT9Rd0W/sSKNv4SKbD/jhfy8nU5Zv6+OsL660Qm/0Xs7v186iT9Rd0W/nU5Zv6+OsL660Qm/0Xs7vzHSab5Rd0W/UXdFP9F7Oz9fOom/UXdFP9F7Oz8x0mk+utEJP51OWT+vjrA+UXdFP9F7Oz9fOom/utEJP51OWT+vjrA+44X8PLEijT+Eimy/XzqJv1F3RT/Rezs/MdJpPlF3RT/Rezs/r46wPrrRCT+dTlk/XzqJv1F3RT/Rezs/r46wPrrRCT+dTlk/hIpsv+OF/DyxIo0/utEJv51OWb+vjrC+UXdFv9F7O78x0mm+UXdFv9F7O79fOok/utEJv51OWb+vjrC+UXdFv9F7O79fOok/44X8vLEijb+Eimw/0Xs7P186ib9Rd0U/0Xs7PzHSaT5Rd0U/nU5ZP6+OsD660Qk/0Xs7P186ib9Rd0U/nU5ZP6+OsD660Qk/sSKNP4SKbL/jhfw8XzqJP1F3Rb/Rezu/hIpsP+OF/LyxIo2/r46wvrrRCb+dTlm/XzqJP1F3Rb/Rezu/r46wvrrRCb+dTlm/MdJpvlF3Rb/Rezu/AACpqlpad7gAAKmqWlp3uAAAqapaWne4AACpqlpad7gAAKmqWlp3uAAAqapaWne4qqpU1f9//7+qqlTV/3//v6qqVNX/f/+/qqpU1f9//7+qqlTV/3//v6qqVNX/f/+//3+qqv///7//f6qq////v/9/qqr///+//3+qqv///7//f6qq////v/9/qqr///+/VFWqKv8//89UVaoq/z//z1RVqir/P//PVFWqKv8//89UVaoq/z//z1RVqir/P//PVNX/f/9///9U1f9//3///1TV/3//f///VNX/f/9///9U1f9//3///1TV/3//f///VNUAAEpLd/hU1QAASkt3+FTVAABKS3f4VNUAAEpLd/hU1QAASkt3+FTVAABKS3f4")
 }]
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_46b8f"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_1e032"]
 frequency = 0.0031
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_s20dh"]
-noise = SubResource("FastNoiseLite_46b8f")
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_k6y3p"]
+noise = SubResource("FastNoiseLite_1e032")
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_ybiq5"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_07do1"]
 frequency = 0.0011
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_17e0g"]
-noise = SubResource("FastNoiseLite_ybiq5")
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_5eqt8"]
+noise = SubResource("FastNoiseLite_07do1")
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_dueq0"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_r5frn"]
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_hj5ee"]
-noise = SubResource("FastNoiseLite_dueq0")
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_pmlb3"]
+noise = SubResource("FastNoiseLite_r5frn")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_px5o7"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ug6c4"]
 transparency = 1
 shading_mode = 2
 albedo_color = Color(0.145098, 0.552941, 0.431373, 0.870588)
@@ -54,30 +54,30 @@ roughness = 0.03
 emission = Color(0.145098, 0.552941, 0.431373, 1)
 emission_energy_multiplier = 0.16
 rim_tint = 0.63
-rim_texture = SubResource("NoiseTexture2D_hj5ee")
+rim_texture = SubResource("NoiseTexture2D_pmlb3")
 refraction_scale = 0.0
-refraction_texture = SubResource("NoiseTexture2D_17e0g")
+refraction_texture = SubResource("NoiseTexture2D_5eqt8")
 detail_blend_mode = 3
-detail_albedo = SubResource("NoiseTexture2D_s20dh")
+detail_albedo = SubResource("NoiseTexture2D_k6y3p")
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_l6p0u"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_ahtdr"]
 frequency = 0.0031
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_l82s5"]
-noise = SubResource("FastNoiseLite_l6p0u")
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_1yirk"]
+noise = SubResource("FastNoiseLite_ahtdr")
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_hhxbn"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_76bdq"]
 frequency = 0.0011
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_hrj4u"]
-noise = SubResource("FastNoiseLite_hhxbn")
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_2eq8g"]
+noise = SubResource("FastNoiseLite_76bdq")
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_5pxy6"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_wsr8m"]
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_ry6df"]
-noise = SubResource("FastNoiseLite_5pxy6")
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_lg6um"]
+noise = SubResource("FastNoiseLite_wsr8m")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cbtwg"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ha251"]
 transparency = 1
 shading_mode = 2
 albedo_color = Color(0.145098, 0.552941, 0.431373, 0.870588)
@@ -86,30 +86,30 @@ roughness = 0.03
 emission = Color(0.145098, 0.552941, 0.431373, 1)
 emission_energy_multiplier = 0.16
 rim_tint = 0.63
-rim_texture = SubResource("NoiseTexture2D_ry6df")
+rim_texture = SubResource("NoiseTexture2D_lg6um")
 refraction_scale = 0.0
-refraction_texture = SubResource("NoiseTexture2D_hrj4u")
+refraction_texture = SubResource("NoiseTexture2D_2eq8g")
 detail_blend_mode = 3
-detail_albedo = SubResource("NoiseTexture2D_l82s5")
+detail_albedo = SubResource("NoiseTexture2D_1yirk")
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_376vn"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_w3p7s"]
 frequency = 0.0031
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_640kf"]
-noise = SubResource("FastNoiseLite_376vn")
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_58g57"]
+noise = SubResource("FastNoiseLite_w3p7s")
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_cybk0"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_yfmep"]
 frequency = 0.0011
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_vetxw"]
-noise = SubResource("FastNoiseLite_cybk0")
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_u2pf8"]
+noise = SubResource("FastNoiseLite_yfmep")
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_4pxac"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_uj3y6"]
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_xj3kn"]
-noise = SubResource("FastNoiseLite_4pxac")
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_58d67"]
+noise = SubResource("FastNoiseLite_uj3y6")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nhonx"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wxr0q"]
 transparency = 1
 shading_mode = 2
 albedo_color = Color(0.145098, 0.552941, 0.431373, 0.870588)
@@ -118,43 +118,55 @@ roughness = 0.03
 emission = Color(0.145098, 0.552941, 0.431373, 1)
 emission_energy_multiplier = 0.16
 rim_tint = 0.63
-rim_texture = SubResource("NoiseTexture2D_xj3kn")
+rim_texture = SubResource("NoiseTexture2D_58d67")
 refraction_scale = 0.0
-refraction_texture = SubResource("NoiseTexture2D_vetxw")
+refraction_texture = SubResource("NoiseTexture2D_u2pf8")
 detail_blend_mode = 3
-detail_albedo = SubResource("NoiseTexture2D_640kf")
+detail_albedo = SubResource("NoiseTexture2D_58g57")
 
-[node name="Main" type="Node"]
+[sub_resource type="BoxMesh" id="BoxMesh_n30nq"]
 
-[node name="GUI" parent="." node_paths=PackedStringArray("environment", "camera", "crystalParent", "axes", "crystal") instance=ExtResource("1_kdw77")]
-environment = NodePath("../WorldEnvironment")
-camera = NodePath("../Camera3D")
-crystalParent = NodePath("../CrystalParent")
-axes = NodePath("../CrystalParent/Crystal/Axes")
-crystal = NodePath("../CrystalParent/Crystal")
+[node name="CrystalGameObject" type="MeshInstance3D"]
+transform = Transform3D(1, 0.5, 0.5, 0, 0.866025, 0.288675, 0, 0, 0.816497, 0, 0, 0)
+mesh = SubResource("ArrayMesh_41jqy")
+surface_material_override/0 = SubResource("StandardMaterial3D_ug6c4")
+surface_material_override/1 = SubResource("StandardMaterial3D_ha251")
+surface_material_override/2 = SubResource("StandardMaterial3D_wxr0q")
+script = ExtResource("1_b016c")
+baseMaterial = ExtResource("1_tkvdc")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = ExtResource("2_s2r1g")
+[node name="Axes" type="Node3D" parent="."]
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 0, 0)
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.899733, -0.338339, 0.275694, 0.0386735, 0.567397, 0.822536, -0.434724, 0.750725, -0.497421, 3.82342, 3.17909, -0.267141)
+[node name="A" parent="Axes" instance=ExtResource("2_7uuxe")]
+transform = Transform3D(-4.37114e-08, 0, 0.999999, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(-0.984808, 0, 0.173648, 0, 1, 0, -0.173648, 0, -0.984808, 0, 0, -4)
-environment = ExtResource("2_s2r1g")
-fov = 44.5157
-size = 6.576
-near = 0.001
+[node name="Arrow" parent="Axes/A" index="1"]
+transform = Transform3D(5.96046e-08, 2.98023e-08, -1, -1, -1.11759e-07, -2.98023e-08, -6.70552e-08, 1, 4.47035e-08, 0, 0, 2.5)
 
-[node name="CrystalParent" type="Node3D" parent="."]
+[node name="Text" parent="Axes/A" index="2"]
+transform = Transform3D(1, 1.19209e-07, 3.72529e-08, -5.96046e-08, 1, -7.45058e-08, -7.45058e-09, -7.45058e-09, 1, 5.96046e-08, -1.78814e-07, 2.959)
+text = "A
+"
 
-[node name="Crystal" parent="CrystalParent" instance=ExtResource("1_m7r4q")]
-mesh = SubResource("ArrayMesh_0odm4")
-surface_material_override/0 = SubResource("StandardMaterial3D_px5o7")
-surface_material_override/1 = SubResource("StandardMaterial3D_cbtwg")
-surface_material_override/2 = SubResource("StandardMaterial3D_nhonx")
+[node name="B" parent="Axes" instance=ExtResource("2_7uuxe")]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
 
-[editable path="CrystalParent/Crystal"]
-[editable path="CrystalParent/Crystal/Axes/A"]
-[editable path="CrystalParent/Crystal/Axes/B"]
-[editable path="CrystalParent/Crystal/Axes/ABC"]
+[node name="Text" parent="Axes/B" index="2"]
+text = "B"
+
+[node name="C" parent="Axes" instance=ExtResource("2_7uuxe")]
+
+[node name="ABC" parent="Axes" instance=ExtResource("2_7uuxe")]
+transform = Transform3D(0.793892, 0.206107, 0.572061, -0.572061, 0.572061, 0.587785, -0.206107, -0.793892, 0.572061, 0, 0, 0)
+
+[node name="Text" parent="Axes/ABC" index="2"]
+transform = Transform3D(1, 1.19209e-07, 3.72529e-08, -5.96046e-08, 1, -7.45058e-08, -7.45058e-09, -7.45058e-09, 1, 5.96046e-08, -1.78814e-07, 2.959)
+text = "ABC"
+
+[node name="Cube" type="MeshInstance3D" parent="Axes"]
+mesh = SubResource("BoxMesh_n30nq")
+
+[editable path="Axes/A"]
+[editable path="Axes/B"]
+[editable path="Axes/ABC"]

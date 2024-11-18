@@ -4,11 +4,15 @@ using System.Linq;
 public partial class GemGUI : Control
 {
 	[Export]
+	WorldEnvironment environment;
+	[Export]
 	Camera3D camera;
 	[Export]
 	Node3D crystalParent, axes;
 	[Export]
 	CrystalGameObject crystal;
+	[Export]
+	StandardMaterial3D baseMaterial;
 	[Export]
 	Label dataText;
 	[Export]
@@ -17,6 +21,7 @@ public partial class GemGUI : Control
 	SpinBox[] crystalParams = new SpinBox[6];
 	[Export]
 	Range scaleSlider;
+	private Color baseColor;
 	private bool rotate = false;
 	private bool autoUpdate = true;
 	private bool updatedParamsThisFrame = false;
@@ -33,14 +38,17 @@ public partial class GemGUI : Control
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		//Set defaults
+		baseColor = baseMaterial.AlbedoColor;
 		AddNewNormal();
 		AddNewNormal();
 		AddNewNormal();
 		AddNewNormal();
-		listItems[0].SetValues(new(3, 1, 0), 1);//Defaults
-		listItems[1].SetValues(new(0, 5, 1), .9f);
-		listItems[2].SetValues(new(-1, -1, -1), 1);
-		listItems[3].SetValues(new(-2, 0, -1), 1);
+		listItems[0].SetValues(new(3, 1, 0), 1, baseColor);
+		listItems[1].SetValues(new(0, 5, 1), .9f, baseColor);
+		listItems[2].SetValues(new(-1, -1, -1), 1, baseColor);
+		listItems[3].SetValues(new(-2, 0, -1), 1, baseColor);
+
 		foreach (VectorListItem item in listItems)
 		{
 			SetNormals(item.index, item.vector, item.distance);
@@ -139,7 +147,6 @@ public partial class GemGUI : Control
 	public void SetCrystalSystem(int num)
 	{
 		crystal.PointGroup = (SymmetryOperations.PointGroup)(crystalSystem.GetItemId(num) / 10);
-		//GD.Print(crystal.PointGroup.ToString());
 		float[] parameters = SymmetryOperations.GetParametersForPointGroup(crystal.PointGroup);
 		for (int i = 0; i < 6; i++)
 			crystalParams[i].SetValueNoSignal(parameters[i]);
@@ -151,30 +158,85 @@ public partial class GemGUI : Control
 		StandardMaterial3D mat = (StandardMaterial3D)crystal.MaterialOverride;
 		mat.CullMode = cull ? BaseMaterial3D.CullModeEnum.Back : BaseMaterial3D.CullModeEnum.Disabled;
 	}
-	public void SetColor(Color color)
+	public void SetColor(Color color, int index = -1)
 	{
-		StandardMaterial3D material = (StandardMaterial3D)crystal.MaterialOverride;
-		material.AlbedoColor = color;
+		if (index == -1)
+		{
+			baseColor = color;
+			for (int i = 0; i < crystal.materialList.Count; i++)
+				SetColor(color, i);
+			foreach (VectorListItem item in listItems)
+			{
+				item.colorButton.Color = color;
+			}
+		}
+		else
+		{
+			StandardMaterial3D material = crystal.materialList[index];
+			material.AlbedoColor = color;
+		}
 	}
-	public void SetRefraction(double refraction)
+	public void SetRefraction(double refraction, int index = -1)
 	{
-		StandardMaterial3D material = (StandardMaterial3D)crystal.MaterialOverride;
-		material.RefractionEnabled = refraction != 0;
-		material.RefractionScale = (float)refraction;
+		if (index == -1)
+		{
+			for (int i = 0; i < crystal.materialList.Count; i++)
+				SetRefraction(refraction, i);
+
+		}
+		else
+		{
+			StandardMaterial3D material = crystal.materialList[index];
+			material.RefractionEnabled = refraction != 0;
+			material.RefractionScale = (float)refraction;
+		}
 	}
-	public void SetRoughness(double roughness)//NOTE: Floats in godot signals are doubles in C#
+	public void SetRoughness(double roughness, int index = -1)//NOTE: Floats in godot signals are doubles in C#
 	{
-		StandardMaterial3D material = (StandardMaterial3D)crystal.MaterialOverride;
-		material.Roughness = (float)roughness;
+		if (index == -1)
+		{
+			for (int i = 0; i < crystal.materialList.Count; i++)
+				SetRoughness(roughness, i);
+		}
+		else
+		{
+			StandardMaterial3D material = crystal.materialList[index];
+			material.Roughness = (float)roughness;
+		}
+	}
+	public void SetBackgroundImage(string imagePath)
+	{
+		if (imagePath == "" || imagePath == null)
+		{
+			((PanoramaSkyMaterial)environment.Environment.Sky.SkyMaterial).Panorama = ResourceLoader.Load<CompressedTexture2D>("res://Assets/1008231038_HDR.jpg");
+			//We use resourceloader for internal files. 
+			//Image.LoadFromFile WILL work in editor for res:// files, 
+			//but once it's exported it won't work.
+			return;
+		}
+		try
+		{
+			((PanoramaSkyMaterial)environment.Environment.Sky.SkyMaterial).Panorama = ImageTexture.CreateFromImage(Image.LoadFromFile(imagePath));
+		}
+		catch (System.Exception)
+		{
+		}
 	}
 	public void UpdateCrystalData(int param = -1)//1 = data tab. We call this from the tab menu sometimes
 	{
 		if (param != 1 && dataText.IsVisibleInTree() == false)//These calculations can be expensive so we don't do it if we don't need to.
 			return;//We call this method manually when the data tab is switched onto so that the data is always fresh when visible. After that we auto update.
+		string areaString = "";
+		double[] areas = crystal.GetSurfaceAreaGroups();
+		for (int i = 0; i < areas.Length; i++)
+			areaString += $"Group {i + 1} area: {areas[i]}\n";
+
 		dataText.Text = "Shape class: " + crystal.GetShapeClass() + "\n" +
 						"Volume: " + crystal.GetVolume() + "\n" +
 						"Surface Area: " + crystal.GetSurfaceArea() + "\n" +
-						"Number of surfaces: " + crystal.GetSurfaceCount();
+						"Number of surfaces: " + crystal.GetSurfaceCount() + "\n"
+						+ areaString;
+
 	}
 	private void CheckParamUpdate()
 	{
@@ -212,6 +274,7 @@ public partial class GemGUI : Control
 		SpinBox d = (SpinBox)spinBox.Instantiate();
 		d.MinValue = 0.01f;
 		d.MaxValue = 2;
+		ColorPickerButton c = new ColorPickerButton();
 		Button x = new Button();
 		x.Text = "X";
 
@@ -219,24 +282,37 @@ public partial class GemGUI : Control
 		listItem.boxes[1] = k;
 		listItem.boxes[2] = l;
 		listItem.boxes[3] = d;
+		listItem.colorButton = c;
 		listItem.button = x;
 
-		listItem.SetValues(Vector3.One, 1);
+		Color color = baseColor;
+
+		//Material already exists and may hold color we added previously
+		//We want to reflect that in the GUI so we set the color of the element we add to that color instead of the default color.
+		if (listItem.index < crystal.materialList.Count)
+			color = crystal.materialList[listItem.index].AlbedoColor;
+
+		listItem.SetValues(Vector3.One, 1, color);
+
 		SetNormals(listItem.index, listItem.vector, listItem.distance);
 
 		h.ValueChanged += listItem.SetX;//Callback methods to update when number is changed
 		k.ValueChanged += listItem.SetY;
 		l.ValueChanged += listItem.SetZ;
 		d.ValueChanged += listItem.SetDistance;
+		c.ColorChanged += listItem.SetColor;
+
 		x.Pressed += listItem.Remove;
 
 		listItem.Update += SetNormals;
+		listItem.UpdateColor += SetColor;
 		listItem.Delet += RemoveNormals;
 
 		vectorList.AddChild(h);
 		vectorList.AddChild(k);
 		vectorList.AddChild(l);
 		vectorList.AddChild(d);
+		vectorList.AddChild(c);
 		vectorList.AddChild(x);
 	}
 	public void SetNormals(int idx, Vector3 normal, float distance)
@@ -245,7 +321,8 @@ public partial class GemGUI : Control
 			return;
 		if (crystal.Normals.Length <= idx || crystal.Distances.Length <= idx)
 		{
-			Vector3[] newNormals = new Vector3[idx + 2];
+			//No more space in crystal's arrays, so we add more slots for a new one and copy the arrays
+			Vector3[] newNormals = new Vector3[idx + 2];//TODO check why I add two here
 			float[] newDistances = new float[idx + 2];
 			crystal.Normals.CopyTo(newNormals, 0);
 			crystal.Distances.CopyTo(newDistances, 0);
@@ -262,6 +339,7 @@ public partial class GemGUI : Control
 		listItems[idx].boxes[1].QueueFree();
 		listItems[idx].boxes[2].QueueFree();
 		listItems[idx].boxes[3].QueueFree();
+		listItems[idx].colorButton.QueueFree();
 		listItems[idx].button.QueueFree();
 		listItems[idx].QueueFree();
 

@@ -1,13 +1,15 @@
 using System;
+using System.Linq;
 
 /// <summary>
-/// Double precision Vector3 for accurate calculations.
+/// Double precision Vector3 for accurate BUT FUZZY calculations.
 /// We CAN compile godot for double precision but:
 /// 1) I don't want to
 /// 2) reimplementing it here allows us to make the crystal program more portable 
 /// </summary>
-public struct Vector3d
+public struct Vector3d : IComparable
 {
+    //TODO maybe make NAN vectors instead of returning null for intersect3?
     public static Vector3d Zero { get => new(0, 0, 0); }
     public static Vector3d One { get => new(1, 1, 1); }
     public static Vector3d Right { get => new(1, 0, 0); }
@@ -16,17 +18,22 @@ public struct Vector3d
     public static Vector3d Down { get => new(0, -1, 0); }
     public static Vector3d Forward { get => new(0, 0, -1); }//Godot does -1 as forward. Although the whole reason I implemented this is so that the code can be removed from godot...
     public static Vector3d Backward { get => new(0, 0, 1); }//I still left it this way to be consistent.
-    public static readonly double threshold = 0.00001;
+    public static readonly Vector3d[] BasisIdentity = { new(1, 0, 0), new(0, 1, 0), new(0, 0, 1) };
+    public static readonly double threshold = 0.0000000001;
     public double X { get => x; set => x = value; }
     public double Y { get => y; set => y = value; }
     public double Z { get => z; set => z = value; }
     public double x, y, z;
+    static System.Collections.Generic.Dictionary<double, string> debugDoubleToStr;//turns doubles into "a", "b", "c" in the order they appear
+    static System.Collections.Generic.Dictionary<Vector3d, string> debugVectorToStr;//ditto but "A", "B"...
+
     public Vector3d() { this.x = 0; this.y = 0; this.z = 0; }
     public Vector3d(double x, double y, double z)
     {
         if (x is double.NaN || y is double.NaN || z is double.NaN)
             throw new ArgumentException("Was given NaN as value!");
-        this.x = x; this.y = y; this.z = z;
+
+        this.x = RoundZero(x); this.y = RoundZero(y); this.z = RoundZero(z);
     }
     /// <summary>
     /// Returns Squared distance of this vector from the origin. 
@@ -110,13 +117,82 @@ public struct Vector3d
     public static bool IsExactlyEqual(Vector3d a, Vector3d b) => a.x == b.x && a.y == b.y && a.z == b.z;
     public static bool IsZeroApprox(Vector3d v) => v == Zero;
 
+    public static bool IsZeroApprox(double d) => RoundZero(d) == 0;
+    public static double RoundZero(double d) => (d * d) < threshold ? 0 : d;
+    public static double RoundAwayFromZero(double d)
+    {
+        d = RoundZero(d);
+        return Math.Sign(d) * Math.Ceiling(Math.Abs(d));
+    }
+    public static bool operator >(Vector3d a, Vector3d b)
+    {
+        if (a == b)
+            return false;
+        double delta = a.LengthSquared() - b.LengthSquared();
+        if (delta > threshold)
+            return true;
+        if (delta < -threshold)
+            return false;
+        //Lengths are equal, tiebreak with individual components
+        delta = a.X - b.X;//Sort by X value first
+        if (delta > threshold)
+            return true;
+        if (delta < -threshold)
+            return false;
+
+        delta = a.Y - b.Y;//If X values are same, sort by Y...
+        if (delta > threshold)
+            return true;
+        if (delta < -threshold)
+            return false;
+
+        delta = a.Z - b.Z;//...Then Z.
+        if (delta > threshold)
+            return true;
+        if (delta < -threshold)
+            return false;
+
+        return false;//We shouldn't ever reach this point since we check for equality first.
+    }
+    public static bool operator <(Vector3d a, Vector3d b)
+    {
+        if (a == b)
+            return false;
+
+        double delta = a.LengthSquared() - b.LengthSquared();
+        if (delta > threshold)
+            return false;
+        if (delta < -threshold)
+            return true;
+
+        //Lengths are equal, tiebreak with individual components
+        delta = a.X - b.X;//Sort by X value first
+        if (delta > threshold)
+            return false;
+        if (delta < -threshold)
+            return true;
+
+        delta = a.Y - b.Y;//If X values are same, sort by Y...
+        if (delta > threshold)
+            return false;
+        if (delta < -threshold)
+            return true;
+
+        delta = a.Z - b.Z;//...Then Z.
+        if (delta > threshold)
+            return false;
+        if (delta < -threshold)
+            return true;
+
+        return false;//We shouldn't ever reach this point since we check for equality first.
+    }
 
     public static bool operator ==(Vector3d a, Vector3d b) => SqrDistance(a, b) < threshold;
     public static bool operator !=(Vector3d a, Vector3d b) => SqrDistance(a, b) >= threshold;
     public static Vector3d operator *(Vector3d v, double s) => new(v.x * s, v.y * s, v.z * s);
     public static Vector3d operator /(Vector3d v, double s)
     {
-        if (s == 0)
+        if (IsZeroApprox(s))
             throw new DivideByZeroException();
         return v * (1 / s);
     }
@@ -135,9 +211,7 @@ public struct Vector3d
             throw new ArgumentException("Must be a 3x3 matrix!");
         return m[0] * v.x + m[1] * v.y + m[2] * v.z;
     }
-
-
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         if (obj is null)
             return false;
@@ -145,8 +219,88 @@ public struct Vector3d
             return this == v;
         return false;
     }
-    public override string ToString() => $"({x}, {y}, {z})";
+    public override readonly string ToString() => $"({x}, {y}, {z})";
+    public readonly string ToStringWithCharComponents()
+    {
+        if (debugDoubleToStr == null)
+            debugDoubleToStr = new();
+        void AddIfMissing(double d)
+        {
+            d = Math.Abs(d);
+            if (debugDoubleToStr.ContainsKey(d) == false && RoundZero(d) != 0)
+                debugDoubleToStr.Add(d, "" + (char)(97 + debugDoubleToStr.Keys.Count()));//Starts at lowercase a
+        }
+        AddIfMissing(x);
+        AddIfMissing(y);
+        AddIfMissing(z);
 
-    public override int GetHashCode() => base.GetHashCode();
+        string TurnToString(double d)
+        {
+            if (IsZeroApprox(d))
+                return " 0";
+            if (d == 1)
+                return " 1";
+            if (d == -1)
+                return "-1";
+            return (d < 0 ? "-" : " ") + debugDoubleToStr[Math.Abs(d)];
+        }
+        return $"({TurnToString(x)}, {TurnToString(y)}, {TurnToString(z)})";
+    }
+
+    public readonly string ToStringSingleLetter()
+    {
+        if (debugVectorToStr == null)
+            debugVectorToStr = new();
+        if (debugVectorToStr.ContainsKey(this) == false)
+            debugVectorToStr.Add(this, "" + (char)(65 + debugVectorToStr.Keys.Count()));//Starts at uppercase A
+
+        return debugVectorToStr[this];
+    }
+    public override readonly int GetHashCode() => ((x * 2).GetHashCode()
+    + (y * 3).GetHashCode()
+    + (z * 5).GetHashCode()).GetHashCode();
+
+    public int CompareTo(object obj)
+    {
+        if (obj is Planed p)
+            return (int)RoundAwayFromZero(p.DistanceTo(this));
+
+        if (obj is Vector3d b)
+        {
+            Vector3d a = this;
+            if (a == b)
+                return 0;
+            double delta = a.LengthSquared() - b.LengthSquared();
+            if (delta > threshold)
+                return 1 + (int)delta;
+            if (delta < -threshold)
+                return -1 + (int)delta;
+            //Lengths are equal, tiebreak with individual components
+            delta = a.X - b.X;//Sort by X value first
+            if (delta > threshold)
+                return 1 + (int)delta;
+            if (delta < -threshold)
+                return -1 + (int)delta;
+
+            delta = a.Y - b.Y;//If X values are same, sort by Y...
+            if (delta > threshold)
+                return 1 + (int)delta;
+            if (delta < -threshold)
+                return -1 + (int)delta;
+
+            delta = a.Z - b.Z;//...Then Z.
+            if (delta > threshold)
+                return 1 + (int)delta;
+            if (delta < -threshold)
+                return -1 + (int)delta;
+
+            return 0;//We shouldn't ever reach this point since we check for equality first.}
+        }
+        return 0;
+    }
+    public static void ResetDebugLists()
+    {
+        debugDoubleToStr = new();
+        debugVectorToStr = new();
+    }
 }
-

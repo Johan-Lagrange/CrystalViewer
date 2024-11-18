@@ -1,9 +1,11 @@
 using Godot;
 using System.Collections.Generic;
 
-[Tool]
 public partial class CrystalGameObject : MeshInstance3D
 {
+	[Export]
+	StandardMaterial3D baseMaterial;
+	public List<StandardMaterial3D> materialList = new List<StandardMaterial3D>();
 	ArrayMesh mesh;
 	[ExportGroup("Crystal Parameters")]
 	[Export]
@@ -43,15 +45,15 @@ public partial class CrystalGameObject : MeshInstance3D
 	bool UpdateTheMesh { get { return true; } set { UpdateMesh(); } }
 	[Export]
 	bool UseLatticeVectors { get => usingLatticeVectors; set { usingLatticeVectors = !usingLatticeVectors; UpdateLatticeVectors(); } }
-	private bool usingLatticeVectors;
+	private bool usingLatticeVectors = true;
 	// Called when the node enters the scene tree for the first time.
 	[ExportGroup("Crystal Faces")]
 	[Export]
-	public SymmetryOperations.PointGroup PointGroup { get => _pointGroup; set { _pointGroup = value; UpdateAxes(value); } }//UpdateMesh(); } }
+	public SymmetryOperations.PointGroup PointGroup { get => _pointGroup; set { _pointGroup = value; UpdateAxes(value); } }
 	[Export]
-	public Vector3[] Normals { get => _normals; set { _normals = value; } }//UpdateMesh(); } }
+	public Vector3[] Normals { get => _normals; set { _normals = value; } }
 	[Export]
-	public float[] Distances { get => _distances; set { _distances = value; } }//UpdateMesh(); } }
+	public float[] Distances { get => _distances; set { _distances = value; } }
 	SymmetryOperations.PointGroup _pointGroup = SymmetryOperations.PointGroup.BarThreeRhombohedral;
 	Vector3[] _normals = { new(3, 1, 0), new(0, 5, 1), new(-1, -1, -1), new(-2, 0, -1) };
 	float[] _distances = { 1, .9f, 1, 1 };
@@ -69,11 +71,29 @@ public partial class CrystalGameObject : MeshInstance3D
 	public float GetSurfaceCount() => crystal.faces.Count;
 	public float GetSurfaceArea()
 	{
-		return (float)Crystal.CalculateSurfaceArea(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
+		return (float)Crystal.CalculateTotalSurfaceArea(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
+	}
+	public double[] GetSurfaceAreaGroups()
+	{
+		double[] areas = new double[crystal.initialNormals.Count];
+		for (int i = 0; i < crystal.initialNormals.Count; i++)
+		{
+			int faceGroupIndex = crystal.FindSurfaceMadeByIndex(i);
+			if (faceGroupIndex == -1)
+				areas[i] = 0;
+			else
+				areas[i] = Crystal.CalculateTotalSurfaceArea(crystal.faceGroups[faceGroupIndex], GodotCompatability.BasisToMatrix(Basis));
+		}
+		return areas;
 	}
 	public float GetVolume()
 	{
 		return (float)Crystal.CalculateVolume(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
+	}
+
+	public int FindSurfaceMadeByIndex(int initialIndex)
+	{
+		return crystal.FindSurfaceMadeByIndex(initialIndex);
 	}
 
 	private void UpdateLatticeVectors()
@@ -95,35 +115,41 @@ public partial class CrystalGameObject : MeshInstance3D
 	{
 		// Create the Mesh.
 		mesh = new ArrayMesh();
-		foreach (List<Vector3d> faced in c.faces)
+		foreach (List<List<Vector3d>> faceGroup in c.faceGroups)
 		{
-			List<Vector3> face = new List<Vector3>();
-			foreach (Vector3d vd in faced)
-				face.Add(GodotCompatability.DoubleToGD(vd));//Convert our bespoke double based vectors to GD's float ones
+			if (faceGroup.Count == 0)
+				continue;
 
 			Godot.Collections.Array arrays = new();//Array of surface data
 			arrays.Resize((int)Mesh.ArrayType.Max);
-			arrays[(int)Mesh.ArrayType.Vertex] = face.ToArray();
-			Vector3 normal = GodotCompatability.CalculateNormal(face[0], face[1], face[2]);
-
-			Vector3 tangentVector = (face[1] - face[0]).Normalized();
-			float[] tangent = new float[] { tangentVector[0], tangentVector[1], tangentVector[2], 1 };
-
 			List<Vector3> meshVertices = new();
 			List<Vector3> meshNormals = new();
 			List<float> tangents = new();
 
-			for (int i = 1; i <= face.Count - 2; i++)//We work two vertices at a time. That's why we do face.count - 2
+			foreach (List<Vector3d> faced in faceGroup)
 			{
-				meshVertices.AddRange(new Vector3[] { face[0], face[i], face[i + 1] });
-				meshNormals.AddRange(new Vector3[] { normal, normal, normal });
-				tangents.AddRange(new float[] { tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3] });
-			}
+				if (faced.Count == 0)
+					continue;
 
+				List<Vector3> face = new();
+				foreach (Vector3d vd in faced)
+					face.Add(GodotCompatability.DoubleToGD(vd));//Convert our bespoke double based vectors to GD's float ones
+
+				Vector3 normal = GodotCompatability.CalculateNormal(face[0], face[1], face[2]);
+
+				Vector3 tangentVector = (face[1] - face[0]).Normalized();
+				float[] tangent = new float[] { tangentVector[0], tangentVector[1], tangentVector[2], 1 };
+
+				for (int i = 1; i <= face.Count - 2; i++)//We work two vertices at a time. That's why we do face.count - 2
+				{
+					meshVertices.AddRange(new Vector3[] { face[0], face[i], face[i + 1] });
+					meshNormals.AddRange(new Vector3[] { normal, normal, normal });
+					tangents.AddRange(new float[] { tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3], tangent[0], tangent[1], tangent[2], tangent[3] });
+				}
+			}
 			arrays[(int)Mesh.ArrayType.Vertex] = meshVertices.ToArray();
 			arrays[(int)Mesh.ArrayType.Normal] = meshNormals.ToArray();
 			arrays[(int)Mesh.ArrayType.Tangent] = tangents.ToArray();
-
 			mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
 		}
 		return mesh;
@@ -147,14 +173,36 @@ public partial class CrystalGameObject : MeshInstance3D
 			Distances = newDistances;
 		}
 
-		List<Vector3d> Normalsd = new List<Vector3d>();//List of our bespoke double vector type
+		List<Vector3d> normalsd = new List<Vector3d>();//List of our bespoke double vector type
 		foreach (Vector3 n in Normals)
-			Normalsd.Add(GodotCompatability.GDToDouble(n));
+			normalsd.Add(GodotCompatability.GDToDouble(n));
 
-		crystal = new Crystal(Normalsd.ToArray(), Distances, _pointGroup);
+		List<double> doubles = new List<double>();
+		foreach (float f in Distances)
+			doubles.Add((double)f);
+
+		crystal = new Crystal(normalsd, doubles, _pointGroup);
 		ArrayMesh mesh = CreateArrayMeshFromCrystal(crystal);
 		Mesh = mesh;
+
+		if (crystal.initialNormals.Count > materialList.Count)
+		{
+			for (int i = materialList.Count; i < crystal.initialNormals.Count; i++)
+			{
+				materialList.Add((StandardMaterial3D)baseMaterial.Duplicate(true));
+			}
+		}
+		for (int materialIndex = 0; materialIndex < materialList.Count; materialIndex++)
+		{
+			int surfaceOverrideIndex = crystal.FindSurfaceMadeByIndex(materialIndex);
+
+			if (surfaceOverrideIndex != -1 && surfaceOverrideIndex < mesh.GetSurfaceCount())
+			{
+				SetSurfaceOverrideMaterial(surfaceOverrideIndex, materialList[materialIndex]);
+			}
+		}
 	}
+
 	public void UpdateFromParameters()
 	{
 		UpdateTrig();
@@ -216,39 +264,5 @@ public partial class CrystalGameObject : MeshInstance3D
 			return new(Mathf.Round(v.X), Mathf.Round(v.Y), Mathf.Round(v.Z));
 
 		return vScaled;
-	}
-	public static List<Vector3> MillerToVertices(Vector3 v) => MillerToVertices((int)v.X, (int)v.Y, (int)v.Z);
-	public static List<Vector3> MillerToVertices(int h, int k, int l)
-	{
-		List<Vector3> vertices = new();
-		Stack<Vector3> skipped = new();
-		if (h == 0)
-			skipped.Push(new(1, 0, 0));
-		else
-			vertices.Add(new(1f / h, 0, 0));
-
-		if (k == 0)
-			skipped.Push(new(0, 1f, 0));
-		else
-			vertices.Add(new(0, 1f / k, 0));
-
-		if (l == 0)
-			skipped.Push(new(0, 0, 1));
-		else
-			vertices.Add(new(0, 0, 1f / l));
-
-		while (skipped.Count > 0)
-		{
-			int count = vertices.Count;
-			Vector3 axis = skipped.Pop();
-			for (int i = 0; i < count; i++)
-			{
-				Vector3 vert = vertices[i];
-				Vector3 newVert = vert + axis;
-				if (vertices.Contains(newVert) == false)
-					vertices.Add(newVert);
-			}
-		}
-		return vertices;
 	}
 }

@@ -27,7 +27,7 @@ public static class SymmetryOperations
 			case 0 or 1 or 2:
 				return new float[] { 1, 1.5f, 2, 30, 60, 80 };//Triclinic
 			case 3 or 4 or 5:
-				return new float[] { 1, 2, 1.5f, 90, 60, 90 };//Monoclinic. Again monoclinic as b as the wacky axis
+				return new float[] { 1, 2, 1.5f, 90, 60, 90 };//Monoclinic. Again monoclinic has b as the wacky axis
 			case 6 or 7 or 8:
 				return new float[] { 1, 1.5f, 2, 90, 90, 90 };//Orthorhombic
 			case >= 9 and <= 15:
@@ -45,70 +45,69 @@ public static class SymmetryOperations
 
 	public static string GetNameOfSymmetryClass(PointGroup group)
 	{
-		switch (group)
-		{
-			//Just good practice
-			case PointGroup.None: return "Pedial";
+		//Point group index corresponds with name index here
+		string[] names = new string[] {     
+		//Just good practice
+		"Pedial",//None
 
-			//Triclinic
-			case PointGroup.One: return "Pedial";
-			case PointGroup.BarOne: return "Pinacoidal";
+		//Triclinic
+		"Pedial",//One
+		"Pinacoidal",//BarOne
 
-			//Monoclinic
-			case PointGroup.Two: return "Sphenoidal";
-			case PointGroup.M: return "Domatic";
-			case PointGroup.TwoSlashM: return "Prismatic";
+		//Monoclinic
+		"Sphenoidal",//Two
+		"Domatic",//M
+		"Prismatic",//TwoSlashM
 
-			//Orthorhombic
-			case PointGroup.TwoTwoTwo: return "Rhombic-disphenoidal";
-			case PointGroup.MMTwo: return "Rhombic-pyramidal";
-			case PointGroup.MMM: return "Rhombic-dipyramidal";
+		//Orthorhombic
+		"Rhombic-disphenoidal",//TwoTwoTwo
+		"Rhombic-pyramidal",//MMTwo
+		"Rhombic-dipyramidal",//MMM
 
-			//Tetragonal
-			case PointGroup.Four: return "Tetragonal-Pyramidal";
-			case PointGroup.BarFour: return "Tetragonal-disphenoidal";
-			case PointGroup.FourSlashM: return "Tetragonal-dipyramidal";
-			case PointGroup.FourTwoTwo: return "Tetragonal-trapezohedral";
-			case PointGroup.FourMM: return "Ditetragonal-pyramidal";
-			case PointGroup.BarFourTwoM: return "Tetragonal-scalenohedral";
-			case PointGroup.FourSlashMMM: return "Ditetragonal-dipyramidal";
+		//Tetragonal
+		"Tetragonal-Pyramidal",//Four
+		"Tetragonal-disphenoidal",//BarFour
+		"Tetragonal-dipyramidal",//FourSlashM
+		"Tetragonal-trapezohedral",//FourTwoTwo
+		"Ditetragonal-pyramidal",//FourMM
+		"Tetragonal-scalenohedral",//BarFourTwoM
+		"Ditetragonal-dipyramidal",//FourSlashMMM
 
-			//Hexagonal with rhombohedral axes
-			case PointGroup.ThreeRhombohedral: return "Trigonal-pyramidal";
-			case PointGroup.BarThreeRhombohedral: return "Rhombohedral";
-			case PointGroup.ThreeTwoRhombohedral: return "Trigonal-trapezohedral";
-			case PointGroup.ThreeMRhombohedral: return "Ditrigonal-pyramidal";
-			case PointGroup.BarThreeMRhombohedral: return "Hexagonal-scalenohedral";
+		//Hexagonal with rhombohedral axes
+		"Trigonal-pyramidal",//ThreeRhombohedral
+		"Rhombohedral",//BarThreeRhombohedral
+		"Trigonal-trapezohedral",//ThreeTwoRhombohedral
+		"Ditrigonal-pyramidal",//ThreeMRhombohedral
+		"Hexagonal-scalenohedral",//BarThreeMRhombohedral
 
-			//Hexagonal with hexagonal axes
-			case PointGroup.ThreeHexagonal: return "Trigonal-pyramidal";
-			case PointGroup.BarThreeHexagonal: return "Rhombohedral";
-			case PointGroup.ThreeOneTwoHexagonal: return "Trigonal-trapezohedral";
-			case PointGroup.ThreeTwoOneHexagonal: return "Trigonal-trapezohedral";
-			case PointGroup.ThreeMOneHexagonal: return "Ditrigonal-pyramidal";
-			case PointGroup.ThreeOneMHexagonal: return "Ditrigonal-pyramidal";
-			case PointGroup.BarThreeOneMHexagonal: return "Hexagonal-scalenohedral";
-			case PointGroup.BarThreeMOneHexagonal: return "Hexagonal-scalenohedral";
+		//Hexagonal with hexagonal axes
+		"Trigonal-pyramidal",//ThreeHexagonal
+		"Rhombohedral",//BarThreeHexagonal
+		"Trigonal-trapezohedral",//ThreeOneTwoHexagonal
+		"Trigonal-trapezohedral",//ThreeTwoOneHexagonal
+		"Ditrigonal-pyramidal",//ThreeMOneHexagonal
+		"Ditrigonal-pyramidal",//ThreeOneMHexagonal
+		"Hexagonal-scalenohedral",//BarThreeOneMHexagonal
+		"Hexagonal-scalenohedral",//BarThreeMOneHexagonal
 
-			//Hexagonal
-			case PointGroup.Six: return "Hexagonal-pyramidal";
-			case PointGroup.BarSix: return "Trigonal-dipyramidal";
-			case PointGroup.SixSlashM: return "Hexagonal-dipyramidal";
-			case PointGroup.SixTwoTwo: return "Hexagonal-trapezohedral";
-			case PointGroup.SixMM: return "Dihexagonal-pyramidal";
-			case PointGroup.BarSixMTwo: return "Ditrigonal-dipyramidal";
-			case PointGroup.SixSlashMMM: return "Dihexagonal-dipyramidal";
+		//Hexagonal
+		"Hexagonal-pyramidal",//Six
+		"Trigonal-dipyramidal",//BarSix
+		"Hexagonal-dipyramidal",//SixSlashM
+		"Hexagonal-trapezohedral",//SixTwoTwo
+		"Dihexagonal-pyramidal",//SixMM
+		"Ditrigonal-dipyramidal",//BarSixMTwo
+		"Dihexagonal-dipyramidal",//SixSlashMMM
 
-			//Cubic
-			case PointGroup.TwoThree: return "Tetaroidal";
-			case PointGroup.MBarThree: return "Diploidal";
-			case PointGroup.FourThreeTwo: return "Gyroidal";
-			case PointGroup.BarFourThreeM: return "Hextetrahedral";
-			case PointGroup.MBarThreeM: return "Hexoctahedral";
+		//Cubic
+		 "Tetaroidal",//TwoThree
+		 "Diploidal",//MBarThree
+		 "Gyroidal",//FourThreeTwo
+		 "Hextetrahedral",//BarFourThreeM
+		 "Hexoctahedral",//MBarThreeM
+		};
 
-			//More good practice
-			default: return "";
-		}
+		return names[(int)group];
 	}
 
 	/// <summary>
@@ -199,34 +198,34 @@ public static class SymmetryOperations
 		new[] {DiZ, InvTetZPos, DiY}, //14 BarFourTwoM
 		new[] {DiZ, TetZPos, DiY, Inv}, //15 FourSlashMMM
 
-		new[] {TriXYZPos}, //16 Three Rhombohedral
-		new[] {TriXYZPos, Inv}, //17 BarThree Rhombohedral
-		new[] {TriXYZPos, DiX_Y}, //18 ThreeTwo Rhombohedral
-		new[] {TriXYZPos, MirX_Y},//19 ThreeM Rhombohedral
-		new[] {TriXYZPos, DiX_Y, Inv},//20 BarThreeM Rhombohedral
+		new[] {TriXYZPos, TriXYZNeg}, //16 Three Rhombohedral
+		new[] {TriXYZPos, TriXYZNeg, Inv }, //17 BarThree Rhombohedral
+		new[] {TriXYZPos, TriXYZNeg, DiX_Y}, //18 ThreeTwo Rhombohedral
+		new[] {TriXYZPos, TriXYZNeg, MirX_Y},//19 ThreeM Rhombohedral
+		new[] {TriXYZPos, TriXYZNeg, DiX_Y, Inv},//20 BarThreeM Rhombohedral
 
-		new[] {TriZPos}, //21 Three Hexagonal
-		new[] {TriZPos, Inv}, //22 BarThree Hexagonal
-		new[] {TriZPos, DiX_Y}, //23 ThreeOneTwo Hexagonal
-		new[] {TriZPos, DiXY}, //24 ThreeTwoOne Hexagonal
-		new[] {TriZPos, MirXY},//25 ThreeMOne Hexagonal
-		new[] {TriZPos, MirX_Y},//26 ThreeOneM Hexagonal
-		new[] {TriZPos, DiX_Y, Inv},//27 BarThreeOneM Hexagonal
-		new[] {TriZPos, DiXY, Inv},//28 BarThreeMOne Hexagonal
+		new[] {TriZPos, TriZNeg}, //21 Three Hexagonal
+		new[] {TriZPos, TriZNeg, Inv}, //22 BarThree Hexagonal
+		new[] {TriZPos, TriZNeg, DiX_Y}, //23 ThreeOneTwo Hexagonal
+		new[] {TriZPos, TriZNeg, DiXY}, //24 ThreeTwoOne Hexagonal
+		new[] {TriZPos, TriZNeg, MirXY},//25 ThreeMOne Hexagonal
+		new[] {TriZPos, TriZNeg, MirX_Y},//26 ThreeOneM Hexagonal
+		new[] {TriZPos, TriZNeg, DiX_Y, Inv},//27 BarThreeOneM Hexagonal
+		new[] {TriZPos, TriZNeg, DiXY, Inv},//28 BarThreeMOne Hexagonal
 
-		new[] {TriZPos, DiZ}, //29 Six
-		new[] {TriZPos, MirZ}, //30 BarSix
-		new[] {TriZPos, DiZ, Inv}, //31 SixSlashM
-		new[] {TriZPos, DiZ, DiXY}, //32 SixTwoTwo
-		new[] {TriZPos, DiZ, MirXY}, //33 SixMM
-		new[] {TriZPos, MirZ, MirXY}, //34 BarSixMTwo
-		new[] {TriZPos, DiZ, DiXY, Inv}, //35 SixSlashMMM
+		new[] {TriZPos, TriZNeg, DiZ}, //29 Six
+		new[] {TriZPos, TriZNeg, MirZ}, //30 BarSix
+		new[] {TriZPos, TriZNeg, DiZ, Inv}, //31 SixSlashM
+		new[] {TriZPos, TriZNeg, DiZ, DiXY}, //32 SixTwoTwo
+		new[] {TriZPos, TriZNeg, DiZ, MirXY}, //33 SixMM
+		new[] {TriZPos, TriZNeg, MirZ, MirXY}, //34 BarSixMTwo
+		new[] {TriZPos, TriZNeg, DiZ, DiXY, Inv}, //35 SixSlashMMM
 
-		new[] {DiZ, DiY, TriXYZPos}, //36 TwoThree
-		new[] {DiZ, DiY, TriXYZPos, Inv}, //37 MBarThree
-		new[] {DiZ, DiY, TriXYZPos, DiXY}, //38 FourThreeTwo
-		new[] {DiZ, DiY, TriXYZPos, MirX_Y}, //39 BarFourThreeM
-		new[] {DiZ, DiY, TriXYZPos, DiXY, Inv}, //40 MBarThreeM
+		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg}, //36 TwoThree
+		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg, Inv}, //37 MBarThree
+		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg, DiXY}, //38 FourThreeTwo
+		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg, MirX_Y}, //39 BarFourThreeM
+		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg, DiXY, Inv}, //40 MBarThreeM
 	};
 
 	//#region allows you to specify a collapsable area of code in most editors.
@@ -244,12 +243,17 @@ public static class SymmetryOperations
 	public static Vector3d DiXXY(Vector3d v) => new(v.X, v.X - v.Y, -v.Z);//Seitz 2(2 1 0)
 	public static Vector3d DiXYY(Vector3d v) => new(-v.X + v.Y, v.Y, -v.Z);//Seitz 2(1 2 0)
 
-	// public static Vector3d TriXPos(Vector3d v) => new(v.X, -v.Z, v.Y - v.Z);
-	// public static Vector3d TriXNeg(Vector3d v) => new(v.X, -v.Y + v.Z, -v.Y);
+	public static Vector3d TriXPos(Vector3d v) => new(v.X, -v.Z, v.Y - v.Z);
+	public static Vector3d TriXNeg(Vector3d v) => new(v.X, -v.Y + v.Z, -v.Y);
 
-	// public static Vector3d TriYPos(Vector3d v) => new(v.X - v.Z, v.Y, -v.Z);
-	// public static Vector3d TriYNeg(Vector3d v) => new(-v.X, v.Y, -v.X + v.Y);
+	public static Vector3d TriYPos(Vector3d v) => new(v.X - v.Z, v.Y, -v.Z);
+	public static Vector3d TriYNeg(Vector3d v) => new(-v.X, v.Y, -v.X + v.Y);
 
+	//These commented methods use a rotation matrix, but is that much better? It only works with gamma=90 but our target is gamma=120. However the supplied versions don't seem to keep magnitude, whereas these do. These create perfectly hexagonal crystals, however.
+	// Math.Cos(2 * Math.PI / 3) //= -.5
+	// Math.Sin(2 * Math.PI / 3) //= sqrt3/2 = 0.8660254037844387	
+	// public static Vector3d TriZPos(Vector3d v) => new(v.X * 0.8660254037844387 + v.Y * -.5, v.X * -.5 + v.Y * -0.8660254037844387, v.Z);
+	// public static Vector3d TriZNeg(Vector3d v) => new(v.X * -0.8660254037844387 + v.Y * -.5, v.X * -.5 + v.Y * 0.8660254037844387, v.Z);
 	public static Vector3d TriZPos(Vector3d v) => new(-v.Y, v.X - v.Y, v.Z);
 	public static Vector3d TriZNeg(Vector3d v) => new(-v.X + v.Y, -v.X, v.Z);
 

@@ -1,17 +1,25 @@
 
+using System;
+
 public struct Planed
 {
+    /// <summary>
+    /// Outwards facing vector of the plane. Always has magnitude of one
+    /// </summary>
+    /// <value></value>
     public Vector3d Normal { get => normal; set => normal = value; }
     public double Distance { get => distance; set => distance = value; }
     public double D { get => distance; set => distance = value; }
 
     public Vector3d normal;
+    public Vector3d originalNormal;
     public double distance;
 
-    public Planed(Vector3d normal, double distance) { this.normal = normal; this.distance = distance; }
+    public Planed(Vector3d normal, double distance) { this.normal = normal.Normalized(); this.originalNormal = normal; this.distance = distance; }
 
     //https://stackoverflow.com/a/41897378
     public Vector3d Project(Vector3d v) => v - normal * (normal.Dot(v) + distance);
+    public bool IsVectorInFrontOf(Vector3d v) => normal.Dot(v) > distance + 0.00001f;
     public double DistanceTo(Vector3d v) => normal.Dot(v) - distance;
     public static bool operator ==(Planed a, Planed b) => Vector3d.SqrDistance(a.normal, b.normal) < Vector3d.threshold && System.Math.Abs(a.distance - b.distance) < Vector3d.threshold;
     public static bool operator !=(Planed a, Planed b) => !(a == b);
@@ -39,7 +47,7 @@ public struct Planed
                 denom;
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         if (obj is null)
             return false;
@@ -48,6 +56,25 @@ public struct Planed
         return false;
     }
     public override string ToString() => $"({Normal.x}, {Normal.y}, {Normal.z}, {distance})";
-    public override int GetHashCode() => base.GetHashCode();
+    public override int GetHashCode() =>
+    ((Normal.x * 2).GetHashCode()
+    + (Normal.y * 3).GetHashCode()
+    + (Normal.z * 5).GetHashCode()
+    + (Distance * 7).GetHashCode()).GetHashCode();//We use coprime numbers to ensure the hash is more likely to be unique
 
+    public static Vector3d? Intersect3(Planed plane1, Planed plane2, Planed plane3)
+    {
+        Vector3d normal0 = plane1.normal;
+        Vector3d normal1 = plane2.normal;
+        Vector3d normal2 = plane3.normal;
+        double denom = normal0.Cross(normal1).Dot(normal2);
+
+        if (denom * denom < 0.0000001)
+            return null;
+
+        return ((Vector3d.Cross(normal1, normal2) * plane1.D) +
+                (Vector3d.Cross(normal2, normal0) * plane2.D) +
+                (Vector3d.Cross(normal0, normal1) * plane3.D)) /
+                denom;
+    }
 }
