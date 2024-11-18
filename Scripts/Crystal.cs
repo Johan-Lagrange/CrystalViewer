@@ -70,13 +70,7 @@ public class Crystal
     {
       foreach (Planed plane in planeGroups[group])
       {
-        try
-        {
           planesToFaceGroups.Add(plane, group);
-        }
-        catch
-        {
-        }
       }
     }
 
@@ -147,9 +141,9 @@ public class Crystal
 
     // /*Hexagonal crystals don't render correctly unless we do this.
     // I think it has to do with -Z being forward in Godot. 
-    // It's strange that no other shape groups have this isssue though,
+    // It's strange that no other shape groups have this issue though,
     // May be because this is the only one that includes X and Y in one component.
-    // And yes I have tried messing around with the function and swapping variables, didn't work.*/
+    // Messing around with the function and swapping variables didn't fix it.*/
     if ((int)group >= 21 && (int)group <= 35)//Point groups that use the hexagonal method.
     {
       LinkedListNode<Vector3d> current = vectorList.First;
@@ -212,10 +206,11 @@ public class Crystal
 
       while (currentGroup != null)
       {
-        Planed? overlap = OverlapOrNull(currentGroup.Value, planeToAdd);
+        Planed? overlap = FindOverlappingPlane(currentGroup.Value, planeToAdd);
 
         if (overlap == null)
         {
+          //No overlap so we know this group is fine.
           currentGroup = currentGroup.Next;
           continue;
         }
@@ -248,7 +243,7 @@ public class Crystal
   /// <param name="planes">List of planes to check for overlap.</param>
   /// <param name="planeToCheck">Plane to check for overlaps of.</param>
   /// <returns>Matching plane from original list if overlap is found, null otherwise.</returns>
-  private static Planed? OverlapOrNull(List<Planed> planes, Planed planeToCheck)
+  private static Planed? FindOverlappingPlane(List<Planed> planes, Planed planeToCheck)
   {
     foreach (Planed p in planes)
     {
@@ -937,7 +932,6 @@ public class Crystal
     {
       foreach (Planed p in other.Planes)
       {
-        // GD.Print(p.Normal);
         if (!planeHashes.Contains(p))
         {
           Planes.Add(p);
@@ -953,7 +947,6 @@ public class Crystal
   /// </summary>
   private class AdjacentEdges//We don't know what order edges will be added so we use this confusing two-way edge system
   {
-    //TODO we may need to keep track of more than 2 neighboring vertices to root out "zero area" faces
     public Vertex a, b;
     public void AddVertex(Vertex v)
     {
