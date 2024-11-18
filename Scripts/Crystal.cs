@@ -6,16 +6,34 @@ public class Crystal
 {
   public static readonly double threshold = 0.0000000001;
 
-  public readonly List<Vector3d> initialFaces;
+  public readonly List<Vector3d> initialNormals;
   public readonly List<double> initialDistances;
+
+  /// <summary>
+  /// Every plane normal that makes up the crystal, grouped based on which original normal generated them.
+  /// </summary>
   public readonly List<List<Vector3d>> normalGroups;
+
+  /// <summary>
+  /// Every plane group that makes up the crystal, grouped based on which original plane generated them.
+  /// </summary>
   public readonly List<List<Planed>> planeGroups;
+
+  /// <summary>
+  /// A list of every face stored as a clockwise list of Vector3d
+  /// </summary>
+
   public readonly List<List<Vector3d>> faces;
+  /// <summary>
+  /// A list of every group of faces, groups are created by mirroring/rotating an initial plane, and are separated based on which plane they were created from.
+  /// Faces are stored as a clockwise list of Vector3d
+  /// </summary>
   public readonly List<List<List<Vector3d>>> faceGroups;
+
   /// <summary>
   /// Generates a mesh from a list of face normals and distances that will be duplicated according to symmetry. Generates a convex hull using halfspaces
   /// </summary>
-  /// <param name="initialFaces">The array of normal directions of each symetrically unique face</param>
+  /// <param name="initialNormals">The array of normal directions of each symetrically unique face</param>
   /// <param name="distances">The array of distances per face from crystal center</param>
   /// <param name="pointGroup">The type of symmetry this crystal has. Dictates which symmetry operations (mirror, rotate) are used</param>
   /// <returns></returns>
@@ -40,27 +58,27 @@ public class Crystal
   /// 6. Generate normals, tangents, and tris for each trio of vertices, and use Godot's mesh builder to create a mesh from there.
   ///  </remarks>
   public Crystal(
-      List<Vector3d> initialFaces,
+      List<Vector3d> initialNormals,
       List<double> distances,
       SymmetryOperations.PointGroup pointGroup)
   {
-    if (distances.Count != initialFaces.Count)
+    if (distances.Count != initialNormals.Count)
       throw new ArgumentException("Every initial face must be given a distance!");
 
-    this.initialFaces = initialFaces;
+    this.initialNormals = initialNormals;
     this.initialDistances = distances;
 
     Vector3d.ResetDebugLists();
-    for (int i = 0; i < initialFaces.Count; i++)
+    for (int i = 0; i < initialNormals.Count; i++)
     {
-      if (initialFaces[i].IsZeroApprox() == true || distances[i] == 0)
+      if (initialNormals[i].IsZeroApprox() == true || distances[i] == 0)
       {
-        initialFaces.RemoveAt(i);
+        initialNormals.RemoveAt(i);
         distances.RemoveAt(i);
         i--;//We would skip over the next one if we didn't do this.
       }
     }
-    normalGroups = GenerateSymmetryGroups(initialFaces, pointGroup);
+    normalGroups = GenerateSymmetryGroups(initialNormals, pointGroup);
 
     planeGroups = GeneratePlanes(normalGroups, distances);//Create a plane with distance from center for every generated normal
 
@@ -70,7 +88,7 @@ public class Crystal
     {
       foreach (Planed plane in planeGroups[group])
       {
-          planesToFaceGroups.Add(plane, group);
+        planesToFaceGroups.Add(plane, group);
       }
     }
 
@@ -413,28 +431,12 @@ public class Crystal
         if (faces[p1].ContainsKey(v2) == false) faces[p1].Add(v2, new());//... In both directions
         if (faces[p2].ContainsKey(v1) == false) faces[p2].Add(v1, new());//... On both planes.
         if (faces[p2].ContainsKey(v2) == false) faces[p2].Add(v2, new());
-        try
-        {
-          faces[p1][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 1
-          faces[p1][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 1
-          faces[p2][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 2
-          faces[p2][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 2
-        }
-        catch (Exception e)
-        {
-          // GD.PrintErr(e.GetType() + e.Message);
-          // foreach (Planed p in faces.Keys)
-          // {
-          //   foreach (Vertex v in faces[p].Keys)
-          //   {
-          //     string a = "", b = "";
-          //     if (faces[p][v].a != null)
-          //       a = faces[p][v].a.point.ToString();
-          //     if (faces[p][v].b != null)
-          //       b = faces[p][v].b.point.ToString();
-          //   }
-          // }
-        }
+
+        faces[p1][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 1
+        faces[p1][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 1
+        faces[p2][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 2
+        faces[p2][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 2
+
       }
     }
 
@@ -490,12 +492,16 @@ public class Crystal
     return edges;
   }
 
-
+  /// <summary>
+  /// Returns the final facegroup that is created from the given initial index if it exists, or -1 if not found. Since the final facegroup ignores empty and invalid groups, the indices may not match up.
+  /// </summary>
+  /// <param name="initialIndex">The index of the original face parameters</param>
+  /// <returns>Index of matching face group, or -1 if none are found.</returns>
   public int FindSurfaceMadeByIndex(int initialIndex)
   {
-    if (initialIndex < 0 || initialIndex >= initialFaces.Count)//Out of bounds
+    if (initialIndex < 0 || initialIndex >= initialNormals.Count)//Out of bounds
       return -1;
-    Planed plane = new Planed(initialFaces[initialIndex], initialDistances[initialIndex]);
+    Planed plane = new Planed(initialNormals[initialIndex], initialDistances[initialIndex]);
 
     int skipped = 0;
     for (int i = 0; i < faceGroups.Count; i++)
@@ -555,10 +561,10 @@ public class Crystal
   /// Calculates the area between 3 vertices
   /// https://math.stackexchange.com/questions/128991/how-to-calculate-the-area-of-a-3d-triangle
   /// </summary>
-  /// <param name="a"></param>
-  /// <param name="b"></param>
-  /// <param name="c"></param>
-  /// <returns></returns>
+  /// <param name="a">The first vertex</param>
+  /// <param name="b">The second vertex</param>
+  /// <param name="c">The third vertex</param>
+  /// <returns>The area between 3 vertices</returns>
   public static double CalculateTriangleArea(Vector3d a, Vector3d b, Vector3d c)
   {
     return (b - a).Cross(c - a).Length() / 2;
@@ -950,12 +956,12 @@ public class Crystal
     public Vertex a, b;
     public void AddVertex(Vertex v)
     {
-      if (a != null && a.point.IsEqualApprox(v.point))//if we don't check null and short circuit then we'd get a null reference exception
-        throw new Exception("Was given a point twice!" + v.point);
-      if (b != null && b.point.IsEqualApprox(v.point))
-        throw new Exception("Was given b point twice!" + v.point);
-      if (b != null)
-        throw new Exception("Was given more than two vertices, this should not happen: " + a.point + " " + b.point + " " + v.point);
+      // if (a != null && a.point.IsEqualApprox(v.point))//if we don't check null and short circuit then we'd get a null reference exception
+      //   throw new Exception("Was given a point twice!" + v.point);
+      // if (b != null && b.point.IsEqualApprox(v.point))
+      //   throw new Exception("Was given b point twice!" + v.point);
+      // if (b != null)
+      //   throw new Exception("Was given more than two vertices, this should not happen: " + a.point + " " + b.point + " " + v.point);
 
       if (a == null)
         a = v;

@@ -17,7 +17,6 @@ public partial class VectorListItem : Node
 	public float distance;
 	public int index;
 	public SpinBox[] boxes = new SpinBox[4];
-	//TODO color: Handle when face doesn't correspond to color.
 	public ColorPickerButton colorButton;
 	public Button button;
 	// Called when the node enters the scene tree for the first time.

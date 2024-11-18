@@ -21,24 +21,32 @@ vectorList = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxC
 spinBox = ExtResource("2_r18ld")
 
 [node name="BackgroundDialog" type="FileDialog" parent="."]
-title = "Open a File"
+title = "Open Background Image"
 position = Vector2i(0, 36)
-size = Vector2i(844, 175)
+size = Vector2i(844, 500)
+min_size = Vector2i(500, 500)
 ok_button_text = "Open"
 file_mode = 0
 access = 2
+use_native_dialog = true
 
 [node name="ObjExportDialog" type="FileDialog" parent="."]
-position = Vector2i(0, 36)
-size = Vector2i(844, 175)
+title = "Export Crystal as .obj"
+initial_position = 1
+size = Vector2i(743, 500)
+min_size = Vector2i(500, 500)
 access = 2
 filters = PackedStringArray(".obj")
+use_native_dialog = true
 
 [node name="StlExportDialog" type="FileDialog" parent="."]
-position = Vector2i(0, 36)
-size = Vector2i(844, 175)
+title = "Export Crystal as .stl"
+initial_position = 1
+size = Vector2i(743, 600)
+min_size = Vector2i(500, 500)
 access = 2
 filters = PackedStringArray(".stl")
+use_native_dialog = true
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1

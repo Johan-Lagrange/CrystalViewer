@@ -49,11 +49,11 @@ public partial class CrystalGameObject : MeshInstance3D
 	// Called when the node enters the scene tree for the first time.
 	[ExportGroup("Crystal Faces")]
 	[Export]
-	public SymmetryOperations.PointGroup PointGroup { get => _pointGroup; set { _pointGroup = value; UpdateAxes(value); } }//UpdateMesh(); } }
+	public SymmetryOperations.PointGroup PointGroup { get => _pointGroup; set { _pointGroup = value; UpdateAxes(value); } }
 	[Export]
-	public Vector3[] Normals { get => _normals; set { _normals = value; } }//UpdateMesh(); } }
+	public Vector3[] Normals { get => _normals; set { _normals = value; } }
 	[Export]
-	public float[] Distances { get => _distances; set { _distances = value; } }//UpdateMesh(); } }
+	public float[] Distances { get => _distances; set { _distances = value; } }
 	SymmetryOperations.PointGroup _pointGroup = SymmetryOperations.PointGroup.BarThreeRhombohedral;
 	Vector3[] _normals = { new(3, 1, 0), new(0, 5, 1), new(-1, -1, -1), new(-2, 0, -1) };
 	float[] _distances = { 1, .9f, 1, 1 };
@@ -72,6 +72,19 @@ public partial class CrystalGameObject : MeshInstance3D
 	public float GetSurfaceArea()
 	{
 		return (float)Crystal.CalculateTotalSurfaceArea(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
+	}
+	public double[] GetSurfaceAreaGroups()
+	{
+		double[] areas = new double[crystal.initialNormals.Count];
+		for (int i = 0; i < crystal.initialNormals.Count; i++)
+		{
+			int faceGroupIndex = crystal.FindSurfaceMadeByIndex(i);
+			if (faceGroupIndex == -1)
+				areas[i] = 0;
+			else
+				areas[i] = Crystal.CalculateTotalSurfaceArea(crystal.faceGroups[faceGroupIndex], GodotCompatability.BasisToMatrix(Basis));
+		}
+		return areas;
 	}
 	public float GetVolume()
 	{
@@ -139,7 +152,6 @@ public partial class CrystalGameObject : MeshInstance3D
 			arrays[(int)Mesh.ArrayType.Tangent] = tangents.ToArray();
 			mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
 		}
-		//GD.Print(mesh);
 		return mesh;
 	}
 
@@ -173,9 +185,9 @@ public partial class CrystalGameObject : MeshInstance3D
 		ArrayMesh mesh = CreateArrayMeshFromCrystal(crystal);
 		Mesh = mesh;
 
-		if (crystal.initialFaces.Count > materialList.Count)
+		if (crystal.initialNormals.Count > materialList.Count)
 		{
-			for (int i = materialList.Count; i < crystal.initialFaces.Count; i++)
+			for (int i = materialList.Count; i < crystal.initialNormals.Count; i++)
 			{
 				materialList.Add((StandardMaterial3D)baseMaterial.Duplicate(true));
 			}
@@ -190,6 +202,7 @@ public partial class CrystalGameObject : MeshInstance3D
 			}
 		}
 	}
+
 	public void UpdateFromParameters()
 	{
 		UpdateTrig();

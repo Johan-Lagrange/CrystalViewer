@@ -38,13 +38,13 @@ public partial class GemGUI : Control
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		//Set defaults
 		baseColor = baseMaterial.AlbedoColor;
-		GD.Print(baseColor.ToString());
 		AddNewNormal();
 		AddNewNormal();
 		AddNewNormal();
 		AddNewNormal();
-		listItems[0].SetValues(new(3, 1, 0), 1, baseColor);//Defaults
+		listItems[0].SetValues(new(3, 1, 0), 1, baseColor);
 		listItems[1].SetValues(new(0, 5, 1), .9f, baseColor);
 		listItems[2].SetValues(new(-1, -1, -1), 1, baseColor);
 		listItems[3].SetValues(new(-2, 0, -1), 1, baseColor);
@@ -147,7 +147,6 @@ public partial class GemGUI : Control
 	public void SetCrystalSystem(int num)
 	{
 		crystal.PointGroup = (SymmetryOperations.PointGroup)(crystalSystem.GetItemId(num) / 10);
-		//GD.Print(crystal.PointGroup.ToString());
 		float[] parameters = SymmetryOperations.GetParametersForPointGroup(crystal.PointGroup);
 		for (int i = 0; i < 6; i++)
 			crystalParams[i].SetValueNoSignal(parameters[i]);
@@ -227,10 +226,17 @@ public partial class GemGUI : Control
 	{
 		if (param != 1 && dataText.IsVisibleInTree() == false)//These calculations can be expensive so we don't do it if we don't need to.
 			return;//We call this method manually when the data tab is switched onto so that the data is always fresh when visible. After that we auto update.
+		string areaString = "";
+		double[] areas = crystal.GetSurfaceAreaGroups();
+		for (int i = 0; i < areas.Length; i++)
+			areaString += $"Group {i + 1} area: {areas[i]}\n";
+
 		dataText.Text = "Shape class: " + crystal.GetShapeClass() + "\n" +
 						"Volume: " + crystal.GetVolume() + "\n" +
 						"Surface Area: " + crystal.GetSurfaceArea() + "\n" +
-						"Number of surfaces: " + crystal.GetSurfaceCount();
+						"Number of surfaces: " + crystal.GetSurfaceCount() + "\n"
+						+ areaString;
+
 	}
 	private void CheckParamUpdate()
 	{
@@ -266,7 +272,6 @@ public partial class GemGUI : Control
 		SpinBox k = (SpinBox)spinBox.Instantiate();
 		SpinBox l = (SpinBox)spinBox.Instantiate();
 		SpinBox d = (SpinBox)spinBox.Instantiate();
-		//TODO Add color box here probably
 		d.MinValue = 0.01f;
 		d.MaxValue = 2;
 		ColorPickerButton c = new ColorPickerButton();
@@ -280,7 +285,15 @@ public partial class GemGUI : Control
 		listItem.colorButton = c;
 		listItem.button = x;
 
-		listItem.SetValues(Vector3.One, 1, baseColor);
+		Color color = baseColor;
+
+		//Material already exists and may hold color we added previously
+		//We want to reflect that in the GUI so we set the color of the element we add to that color instead of the default color.
+		if (listItem.index < crystal.materialList.Count)
+			color = crystal.materialList[listItem.index].AlbedoColor;
+
+		listItem.SetValues(Vector3.One, 1, color);
+
 		SetNormals(listItem.index, listItem.vector, listItem.distance);
 
 		h.ValueChanged += listItem.SetX;//Callback methods to update when number is changed
