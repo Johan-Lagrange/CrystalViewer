@@ -21,7 +21,7 @@ vectorList = NodePath("HBoxContainer/ScrollContainer/VBoxContainer/Normals/VBoxC
 spinBox = ExtResource("2_r18ld")
 
 [node name="BackgroundDialog" type="FileDialog" parent="."]
-title = "Open Background Image"
+title = "Open a File"
 position = Vector2i(0, 36)
 size = Vector2i(844, 500)
 min_size = Vector2i(500, 500)
