@@ -93,9 +93,8 @@ size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.74
 
 [node name="DockableContainer" type="Container" parent="HBoxContainer"]
-custom_minimum_size = Vector2(400, 0)
+custom_minimum_size = Vector2(420, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 script = ExtResource("4_yvhcf")
 layout = SubResource("Resource_57lpa")
 clone_layout_on_ready = false
@@ -698,7 +697,7 @@ text = "+"
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/B" to="." method="SetCameraRotation" binds= ["b"]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/C" to="." method="SetCameraRotation" binds= ["c"]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/ABC" to="." method="SetCameraRotation" binds= ["abc"]]
-[connection signal="visibility_changed" from="HBoxContainer/DockableContainer/Data" to="." method="UpdateCrystalData"]
+[connection signal="visibility_changed" from="HBoxContainer/DockableContainer/Data" to="." method="UpdateCrystalData" binds= [false]]
 [connection signal="item_selected" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/SymmetryType/OptionButton" to="." method="SetCrystalSystem"]
 [connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/A" to="." method="SetA"]
 [connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/B" to="." method="SetB"]

@@ -246,7 +246,7 @@ public partial class GemGUI : Control
 		updatedParamsThisFrame = true;
 
 		crystal.CallDeferred("UpdateFromParameters");
-		CallDeferred("UpdateCrystalData");
+		CallDeferred("UpdateCrystalData", false);
 	}
 	private void CheckNormUpdate()
 	{
@@ -255,7 +255,7 @@ public partial class GemGUI : Control
 		updatedNormsThisFrame = true;
 
 		crystal.CallDeferred("UpdateMesh");
-		CallDeferred("UpdateCrystalData");
+		CallDeferred("UpdateCrystalData", false);
 	}
 	public void SetA(float a) { crystal.aLength = a; CheckParamUpdate(); }
 	public void SetB(float b) { crystal.bLength = b; CheckParamUpdate(); }
