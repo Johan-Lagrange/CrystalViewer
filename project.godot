@@ -21,6 +21,10 @@ config/icon="res://icon.svg"
 
 project/assembly_name="CrystalViewer"
 
+[gui]
+
+theme/custom="res://Assets/Theme.tres"
+
 [physics]
 
 common/physics_ticks_per_second=1

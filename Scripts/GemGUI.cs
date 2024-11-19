@@ -57,6 +57,7 @@ public partial class GemGUI : Control
 		SetCrystalSystem(22);
 		crystal.CallDeferred("UpdateFromParameters");
 		crystal.CallDeferred("UpdateMesh");
+		CallDeferred("UpdateCrystalData", true);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -222,14 +223,14 @@ public partial class GemGUI : Control
 		{
 		}
 	}
-	public void UpdateCrystalData(int param = -1)//1 = data tab. We call this from the tab menu sometimes
+	public void UpdateCrystalData(bool skipCheck = false)
 	{
-		if (param != 1 && dataText.IsVisibleInTree() == false)//These calculations can be expensive so we don't do it if we don't need to.
+		if (dataText.IsVisibleInTree() == false && skipCheck == false)//These calculations can be expensive so we don't do it if we don't need to.
 			return;//We call this method manually when the data tab is switched onto so that the data is always fresh when visible. After that we auto update.
 		string areaString = "";
 		double[] areas = crystal.GetSurfaceAreaGroups();
 		for (int i = 0; i < areas.Length; i++)
-			areaString += $"Group {i + 1} area: {areas[i]}\n";
+			areaString += $"Group {i + 1} area: {System.Math.Round(areas[i], 4)}\n";
 
 		dataText.Text = "Shape class: " + crystal.GetShapeClass() + "\n" +
 						"Volume: " + crystal.GetVolume() + "\n" +
@@ -245,7 +246,7 @@ public partial class GemGUI : Control
 		updatedParamsThisFrame = true;
 
 		crystal.CallDeferred("UpdateFromParameters");
-		CallDeferred("UpdateCrystalData", 0);
+		CallDeferred("UpdateCrystalData");
 	}
 	private void CheckNormUpdate()
 	{
@@ -254,7 +255,7 @@ public partial class GemGUI : Control
 		updatedNormsThisFrame = true;
 
 		crystal.CallDeferred("UpdateMesh");
-		CallDeferred("UpdateCrystalData", 0);
+		CallDeferred("UpdateCrystalData");
 	}
 	public void SetA(float a) { crystal.aLength = a; CheckParamUpdate(); }
 	public void SetB(float b) { crystal.bLength = b; CheckParamUpdate(); }
