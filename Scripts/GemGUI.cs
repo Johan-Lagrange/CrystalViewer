@@ -233,8 +233,8 @@ public partial class GemGUI : Control
 			areaString += $"Group {i + 1} area: {System.Math.Round(areas[i], 4)}\n";
 
 		dataText.Text = "Shape class: " + crystal.GetShapeClass() + "\n" +
-						"Volume: " + crystal.GetVolume() + "\n" +
-						"Surface Area: " + crystal.GetSurfaceArea() + "\n" +
+						"Volume: " + System.Math.Round(crystal.GetVolume(), 4) + "\n" +
+						"Surface Area: " + System.Math.Round(crystal.GetSurfaceArea(), 4) + "\n" +
 						"Number of surfaces: " + crystal.GetSurfaceCount() + "\n"
 						+ areaString;
 
