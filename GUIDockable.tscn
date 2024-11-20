@@ -1,0 +1,729 @@
+[gd_scene load_steps=14 format=3 uid="uid://bfrik23x564mp"]
+
+[ext_resource type="Script" path="res://Scripts/GemGUI.cs" id="1_h6x1x"]
+[ext_resource type="Material" uid="uid://2gdagefefm83" path="res://Assets/BaseSurfaceMaterial.tres" id="2_aj0bt"]
+[ext_resource type="PackedScene" uid="uid://cs8vuarc3uhj0" path="res://Prefabs/CrystalFaceSpinBox.tscn" id="3_spntb"]
+[ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/dockable_container.gd" id="4_yvhcf"]
+[ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout_panel.gd" id="5_8ggax"]
+[ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout_split.gd" id="6_0n1is"]
+[ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout.gd" id="6_4vx5f"]
+[ext_resource type="Script" path="res://save_layout.gd" id="8_8vjc0"]
+[ext_resource type="Script" path="res://load_layout.gd" id="9_eqoey"]
+
+[sub_resource type="Resource" id="Resource_aqbdl"]
+resource_name = "Tabs"
+script = ExtResource("5_8ggax")
+names = PackedStringArray("Axes", "Crystal Settings", "Stats", "Camera")
+current_tab = 0
+
+[sub_resource type="Resource" id="Resource_mv3pw"]
+resource_name = "Tabs"
+script = ExtResource("5_8ggax")
+names = PackedStringArray("Normals")
+current_tab = 0
+
+[sub_resource type="Resource" id="Resource_731tl"]
+resource_name = "Split"
+script = ExtResource("6_0n1is")
+direction = 1
+percent = 0.439
+first = SubResource("Resource_aqbdl")
+second = SubResource("Resource_mv3pw")
+
+[sub_resource type="Resource" id="Resource_57lpa"]
+resource_name = "Layout"
+script = ExtResource("6_4vx5f")
+root = SubResource("Resource_731tl")
+hidden_tabs = {}
+
+[node name="GUI" type="Control" node_paths=PackedStringArray("dataText", "crystalSystem", "crystalParams", "scaleSlider", "vectorList")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_h6x1x")
+baseMaterial = ExtResource("2_aj0bt")
+dataText = NodePath("HBoxContainer/DockableContainer/Stats/ScrollContainer/VBoxContainer/DataText")
+crystalSystem = NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/SymmetryType/OptionButton")
+crystalParams = [NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/A"), NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/B"), NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/C"), NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2/Alpha"), NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2/Beta"), NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2/Gamma")]
+scaleSlider = NodePath("HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Size/HSlider")
+vectorList = NodePath("HBoxContainer/DockableContainer/Normals/ScrollContainer/VBoxContainer/GridContainer")
+spinBox = ExtResource("3_spntb")
+
+[node name="BackgroundDialog" type="FileDialog" parent="."]
+title = "Open a File"
+position = Vector2i(0, 36)
+size = Vector2i(844, 500)
+min_size = Vector2i(500, 500)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+use_native_dialog = true
+
+[node name="ObjExportDialog" type="FileDialog" parent="."]
+title = "Export Crystal as .obj"
+initial_position = 1
+size = Vector2i(743, 500)
+min_size = Vector2i(500, 500)
+access = 2
+filters = PackedStringArray(".obj")
+use_native_dialog = true
+
+[node name="StlExportDialog" type="FileDialog" parent="."]
+title = "Export Crystal as .stl"
+initial_position = 1
+size = Vector2i(743, 600)
+min_size = Vector2i(500, 500)
+access = 2
+filters = PackedStringArray(".stl")
+use_native_dialog = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DragArea" type="Control" parent="HBoxContainer"]
+custom_minimum_size = Vector2(80.935, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.74
+
+[node name="DockableContainer" type="Container" parent="HBoxContainer"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+script = ExtResource("4_yvhcf")
+layout = SubResource("Resource_57lpa")
+
+[node name="Crystal Settings" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
+visible = false
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Crystal Settings"]
+layout_mode = 2
+
+[node name="File_Material" type="VBoxContainer" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 3
+
+[node name="Update" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material"]
+layout_mode = 2
+size_flags_horizontal = 8
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Update"]
+layout_mode = 2
+text = "Auto Update:"
+
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Update"]
+layout_mode = 2
+tooltip_text = "Should this update/re calculate every time a parameter is changed. Can get expensive!"
+button_pressed = true
+
+[node name="Crystal" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 8
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Crystal"]
+layout_mode = 2
+text = "Crystal Species:"
+
+[node name="OptionButton" type="OptionButton" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Crystal"]
+layout_mode = 2
+
+[node name="Color" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material"]
+layout_mode = 2
+size_flags_horizontal = 8
+tooltip_text = "The color/opacity of the crystal"
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Color"]
+layout_mode = 2
+text = "Crystal Color:"
+
+[node name="ColorPickerButton" type="ColorPickerButton" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Color"]
+layout_mode = 2
+tooltip_text = "The color/opacity of the crystal"
+text = "                                     "
+color = Color(0.145098, 0.552941, 0.431373, 0.870588)
+
+[node name="Refraction" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material"]
+layout_mode = 2
+size_flags_horizontal = 8
+tooltip_text = "Amount of refraction shader to apply. Almost certainly not accurate. Middle disables refraction."
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Refraction"]
+layout_mode = 2
+text = "'Refraction' Amount:"
+
+[node name="HSlider" type="HSlider" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Refraction"]
+custom_minimum_size = Vector2(160.195, 0)
+layout_mode = 2
+tooltip_text = "Amount of refraction shader to apply. Almost certainly not accurate. Middle disables refraction."
+min_value = -1.0
+max_value = 1.0
+step = 0.1
+tick_count = 3
+ticks_on_borders = true
+
+[node name="Roughness" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material"]
+layout_mode = 2
+size_flags_horizontal = 8
+tooltip_text = "Amount of roughness shader to apply. "
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Roughness"]
+layout_mode = 2
+text = "Roughness:"
+
+[node name="HSlider" type="HSlider" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Roughness"]
+custom_minimum_size = Vector2(160.195, 0)
+layout_mode = 2
+tooltip_text = "Amount of roughness shader to apply. "
+min_value = 0.01
+max_value = 1.0
+step = 0.001
+value = 0.03
+exp_edit = true
+tick_count = 3
+ticks_on_borders = true
+
+[node name="CullMode" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 8
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/CullMode"]
+layout_mode = 2
+text = "Cull mode:"
+
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/CullMode"]
+layout_mode = 2
+button_pressed = true
+
+[node name="SaveLoadExport" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material"]
+layout_mode = 2
+size_flags_horizontal = 8
+alignment = 1
+
+[node name="Save" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport"]
+visible = false
+layout_mode = 2
+text = "Save"
+
+[node name="Load" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport"]
+visible = false
+layout_mode = 2
+text = "Load"
+
+[node name="ExportStl" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport"]
+layout_mode = 2
+tooltip_text = "Export this crystal to a .stl file"
+text = "Export .stl"
+
+[node name="ExportObj" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport"]
+layout_mode = 2
+tooltip_text = "Export this crystal to a .stl file"
+text = "Export .obj
+"
+
+[node name="Background" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material"]
+layout_mode = 2
+size_flags_horizontal = 8
+alignment = 1
+
+[node name="SetBG" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Background"]
+layout_mode = 2
+text = "Set Background"
+
+[node name="ResetBG" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Background"]
+layout_mode = 2
+text = "Reset Background"
+
+[node name="Layout" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material"]
+layout_mode = 2
+size_flags_horizontal = 8
+alignment = 1
+
+[node name="SaveLayout" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout" node_paths=PackedStringArray("_container")]
+layout_mode = 2
+text = "Save Layout"
+script = ExtResource("8_8vjc0")
+_container = NodePath("../../../../..")
+
+[node name="LoadLayout" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout" node_paths=PackedStringArray("_container")]
+layout_mode = 2
+text = "Load Layout"
+script = ExtResource("9_eqoey")
+_container = NodePath("../../../../..")
+
+[node name="Camera" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
+visible = false
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Camera"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 3
+
+[node name="Rotate" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+tooltip_text = "Rotates automatically if checked"
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Rotate"]
+layout_mode = 2
+text = "Auto Rotate:"
+
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Rotate"]
+layout_mode = 2
+tooltip_text = "Rotates automatically if checked"
+
+[node name="Orthogonal" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+tooltip_text = "Render the crystal without perspective warping"
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Orthogonal"]
+layout_mode = 2
+text = "Orthogonal View:"
+
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Orthogonal"]
+layout_mode = 2
+tooltip_text = "Render the crystal without perspective warping"
+
+[node name="Show Axes" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Show Axes"]
+layout_mode = 2
+text = "Show Axes:
+"
+
+[node name="CheckBox" type="CheckBox" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Show Axes"]
+layout_mode = 2
+button_pressed = true
+
+[node name="AxisScale" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+tooltip_text = "Distance from camera to crystal"
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/AxisScale"]
+layout_mode = 2
+text = "Size of Axes:"
+
+[node name="HSlider" type="HSlider" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/AxisScale"]
+custom_minimum_size = Vector2(160.195, 0)
+layout_mode = 2
+min_value = 0.2
+max_value = 4.0
+step = 0.01
+value = 0.6
+exp_edit = true
+tick_count = 3
+
+[node name="Size" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+tooltip_text = "Distance from camera to crystal"
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Size"]
+layout_mode = 2
+text = "View Size: "
+
+[node name="HSlider" type="HSlider" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Size"]
+custom_minimum_size = Vector2(160.195, 0)
+layout_mode = 2
+tooltip_text = "Size on screen. DOES NOT affect volume or surface area calculations"
+min_value = 0.25
+max_value = 2.0
+step = 0.01
+value = 1.0
+tick_count = 3
+
+[node name="View" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+tooltip_text = "View straight down the A/B/C axis of the crystal. Not entirely accurate yet."
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View"]
+layout_mode = 2
+text = "View Along:"
+
+[node name="A" type="Button" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View"]
+layout_mode = 2
+text = "a"
+
+[node name="B" type="Button" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View"]
+layout_mode = 2
+text = "b"
+
+[node name="C" type="Button" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View"]
+layout_mode = 2
+text = "c"
+
+[node name="ABC" type="Button" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View"]
+layout_mode = 2
+text = "abc"
+
+[node name="Stats" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Stats"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/DockableContainer/Stats/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 3
+
+[node name="DataText" type="Label" parent="HBoxContainer/DockableContainer/Stats/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Shape class:
+Volume:
+Surface Area:
+Number of surfaces:"
+
+[node name="Axes" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Axes"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SymmetryType" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+tooltip_text = "The list of symmetry operations to apply to the given faces"
+alignment = 1
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/SymmetryType"]
+layout_mode = 2
+text = "Symmetry Type:"
+
+[node name="OptionButton" type="OptionButton" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/SymmetryType"]
+layout_mode = 2
+tooltip_text = "The list of symmetry operations to apply to the given faces"
+action_mode = 1
+selected = 22
+fit_to_longest_item = false
+allow_reselect = true
+item_count = 49
+popup/item_0/text = "None"
+popup/item_1/text = "Triclinic"
+popup/item_1/id = 1
+popup/item_1/separator = true
+popup/item_2/text = "1"
+popup/item_2/id = 10
+popup/item_3/text = "-1"
+popup/item_3/id = 20
+popup/item_4/text = "Monoclinic"
+popup/item_4/id = 21
+popup/item_4/separator = true
+popup/item_5/text = "2"
+popup/item_5/id = 30
+popup/item_6/text = "m"
+popup/item_6/id = 40
+popup/item_7/text = "2/m"
+popup/item_7/id = 50
+popup/item_8/text = "Orthorhombic"
+popup/item_8/id = 51
+popup/item_8/separator = true
+popup/item_9/text = "222"
+popup/item_9/id = 60
+popup/item_10/text = "mm2"
+popup/item_10/id = 70
+popup/item_11/text = "mmm"
+popup/item_11/id = 80
+popup/item_12/text = "Tetragonal"
+popup/item_12/id = 90
+popup/item_12/separator = true
+popup/item_13/text = "4"
+popup/item_13/id = 90
+popup/item_14/text = "-4"
+popup/item_14/id = 100
+popup/item_15/text = "4/m"
+popup/item_15/id = 110
+popup/item_16/text = "422"
+popup/item_16/id = 120
+popup/item_17/text = "4mm"
+popup/item_17/id = 130
+popup/item_18/text = "-42m"
+popup/item_18/id = 140
+popup/item_19/text = "4/mmm"
+popup/item_19/id = 150
+popup/item_20/text = "Rhombohedral"
+popup/item_20/id = 160
+popup/item_20/separator = true
+popup/item_21/text = "3 rhomb"
+popup/item_21/id = 160
+popup/item_22/text = "-3 rhomb"
+popup/item_22/id = 170
+popup/item_23/text = "32 rhomb"
+popup/item_23/id = 180
+popup/item_24/text = "3m rhomb"
+popup/item_24/id = 190
+popup/item_25/text = "-3m rhomb"
+popup/item_25/id = 200
+popup/item_26/text = "Trigonal"
+popup/item_26/id = 210
+popup/item_26/separator = true
+popup/item_27/text = "3 hex"
+popup/item_27/id = 210
+popup/item_28/text = "-3 hex"
+popup/item_28/id = 220
+popup/item_29/text = "312 hex"
+popup/item_29/id = 230
+popup/item_30/text = "321 hex"
+popup/item_30/id = 240
+popup/item_31/text = "3m1 hex"
+popup/item_31/id = 250
+popup/item_32/text = "31m hex"
+popup/item_32/id = 260
+popup/item_33/text = "-31m hex"
+popup/item_33/id = 270
+popup/item_34/text = "-3m1 hex"
+popup/item_34/id = 280
+popup/item_35/text = "Hexagonal"
+popup/item_35/id = 290
+popup/item_35/separator = true
+popup/item_36/text = "6"
+popup/item_36/id = 290
+popup/item_37/text = "-6"
+popup/item_37/id = 300
+popup/item_38/text = "6/m"
+popup/item_38/id = 310
+popup/item_39/text = "622"
+popup/item_39/id = 320
+popup/item_40/text = "6mm"
+popup/item_40/id = 330
+popup/item_41/text = "-6m2"
+popup/item_41/id = 340
+popup/item_42/text = "6/mmm"
+popup/item_42/id = 350
+popup/item_43/text = "Cubic"
+popup/item_43/id = 351
+popup/item_43/separator = true
+popup/item_44/text = "23"
+popup/item_44/id = 360
+popup/item_45/text = "-3m"
+popup/item_45/id = 370
+popup/item_46/text = "432"
+popup/item_46/id = 380
+popup/item_47/text = "-43m"
+popup/item_47/id = 390
+popup/item_48/text = "m-3m"
+popup/item_48/id = 400
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Axis Lengths (Å):"
+
+[node name="GridContainer" type="GridContainer" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+columns = 3
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "a (x)"
+
+[node name="Label2" type="Label" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "b (y)"
+
+[node name="Label3" type="Label" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "c (z)"
+
+[node name="A" type="SpinBox" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Length of the x/a axis"
+min_value = 0.01
+max_value = 2.0
+step = 0.01
+value = 1.0
+select_all_on_focus = true
+
+[node name="B" type="SpinBox" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Length of the y axis"
+min_value = 0.01
+max_value = 2.0
+step = 0.01
+value = 1.0
+
+[node name="C" type="SpinBox" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Length of the z axis"
+min_value = 0.01
+max_value = 2.0
+step = 0.01
+value = 1.0
+
+[node name="Label2" type="Label" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Interaxial Angles (°):"
+
+[node name="GridContainer2" type="GridContainer" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+columns = 3
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = " α (yz)"
+
+[node name="Label2" type="Label" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = " β (xz)"
+
+[node name="Label3" type="Label" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "γ (xy)"
+
+[node name="Alpha" type="SpinBox" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Angle between the y and z axes"
+min_value = 1.0
+max_value = 179.0
+value = 90.0
+suffix = "°"
+select_all_on_focus = true
+
+[node name="Beta" type="SpinBox" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Angle between the x and z axes"
+min_value = 1.0
+max_value = 179.0
+value = 90.0
+suffix = "°"
+select_all_on_focus = true
+
+[node name="Gamma" type="SpinBox" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Angle between the x and y axes"
+min_value = 1.0
+max_value = 179.0
+value = 60.0
+suffix = "°"
+select_all_on_focus = true
+
+[node name="Normals" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Normals"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/DockableContainer/Normals/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Normals/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Face Normals:"
+
+[node name="GridContainer" type="GridContainer" parent="HBoxContainer/DockableContainer/Normals/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+columns = 6
+
+[node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Normals/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "h (x)"
+
+[node name="Label2" type="Label" parent="HBoxContainer/DockableContainer/Normals/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "k (y)"
+
+[node name="Label3" type="Label" parent="HBoxContainer/DockableContainer/Normals/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "l (z)"
+
+[node name="Label4" type="Label" parent="HBoxContainer/DockableContainer/Normals/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "dist"
+
+[node name="Label5" type="Label" parent="HBoxContainer/DockableContainer/Normals/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "col"
+
+[node name="AddNewFace" type="Button" parent="HBoxContainer/DockableContainer/Normals/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+tooltip_text = "Add a new face to the crystal"
+text = "+"
+
+[connection signal="file_selected" from="BackgroundDialog" to="." method="SetBackgroundImage"]
+[connection signal="file_selected" from="ObjExportDialog" to="." method="ExportOBJ"]
+[connection signal="file_selected" from="StlExportDialog" to="." method="ExportSTL"]
+[connection signal="gui_input" from="HBoxContainer/DragArea" to="." method="GetDragInput"]
+[connection signal="toggled" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Update/CheckBox" to="." method="SetAutoUpdate"]
+[connection signal="color_changed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Color/ColorPickerButton" to="." method="SetColor" binds= [-1]]
+[connection signal="value_changed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Refraction/HSlider" to="." method="SetRefraction" binds= [-1]]
+[connection signal="value_changed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Roughness/HSlider" to="." method="SetRoughness" binds= [-1]]
+[connection signal="toggled" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/CullMode/CheckBox" to="." method="SetCullBackface"]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport/ExportStl" to="StlExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport/ExportObj" to="ObjExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Background/SetBG" to="BackgroundDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Background/ResetBG" to="." method="SetBackgroundImage" binds= [""]]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout/SaveLayout" to="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout/SaveLayout" method="_on_save_pressed"]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout/LoadLayout" to="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout/LoadLayout" method="_on_load_pressed"]
+[connection signal="toggled" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Rotate/CheckBox" to="." method="SetAutoRotate"]
+[connection signal="toggled" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Orthogonal/CheckBox" to="." method="SetCameraOrthogonal"]
+[connection signal="toggled" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Show Axes/CheckBox" to="." method="SetAxisVisibility"]
+[connection signal="value_changed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/AxisScale/HSlider" to="." method="SetAxisScale"]
+[connection signal="value_changed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Size/HSlider" to="." method="SetScale"]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/A" to="." method="SetCameraRotation" binds= ["a"]]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/B" to="." method="SetCameraRotation" binds= ["b"]]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/C" to="." method="SetCameraRotation" binds= ["c"]]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/ABC" to="." method="SetCameraRotation" binds= ["abc"]]
+[connection signal="visibility_changed" from="HBoxContainer/DockableContainer/Stats" to="." method="UpdateCrystalData" binds= [false]]
+[connection signal="item_selected" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/SymmetryType/OptionButton" to="." method="SetCrystalSystem"]
+[connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/A" to="." method="SetA"]
+[connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/B" to="." method="SetB"]
+[connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/C" to="." method="SetC"]
+[connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2/Alpha" to="." method="SetAlpha"]
+[connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2/Beta" to="." method="SetBeta"]
+[connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2/Gamma" to="." method="SetGamma"]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Normals/ScrollContainer/VBoxContainer/GridContainer/AddNewFace" to="." method="AddNewNormal"]
