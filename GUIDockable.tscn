@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bfrik23x564mp"]
+[gd_scene load_steps=14 format=3 uid="uid://bfrik23x564mp"]
 
 [ext_resource type="Script" path="res://Scripts/GemGUI.cs" id="1_h6x1x"]
 [ext_resource type="Material" uid="uid://2gdagefefm83" path="res://Assets/BaseSurfaceMaterial.tres" id="2_aj0bt"]
@@ -7,12 +7,14 @@
 [ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout_panel.gd" id="5_8ggax"]
 [ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout_split.gd" id="6_0n1is"]
 [ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout.gd" id="6_4vx5f"]
+[ext_resource type="Script" path="res://save_layout.gd" id="8_8vjc0"]
+[ext_resource type="Script" path="res://load_layout.gd" id="9_eqoey"]
 
 [sub_resource type="Resource" id="Resource_aqbdl"]
 resource_name = "Tabs"
 script = ExtResource("5_8ggax")
 names = PackedStringArray("Crystal Settings", "Camera", "Data", "Axes")
-current_tab = 3
+current_tab = 0
 
 [sub_resource type="Resource" id="Resource_mv3pw"]
 resource_name = "Tabs"
@@ -97,10 +99,8 @@ custom_minimum_size = Vector2(420, 0)
 layout_mode = 2
 script = ExtResource("4_yvhcf")
 layout = SubResource("Resource_57lpa")
-clone_layout_on_ready = false
 
 [node name="Crystal Settings" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
-visible = false
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Crystal Settings"]
@@ -249,6 +249,23 @@ text = "Set Background"
 layout_mode = 2
 text = "Reset Background"
 
+[node name="Layout" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material"]
+layout_mode = 2
+size_flags_horizontal = 8
+alignment = 1
+
+[node name="SaveLayout" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout" node_paths=PackedStringArray("_container")]
+layout_mode = 2
+text = "Save Layout"
+script = ExtResource("8_8vjc0")
+_container = NodePath("../../../../..")
+
+[node name="LoadLayout" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout" node_paths=PackedStringArray("_container")]
+layout_mode = 2
+text = "Load Layout"
+script = ExtResource("9_eqoey")
+_container = NodePath("../../../../..")
+
 [node name="Camera" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
 visible = false
 layout_mode = 2
@@ -390,6 +407,7 @@ Surface Area:
 Number of surfaces:"
 
 [node name="Axes" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
+visible = false
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Axes"]
@@ -688,6 +706,8 @@ text = "+"
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport/ExportStl" to="StlExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport/ExportObj" to="ObjExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Background/SetBG" to="BackgroundDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout/SaveLayout" to="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout/SaveLayout" method="_on_save_pressed"]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout/LoadLayout" to="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout/LoadLayout" method="_on_load_pressed"]
 [connection signal="toggled" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Rotate/CheckBox" to="." method="SetAutoRotate"]
 [connection signal="toggled" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Orthogonal/CheckBox" to="." method="SetCameraOrthogonal"]
 [connection signal="toggled" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Show Axes/CheckBox" to="." method="SetAxisVisibility"]
