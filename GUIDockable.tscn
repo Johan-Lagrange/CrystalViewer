@@ -13,7 +13,7 @@
 [sub_resource type="Resource" id="Resource_aqbdl"]
 resource_name = "Tabs"
 script = ExtResource("5_8ggax")
-names = PackedStringArray("Crystal Settings", "Camera", "Data", "Axes")
+names = PackedStringArray("Axes", "Crystal Settings", "Stats", "Camera")
 current_tab = 0
 
 [sub_resource type="Resource" id="Resource_mv3pw"]
@@ -26,7 +26,7 @@ current_tab = 0
 resource_name = "Split"
 script = ExtResource("6_0n1is")
 direction = 1
-percent = 0.42
+percent = 0.439
 first = SubResource("Resource_aqbdl")
 second = SubResource("Resource_mv3pw")
 
@@ -45,7 +45,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_h6x1x")
 baseMaterial = ExtResource("2_aj0bt")
-dataText = NodePath("HBoxContainer/DockableContainer/Data/ScrollContainer/VBoxContainer/DataText")
+dataText = NodePath("HBoxContainer/DockableContainer/Stats/ScrollContainer/VBoxContainer/DataText")
 crystalSystem = NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/SymmetryType/OptionButton")
 crystalParams = [NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/A"), NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/B"), NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/C"), NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2/Alpha"), NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2/Beta"), NodePath("HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2/Gamma")]
 scaleSlider = NodePath("HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Size/HSlider")
@@ -101,6 +101,7 @@ script = ExtResource("4_yvhcf")
 layout = SubResource("Resource_57lpa")
 
 [node name="Crystal Settings" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
+visible = false
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Crystal Settings"]
@@ -386,20 +387,20 @@ text = "c"
 layout_mode = 2
 text = "abc"
 
-[node name="Data" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
+[node name="Stats" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
 visible = false
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Data"]
+[node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Stats"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/DockableContainer/Data/ScrollContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/DockableContainer/Stats/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 3
 
-[node name="DataText" type="Label" parent="HBoxContainer/DockableContainer/Data/ScrollContainer/VBoxContainer"]
+[node name="DataText" type="Label" parent="HBoxContainer/DockableContainer/Stats/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 text = "Shape class:
 Volume:
@@ -407,7 +408,6 @@ Surface Area:
 Number of surfaces:"
 
 [node name="Axes" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
-visible = false
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Axes"]
@@ -718,7 +718,7 @@ text = "+"
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/B" to="." method="SetCameraRotation" binds= ["b"]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/C" to="." method="SetCameraRotation" binds= ["c"]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/ABC" to="." method="SetCameraRotation" binds= ["abc"]]
-[connection signal="visibility_changed" from="HBoxContainer/DockableContainer/Data" to="." method="UpdateCrystalData" binds= [false]]
+[connection signal="visibility_changed" from="HBoxContainer/DockableContainer/Stats" to="." method="UpdateCrystalData" binds= [false]]
 [connection signal="item_selected" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/SymmetryType/OptionButton" to="." method="SetCrystalSystem"]
 [connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/A" to="." method="SetA"]
 [connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/B" to="." method="SetB"]
