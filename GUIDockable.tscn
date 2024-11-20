@@ -706,6 +706,7 @@ text = "+"
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport/ExportStl" to="StlExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport/ExportObj" to="ObjExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Background/SetBG" to="BackgroundDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Background/ResetBG" to="." method="SetBackgroundImage" binds= [""]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout/SaveLayout" to="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout/SaveLayout" method="_on_save_pressed"]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout/LoadLayout" to="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Layout/LoadLayout" method="_on_load_pressed"]
 [connection signal="toggled" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Rotate/CheckBox" to="." method="SetAutoRotate"]
