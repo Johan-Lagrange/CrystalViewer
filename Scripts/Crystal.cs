@@ -114,6 +114,8 @@ public class Crystal
         faceGroups[index].Add(face);
       }
     }
+
+    faceGroups.RemoveAll(group => group.Count == 0);
   }
 
   /// <summary>
@@ -356,10 +358,11 @@ public class Crystal
   }
 
   /// <summary>
-  /// Scans for planes with invalid numbers of vertices, and removes them if found
+  /// Scans for planes with invalid numbers of vertices, and removes them if found. Returns number of removed planes
   /// </summary>
   /// <param name="vertices">Vertices with planes to validate.</param>
-  private static void RemoveInvalidPlanes(IEnumerable<Vertex> vertices)
+  /// <returns>The number of removed planes.</returns>
+  private static int RemoveInvalidPlanes(IEnumerable<Vertex> vertices)
   {
     int removed = 0;
     Dictionary<Planed, LinkedList<Vertex>> planeVertices = new();
@@ -383,7 +386,7 @@ public class Crystal
         }
       }
     }
-    //GD.Print($"Removed {removed} invalid planes");
+    return removed;
   }
 
   /// <summary>
@@ -499,6 +502,7 @@ public class Crystal
   /// <returns>Index of matching face group, or -1 if none are found.</returns>
   public int FindSurfaceMadeByIndex(int initialIndex)
   {
+
     if (initialIndex < 0 || initialIndex >= initialNormals.Count)//Out of bounds
       return -1;
     Planed plane = new Planed(initialNormals[initialIndex], initialDistances[initialIndex]);
@@ -520,7 +524,9 @@ public class Crystal
       foreach (List<Vector3d> face in faceGroups[i])//For every face in this group
       {
         if (face.Count < 3)
+        {
           continue;
+        }
 
         bool valid = true;
         foreach (Vector3d v in face)//check if it matches. Skip if any vertex does not match the plane.
@@ -533,7 +539,9 @@ public class Crystal
 
         }
         if (valid)
+        {
           return i - skipped;//If the face matches the plane generated initially, then we know this group matches. Return index of the group accounting for groups that dont create a mesh surface.
+        }
       }
     }
     return -1;//No matching group was found.
