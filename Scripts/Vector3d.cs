@@ -53,14 +53,14 @@ public struct Vector3d : IComparable
     /// </summary>
     /// <param name="other">The vector to find the distance to</param>
     /// <returns>The distance between this vector and the other</returns>
-    public double SqrDistanceTo(Vector3d other) => SqrDistance(this, other);
+    public double SqrDistanceTo(in Vector3d other) => SqrDistance(this, other);
     /// <summary>
     /// Returns the distance between this vector and the other    
     /// Note: For relative comparisons, use SqrDistanceTo(), since it is faster
     /// </summary>
     /// <param name="other">The vector to find the distance to</param>
     /// <returns>The distance between this vector and the other</returns>
-    public double DistanceTo(Vector3d other) => Distance(this, other);
+    public double DistanceTo(in Vector3d other) => Distance(this, other);
     /// <summary>
     /// Returns the scalar dot product of this vector and the other. Is commutative.    
     /// The dot product is how much two vectors "Agree" with each other. 
@@ -74,7 +74,7 @@ public struct Vector3d : IComparable
     /// We use a.x * b.x + a.y * b.y + a.z * b.z for this, 
     /// though |a|*|b|*cos(angle between the two) is clearer mathematically
     /// </remarks>
-    public double Dot(Vector3d other) => Dot(this, other);
+    public double Dot(in Vector3d other) => Dot(this, other);
     /// <summary>
     /// Returns the vector cross product of this vector and the other. 
     /// Is anti-commutative, so flipping inputs returns the result * -1.
@@ -85,7 +85,7 @@ public struct Vector3d : IComparable
     /// <param name="other">The vector to calculate the cross product with</param>
     /// <returns>The cross product of the two vectors</returns>
     /// <remarks>The formula is (a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x)</remarks>
-    public Vector3d Cross(Vector3d other) => Cross(this, other);
+    public Vector3d Cross(in Vector3d other) => Cross(this, other);
     /// <summary>
     /// Returns this vector with a length of 1, or (0,0,0) if it already has a length of zero
     /// </summary>
@@ -102,20 +102,20 @@ public struct Vector3d : IComparable
     /// </summary>
     /// <param name="other">The vector to check equalitty with</param>
     /// <returns>Returns true if these two vectors are approximately equal.</returns>
-    public bool IsEqualApprox(Vector3d other) => IsEqualApprox(this, other);
+    public bool IsEqualApprox(in Vector3d other) => IsEqualApprox(this, other);
     /// <summary>
     /// Returns true if this vector is approximately equal
     /// </summary>
     /// <returns>Returns true if this vector is approximately equal</returns>
     public bool IsZeroApprox() => IsZeroApprox(this);
 
-    public static double Distance(Vector3d a, Vector3d b) => (a - b).Length();
-    public static double SqrDistance(Vector3d a, Vector3d b) => (a - b).LengthSquared();
-    public static double Dot(Vector3d a, Vector3d b) => a.x * b.x + a.y * b.y + a.z * b.z;
-    public static Vector3d Cross(Vector3d a, Vector3d b) => new(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
-    public static bool IsEqualApprox(Vector3d a, Vector3d b) => a == b;
-    public static bool IsExactlyEqual(Vector3d a, Vector3d b) => a.x == b.x && a.y == b.y && a.z == b.z;
-    public static bool IsZeroApprox(Vector3d v) => v == Zero;
+    public static double Distance(in Vector3d a, in Vector3d b) => (a - b).Length();
+    public static double SqrDistance(in Vector3d a, in Vector3d b) => (a - b).LengthSquared();
+    public static double Dot(in Vector3d a, in Vector3d b) => a.x * b.x + a.y * b.y + a.z * b.z;
+    public static Vector3d Cross(in Vector3d a, in Vector3d b) => new(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+    public static bool IsEqualApprox(in Vector3d a, in Vector3d b) => a == b;
+    public static bool IsExactlyEqual(in Vector3d a, in Vector3d b) => a.x == b.x && a.y == b.y && a.z == b.z;
+    public static bool IsZeroApprox(in Vector3d v) => v == Zero;
 
     public static bool IsZeroApprox(double d) => RoundZero(d) == 0;
     public static double RoundZero(double d) => (d * d) < threshold ? 0 : d;
@@ -124,7 +124,7 @@ public struct Vector3d : IComparable
         d = RoundZero(d);
         return Math.Sign(d) * Math.Ceiling(Math.Abs(d));
     }
-    public static bool operator >(Vector3d a, Vector3d b)
+    public static bool operator >(in Vector3d a, in Vector3d b)
     {
         if (a == b)
             return false;
@@ -154,7 +154,7 @@ public struct Vector3d : IComparable
 
         return false;//We shouldn't ever reach this point since we check for equality first.
     }
-    public static bool operator <(Vector3d a, Vector3d b)
+    public static bool operator <(in Vector3d a, in Vector3d b)
     {
         if (a == b)
             return false;
@@ -187,25 +187,25 @@ public struct Vector3d : IComparable
         return false;//We shouldn't ever reach this point since we check for equality first.
     }
 
-    public static bool operator ==(Vector3d a, Vector3d b) => SqrDistance(a, b) < threshold;
-    public static bool operator !=(Vector3d a, Vector3d b) => SqrDistance(a, b) >= threshold;
-    public static Vector3d operator *(Vector3d v, double s) => new(v.x * s, v.y * s, v.z * s);
-    public static Vector3d operator /(Vector3d v, double s)
+    public static bool operator ==(in Vector3d a, in Vector3d b) => SqrDistance(a, b) < threshold;
+    public static bool operator !=(in Vector3d a, in Vector3d b) => SqrDistance(a, b) >= threshold;
+    public static Vector3d operator *(in Vector3d v, double s) => new(v.x * s, v.y * s, v.z * s);
+    public static Vector3d operator /(in Vector3d v, double s)
     {
         if (IsZeroApprox(s))
             throw new DivideByZeroException();
         return v * (1 / s);
     }
-    public static Vector3d operator +(Vector3d a, Vector3d b) => new(a.x + b.x, a.y + b.y, a.z + b.z);
-    public static Vector3d operator -(Vector3d a, Vector3d b) => a + -b;
-    public static Vector3d operator -(Vector3d v) => new(-v.x, -v.y, -v.z);
+    public static Vector3d operator +(in Vector3d a, in Vector3d b) => new(a.x + b.x, a.y + b.y, a.z + b.z);
+    public static Vector3d operator -(in Vector3d a, in Vector3d b) => a + -b;
+    public static Vector3d operator -(in Vector3d v) => new(-v.x, -v.y, -v.z);
     /// <summary>
     /// Basis/Linear transformation
     /// </summary>
     /// <param name="m">3x3 Basis matrix to multiply with</param>
     /// <param name="v">Vector to transform</param>
     /// <returns>Transformed vector</returns>
-    public static Vector3d operator *(Vector3d[] m, Vector3d v)
+    public static Vector3d operator *(in Vector3d[] m, in Vector3d v)
     {
         if (m.Length != 3)
             throw new ArgumentException("Must be a 3x3 matrix!");
