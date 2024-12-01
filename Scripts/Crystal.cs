@@ -210,8 +210,6 @@ public class Crystal
   private static List<List<Planed>> GeneratePlanes(List<List<Vector3d>> normals, IList<double> distances)
   {
     LinkedList<List<Planed>> planeGroups = new();//We do this since we modify the list as we are traversing it.
-                                                 //TODO normals[0] can be empty
-                                                 //Add first face group to avoid "fencepost" issues where we stop prematurely.
 
     for (int faceGroup = 0; faceGroup < normals.Count; faceGroup++)
     {
