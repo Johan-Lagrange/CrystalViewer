@@ -1,7 +1,14 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Godot;
+
+/// <summary>
+/// This class generates crystals given face vectors and symmetry
+/// It also has some extra methods for calculating things like surface area
+/// </summary>
 public class Crystal
 {
   public static readonly double threshold = 0.0000000001;
@@ -92,7 +99,7 @@ public class Crystal
       }
     }
 
-    List<Vertex> vertices = GenerateVertices(planeGroups, pointGroup);//Get all valid vertices on the crystal
+    List<Vertex> vertices = GenerateVertices(planeGroups);
 
     RemoveInvalidPlanes(vertices);
 
@@ -278,15 +285,12 @@ public class Crystal
   /// <param name="planeGroups">The planes to find the intersection points of.</param>
   /// <param name="pointGroup">The point group to use for quick vertex generation of previously verified points.</param>
   /// <returns>A list of vertices with position and list of planes that intersect at that point. Can be more than three planes.</returns>
-  private static List<Vertex> GenerateVertices(List<List<Planed>> planeGroups, SymmetryOperations.PointGroup pointGroup = SymmetryOperations.PointGroup.None)
+  private static List<Vertex> GenerateVertices(List<List<Planed>> planeGroups)
   {
     List<Planed> planes = planeGroups.SelectMany(plane => plane).ToList<Planed>();//Easier to iterate over
 
-    Dictionary<Vector3d, Vertex> faceVertices = new(); //Vertices on each face
-    HashSet<Vector3d> mirroredPoints = new(); //Verified points that are mirrored according to the crystal's symmetry.
-    HashSet<Vector3d> vectorHashes = new(); //Used to avoid creating duplicate vectors
-
-    foreach (Tuple<Planed, Planed, Planed> triplet in GetUniqueTriplets<Planed>(planes))
+    ConcurrentDictionary<Vector3d, Vertex> faceVertices = new(); //Vertices on each face
+    void GenerateVertex(Tuple<Planed, Planed, Planed> triplet)
     {
       Vector3d? intersection = Planed.Intersect3(triplet.Item1, triplet.Item2, triplet.Item3);
 
@@ -295,29 +299,22 @@ public class Crystal
         //Either two planes are parallel or all 3 planes make a tube 
         //and thus don't meet at 1 point
         //..oor they all meet at zero
-        continue;
+        return;
       }
 
       Vertex vertexToVerify = new((Vector3d)intersection, triplet.Item1, triplet.Item2, triplet.Item3);
 
-      bool valid = VerifyVertex(planes, faceVertices, mirroredPoints, vertexToVerify);
+      bool valid = VerifyVertex(planes, faceVertices, vertexToVerify);
 
       if (valid)
       {
         //We know the vertex is valid at this point
-        faceVertices.Add(vertexToVerify.point, vertexToVerify);
-
-        if (pointGroup != SymmetryOperations.PointGroup.None
-            && pointGroup != SymmetryOperations.PointGroup.One
-            && ((int)pointGroup < 21 || (int)pointGroup > 35)//tri operations work differently so we can't mirror like this.
-            && mirroredPoints.Contains((Vector3d)intersection) == false)
-        {
-          //Use the fact that crystals are symmetric to create a fast lookup table of vertices that must be on the crystal.
-          //This way we can avoid checking each new point against every plane on the crystal.
-          GenerateSymmetryList(vertexToVerify.point, vectorHashes, pointGroup).ForEach(v => mirroredPoints.Add(v));
-        }
+        faceVertices.TryAdd(vertexToVerify.point, vertexToVerify);
       }
+
     }
+    // triplets = triplets.AsParallel().Select(triplet => Planed.Intersect3(triplet.Item1, triplet.Item2, triplet.Item3) != null);
+    Parallel.ForEach(GetUniqueTriplets(planes), triplet => GenerateVertex(triplet));
 
     return faceVertices.Values.ToList();
   }
@@ -328,10 +325,9 @@ public class Crystal
   /// </summary>
   /// <param name="planes">Planes to check if vertex is within</param>
   /// <param name="faceVertices">Vertices to merge with if duplicate is found</param>
-  /// <param name="mirroredPoints">Locations known to be on crystal, but not generated as vertices yet</param>
   /// <param name="vertexToVerify">Vertex we want to verify, or merge if duplicate.</param>
   /// <returns>True if the vertex is on the plane and has no duplicates.</returns>
-  private static bool VerifyVertex(List<Planed> planes, Dictionary<Vector3d, Vertex> faceVertices, HashSet<Vector3d> mirroredPoints, Vertex vertexToVerify)
+  private static bool VerifyVertex(List<Planed> planes, ConcurrentDictionary<Vector3d, Vertex> faceVertices, Vertex vertexToVerify)
   {
     if (vertexToVerify.point.IsZeroApprox())
       return false;
@@ -349,12 +345,11 @@ public class Crystal
     }
 
     //New + Valid checks
-    if (mirroredPoints.Contains(vertexToVerify.point) || IsInPlanes(planes, vertexToVerify.point))
+    if (IsInPlanes(planes, vertexToVerify.point))
       return true;
 
     return false;
   }
-
   /// <summary>
   /// Scans for planes with invalid numbers of vertices, and removes them if found. Returns number of removed planes
   /// </summary>
@@ -399,7 +394,8 @@ public class Crystal
     foreach (Tuple<Vertex, Vertex> pair in GetUniquePairs<Vertex>(vertices))
     {
       if (pair.Item1.point.IsEqualApprox(pair.Item2.point))//Don't create an edge between a point and itself
-        throw new Exception("Two separate points have the same position");
+        pair.Item1.MergeVertices(pair.Item2);
+      //throw new Exception("Two separate points have the same position");
 
       List<Planed> sharedFaces = pair.Item1.SharedFaces(pair.Item2);//Check for shared faces
 
@@ -439,7 +435,6 @@ public class Crystal
         faces[p1][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 1
         faces[p2][v1].AddVertex(v2);//Create link from v1 -> v2 on plane 2
         faces[p2][v2].AddVertex(v1);//Create link from v2 -> v1 on plane 2
-
       }
     }
 
@@ -493,7 +488,8 @@ public class Crystal
         return edges;
       }
     }
-
+    if (edges.Count < 3)
+      return new List<Vector3d>();//Not valid face so we dont return anything
     //Some methods of rendering require clockwise orientation
     if (IsClockwise(edges[0], edges[1], edges[2]) != clockwise)
       edges.Reverse();
@@ -919,15 +915,15 @@ public class Crystal
   private class Vertex
   {
     public Vector3d point;
-    public HashSet<Planed> planeHashes = new();
-    public List<Planed> Planes { get => planeHashes.ToList<Planed>(); }
+    public ConcurrentDictionary<Planed, bool> planeHashes = new();
+    public List<Planed> Planes { get => planeHashes.Keys.ToList<Planed>(); }
 
     public Vertex(Vector3d p, Planed plane1, Planed plane2, Planed plane3)
     {
       point = p;
-      planeHashes.Add(plane1);
-      planeHashes.Add(plane2);
-      planeHashes.Add(plane3);
+      planeHashes.TryAdd(plane1, true);
+      planeHashes.TryAdd(plane2, true);
+      planeHashes.TryAdd(plane3, true);
     }
     /// <summary>
     /// Returns a list of planes that both vertices share
@@ -939,7 +935,7 @@ public class Crystal
       LinkedList<Planed> shared = new();
       foreach (Planed p in Planes)
       {
-        if (other.planeHashes.Contains(p))
+        if (other.planeHashes.ContainsKey(p))
           shared.AddLast(p);
       }
       return shared.ToList<Planed>();
@@ -952,10 +948,10 @@ public class Crystal
     {
       foreach (Planed p in other.Planes)
       {
-        if (!planeHashes.Contains(p))
+        if (!planeHashes.ContainsKey(p))
         {
           Planes.Add(p);
-          planeHashes.Add(p);
+          planeHashes.TryAdd(p, true);
         }
       }
     }

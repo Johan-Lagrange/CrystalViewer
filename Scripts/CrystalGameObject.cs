@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
+/// <summary>
+/// This class interfaces crystal generation code with godot
+/// </summary>
 public partial class CrystalGameObject : MeshInstance3D
 {
 	[Signal]
@@ -60,12 +63,17 @@ public partial class CrystalGameObject : MeshInstance3D
 	[Export]
 	public float[] Distances { get => _distances; set { _distances = value; } }
 	SymmetryOperations.PointGroup _pointGroup = SymmetryOperations.PointGroup.BarThreeRhombohedral;
+	/// <summary>
+	/// Arbitrary sample normals
+	/// </summary>
 	Vector3[] _normals = { new(3, 1, 0), new(0, 5, 1), new(-1, -1, -1), new(-2, 0, -1) };
+	/// <summary>
+	/// Arbitrary sample distances
+	/// </summary>
 	float[] _distances = { 1, .9f, 1, 1 };
 	private Crystal crystal;
 
 	private bool updatedThisFrame = false;
-	private bool finishedUpdating = false;
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
@@ -168,7 +176,16 @@ public partial class CrystalGameObject : MeshInstance3D
 		updatedThisFrame = true;
 		if (crystalGenerationThread != null && crystalGenerationThread.IsAlive)
 		{
-			return; //TODO currently only updates oldest one
+			//Got new data to calculate, but busy with old data
+			//So add method to generate new crystal once old one is done
+			void CalculateNewest()
+			{
+				//note: OnGenerationFinished is only called after crystalGenerationThread is done
+				OnGenerationFinished -= CalculateNewest;
+				StartMeshUpdate();
+			}
+			OnGenerationFinished += CalculateNewest;
+			return;
 		}
 		crystalGenerationThread = new Thread(GenerateCrystal);
 		crystalGenerationThread.Start();
@@ -203,9 +220,9 @@ public partial class CrystalGameObject : MeshInstance3D
 		catch (Exception e)//if we don't catch within this thread, 
 		{//then it goes unhandled and crashes the entire application
 		 //With normal exceptions in godot, we don't need to do this
-			GD.PrintErr(e.Message);
+			GD.PrintErr(e.Message + " " + e.StackTrace);
 		}
-		CallDeferred("FinishMeshUpdate");
+		CallDeferred("FinishMeshUpdate");//Since we change gd stuff here, gd requires we do this in a deferred call
 	}
 	public void FinishMeshUpdate()
 	{
