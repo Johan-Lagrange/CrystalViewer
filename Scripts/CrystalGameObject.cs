@@ -1,12 +1,17 @@
 using Godot;
+using System;
 using System.Collections.Generic;
+using System.Threading;
 
 public partial class CrystalGameObject : MeshInstance3D
 {
+	[Signal]
+	public delegate void OnGenerationFinishedEventHandler();
 	[Export]
 	StandardMaterial3D baseMaterial;
 	public List<StandardMaterial3D> materialList = new List<StandardMaterial3D>();
 	ArrayMesh mesh;
+	Thread crystalGenerationThread;
 	[ExportGroup("Crystal Parameters")]
 	[Export]
 	Vector3 AxisLengths
@@ -42,14 +47,14 @@ public partial class CrystalGameObject : MeshInstance3D
 	[Export]
 	public float UnitCellVolume { get => aVector.Dot(bVector.Cross(cVector)); set { } }
 	[Export]
-	bool UpdateTheMesh { get { return true; } set { UpdateMesh(); } }
+	bool UpdateTheMesh { get { return true; } set { StartMeshUpdate(); } }
 	[Export]
 	bool UseLatticeVectors { get => usingLatticeVectors; set { usingLatticeVectors = !usingLatticeVectors; UpdateLatticeVectors(); } }
 	private bool usingLatticeVectors = true;
 	// Called when the node enters the scene tree for the first time.
 	[ExportGroup("Crystal Faces")]
 	[Export]
-	public SymmetryOperations.PointGroup PointGroup { get => _pointGroup; set { _pointGroup = value; UpdateAxes(value); } }
+	public SymmetryOperations.PointGroup PointGroup { get => _pointGroup; set => _pointGroup = value; }
 	[Export]
 	public Vector3[] Normals { get => _normals; set { _normals = value; } }
 	[Export]
@@ -60,6 +65,7 @@ public partial class CrystalGameObject : MeshInstance3D
 	private Crystal crystal;
 
 	private bool updatedThisFrame = false;
+	private bool finishedUpdating = false;
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
@@ -155,12 +161,21 @@ public partial class CrystalGameObject : MeshInstance3D
 		return mesh;
 	}
 
-	public void UpdateMesh()
+	public void StartMeshUpdate()
 	{
 		if (updatedThisFrame)
 			return;
 		updatedThisFrame = true;
+		if (crystalGenerationThread != null && crystalGenerationThread.IsAlive)
+		{
+			return; //TODO currently only updates oldest one
+		}
+		crystalGenerationThread = new Thread(GenerateCrystal);
+		crystalGenerationThread.Start();
+	}
 
+	public void GenerateCrystal()
+	{
 		if (Distances.Length != Normals.Length)
 		{
 			GD.Print("Resized distance array to match normals array");
@@ -181,7 +196,23 @@ public partial class CrystalGameObject : MeshInstance3D
 		foreach (float f in Distances)
 			doubles.Add((double)f);
 
-		crystal = new Crystal(normalsd, doubles, _pointGroup);
+		try
+		{
+			crystal = new Crystal(normalsd, doubles, _pointGroup);
+		}
+		catch (Exception e)//if we don't catch within this thread, 
+		{//then it goes unhandled and crashes the entire application
+		 //With normal exceptions in godot, we don't need to do this
+			GD.PrintErr(e.Message);
+		}
+		CallDeferred("FinishMeshUpdate");
+	}
+	public void FinishMeshUpdate()
+	{
+		EmitSignal("OnGenerationFinished");
+
+		UpdateAxes(_pointGroup);
+
 		ArrayMesh mesh = CreateArrayMeshFromCrystal(crystal);
 		Mesh = mesh;
 

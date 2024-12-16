@@ -407,6 +407,8 @@ public class Crystal
       {
         if (sharedFaces.Count > 2)
         {
+          //GD.PrintErr("Too many shared faces");
+          continue;
           // string s = "TOO MANY SHARED FACES: ";
           // foreach (Planed p in sharedFaces)
           // {
@@ -441,12 +443,18 @@ public class Crystal
       }
     }
 
-
+    LinkedList<Planed> illegalPlanes = new();
     foreach (Planed p in faces.Keys)
     {
       if (faces[p].Count < 3)//Generated an invalid polygon
-        throw new Exception("Invalid planes still present");
+      {
+        illegalPlanes.AddLast(p);
+        //  throw new Exception("Invalid planes still present");
+      }
     }
+    foreach (Planed ip in illegalPlanes)
+      faces.Remove(ip);
+
     return faces;
   }
 

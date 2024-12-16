@@ -55,9 +55,16 @@ public partial class GemGUI : Control
 		}
 		crystalSystem.Select(22);//-3rhomb
 		SetCrystalSystem(22);
-		crystal.CallDeferred("UpdateFromParameters");
-		crystal.CallDeferred("UpdateMesh");
-		CallDeferred("UpdateCrystalData", true);
+		crystal.OnGenerationFinished += FirstUpdate;
+		crystal.OnGenerationFinished += UpdateCrystalData;
+		crystal.CallDeferred("StartMeshUpdate");
+
+		void FirstUpdate()
+		{
+			crystal.OnGenerationFinished -= FirstUpdate;
+			UpdateCrystalData(true);
+			crystal.UpdateFromParameters();
+		}
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -95,7 +102,6 @@ public partial class GemGUI : Control
 				dif = -.1f;
 			scaleSlider.Value += dif;
 		}
-
 	}
 
 	public void SetAutoUpdate(bool update)
@@ -151,8 +157,13 @@ public partial class GemGUI : Control
 		float[] parameters = SymmetryOperations.GetParametersForPointGroup(crystal.PointGroup);
 		for (int i = 0; i < 6; i++)
 			crystalParams[i].SetValueNoSignal(parameters[i]);
-		CheckParamUpdate();
-		crystal.CallDeferred("UpdateMesh");
+		void UpdateParamsOnce()
+		{
+			crystal.OnGenerationFinished -= UpdateParamsOnce;
+			CheckParamUpdate();
+		}
+		crystal.OnGenerationFinished += UpdateParamsOnce;
+		crystal.CallDeferred("StartMeshUpdate");
 	}
 	public void SetCullBackface(bool cull)
 	{
@@ -223,6 +234,7 @@ public partial class GemGUI : Control
 		{
 		}
 	}
+	public void UpdateCrystalData() => UpdateCrystalData(false);//For easier signal calling
 	public void UpdateCrystalData(bool skipCheck = false)
 	{
 		if (dataText.IsVisibleInTree() == false && skipCheck == false)//These calculations can be expensive so we don't do it if we don't need to.
@@ -246,7 +258,6 @@ public partial class GemGUI : Control
 		updatedParamsThisFrame = true;
 
 		crystal.CallDeferred("UpdateFromParameters");
-		CallDeferred("UpdateCrystalData", false);
 	}
 	private void CheckNormUpdate()
 	{
@@ -254,8 +265,7 @@ public partial class GemGUI : Control
 			return;
 		updatedNormsThisFrame = true;
 
-		crystal.CallDeferred("UpdateMesh");
-		CallDeferred("UpdateCrystalData", false);
+		crystal.CallDeferred("StartMeshUpdate");
 	}
 	public void SetA(float a) { crystal.aLength = a; CheckParamUpdate(); }
 	public void SetB(float b) { crystal.bLength = b; CheckParamUpdate(); }
