@@ -238,7 +238,9 @@ public partial class GemGUI : Control
 	public void UpdateCrystalData(bool skipCheck = false)
 	{
 		if (dataText.IsVisibleInTree() == false && skipCheck == false)//These calculations can be expensive so we don't do it if we don't need to.
+		{
 			return;//We call this method manually when the data tab is switched onto so that the data is always fresh when visible. After that we auto update.
+		}
 		string areaString = "";
 		double[] areas = crystal.GetSurfaceAreaGroups();
 		for (int i = 0; i < areas.Length; i++)
@@ -364,6 +366,8 @@ public partial class GemGUI : Control
 		distances.RemoveAt(idx);
 		crystal.Normals = normals.ToArray();
 		crystal.Distances = distances.ToArray();
+
+		crystal.materialList.RemoveAt(idx);
 
 		CheckNormUpdate();
 	}

@@ -718,7 +718,7 @@ text = "+"
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/B" to="." method="SetCameraRotation" binds= ["b"]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/C" to="." method="SetCameraRotation" binds= ["c"]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/ABC" to="." method="SetCameraRotation" binds= ["abc"]]
-[connection signal="visibility_changed" from="HBoxContainer/DockableContainer/Stats" to="." method="UpdateCrystalData" binds= [false]]
+[connection signal="visibility_changed" from="HBoxContainer/DockableContainer/Stats" to="." method="UpdateCrystalData" binds= [true]]
 [connection signal="item_selected" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/SymmetryType/OptionButton" to="." method="SetCrystalSystem"]
 [connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/A" to="." method="SetA"]
 [connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/B" to="." method="SetB"]

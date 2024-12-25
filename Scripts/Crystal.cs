@@ -797,8 +797,8 @@ public class Crystal
     for (int i = 0; i < transformedFaces.Count - 1; i += 3)
     {
       Vector3d v1 = transformedFaces[i];
-      Vector3d v2 = transformedFaces[i + 1];
-      Vector3d v3 = transformedFaces[i + 2];//these 3 are one tri in the mesh
+      Vector3d v2 = transformedFaces[i + 2];//Swapped because STL uses other direction
+      Vector3d v3 = transformedFaces[i + 1];//these 3 are one tri in the mesh
 
       Vector3d normal = CalculateNormal(v1, v2, v3);
 

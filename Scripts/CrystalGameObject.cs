@@ -233,6 +233,11 @@ public partial class CrystalGameObject : MeshInstance3D
 		ArrayMesh mesh = CreateArrayMeshFromCrystal(crystal);
 		Mesh = mesh;
 
+		UpdateMaterials();
+	}
+
+	public void UpdateMaterials()
+	{
 		if (crystal.initialNormals.Count > materialList.Count)
 		{
 			for (int i = materialList.Count; i < crystal.initialNormals.Count; i++)
@@ -249,6 +254,7 @@ public partial class CrystalGameObject : MeshInstance3D
 				SetSurfaceOverrideMaterial(surfaceOverrideIndex, materialList[materialIndex]);
 			}
 		}
+
 	}
 
 	public void UpdateFromParameters()
