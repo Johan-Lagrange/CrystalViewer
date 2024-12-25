@@ -123,7 +123,19 @@ public partial class CrystalGameObject : MeshInstance3D
 	}
 	public void ExportOBJ(string filename)
 	{
-		crystal.ExportOBJ(filename, GodotCompatability.BasisToMatrix(this.Basis));
+		List<Crystal.CrystalMaterial> exportMaterials = new();
+		foreach (StandardMaterial3D mat in materialList)
+		{
+			Crystal.CrystalMaterial exportMaterial = new Crystal.CrystalMaterial();
+			exportMaterial.r = mat.AlbedoColor.R;
+			exportMaterial.g = mat.AlbedoColor.G;
+			exportMaterial.b = mat.AlbedoColor.B;
+			exportMaterial.a = mat.AlbedoColor.A;
+			exportMaterial.roughness = mat.Roughness;
+			exportMaterial.refraction = mat.RefractionScale;
+			exportMaterials.Add(exportMaterial);
+		}
+		crystal.ExportOBJ(filename, exportMaterials.ToArray(), GodotCompatability.BasisToMatrix(this.Basis));
 	}
 	private ArrayMesh CreateArrayMeshFromCrystal(Crystal c)
 	{

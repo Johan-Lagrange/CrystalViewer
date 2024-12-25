@@ -516,6 +516,9 @@ public class Crystal
 
     if (initialIndex < 0 || initialIndex >= initialNormals.Count)//Out of bounds
       return -1;
+    if (faceGroups.Count == initialNormals.Count)
+      return initialIndex;//No surfaces were removed so we don't need to do any extra checks
+
     Planed plane = new Planed(initialNormals[initialIndex], initialDistances[initialIndex]);
 
     int skipped = 0;
@@ -782,12 +785,12 @@ public class Crystal
 
     m ??= Vector3d.BasisIdentity;
 
-    if (fileName.EndsWith(".stl") == false && fileName.EndsWith("stl"))
+    if (fileName.EndsWith(".stl"))
+      fileName = fileName.Substr(0, fileName.Length - 4);//We add it later and need the default name
+    if (fileName.EndsWith("stl"))
       fileName = fileName.Substr(0, fileName.Length - 3);//The dialog adds an extra stl for some reason
-    if (fileName.EndsWith(".stl") == false)
-      fileName += ".stl";
 
-    using System.IO.StreamWriter writer = new System.IO.StreamWriter(fileName);
+    using System.IO.StreamWriter writer = new System.IO.StreamWriter(fileName + ".stl");
 
     List<Vector3d> transformedFaces = new List<Vector3d>();//Every 3 vertices is a new tri
 
@@ -804,7 +807,7 @@ public class Crystal
       transformedFaces[i] = m * transformedFaces[i];
 
     fileName = fileName.Split("/").Last();//Trim directories from filename for internal name
-    writer.WriteLine("solid " + fileName.Substring(0, fileName.Length - 4));//Trim out .stl tag
+    writer.WriteLine("solid " + fileName);
     for (int i = 0; i < transformedFaces.Count - 1; i += 3)
     {
       Vector3d v1 = transformedFaces[i];
@@ -830,27 +833,37 @@ public class Crystal
   /// <param name="fileName">Name of the file to save to</param>
   /// <param name="mesh">Crystal mesh, not transformed by any crystal parameters</param>
   /// <param name="m">3x3 transformation matrix/Crystal parameters to transform the mesh by</param>
-  public void ExportOBJ(string fileName, Vector3d[] m = null)
+  public void ExportOBJ(string fileName, CrystalMaterial[] materials = null, Vector3d[] m = null)
   {
-    //https://en.wikipedia.org/wiki/Wavefront_.obj_file
-    /*
-    o (name)
-    v x y z <- referenced as 1
-    v x y z <- referenced as 2
-    n x y z <- referenced as 1
-    f v1 v2 v3 v4... 
-    f v1/uv1/n1 v2/uv2/n2 v3/uv3/n3... <- v, uv, and n are not in the file, just here for readability
-    f v1//n1 v2//n2 v3//n3... <- we use normals but not UVs so we leave the UV slot empty
-    */
 
     m ??= Vector3d.BasisIdentity;//can't set it to basis in params
 
-    if (fileName.EndsWith(".obj") == false && fileName.EndsWith("obj"))
-      fileName = fileName.Substr(0, fileName.Length - 3);//The dialog adds an extra stl for some reason
-    if (fileName.EndsWith(".obj") == false)
-      fileName += ".obj";
+    if (fileName.EndsWith(".obj"))
+      fileName = fileName.Substr(0, fileName.Length - 4);
+    if (fileName.EndsWith("obj"))
+      fileName = fileName.Substr(0, fileName.Length - 3);//The dialog adds an extra stl(no dot) for some reason
 
-    using System.IO.StreamWriter writer = new System.IO.StreamWriter(fileName);
+    fileName = fileName.Split("/").Last();// trim out directories and file tag
+
+    //Export materials
+    if (materials != null)
+    {
+      using System.IO.StreamWriter matWriter = new System.IO.StreamWriter(fileName + ".mtl");
+
+      for (int i = 0; i < materials.Length; i++)
+      {
+        CrystalMaterial mat = materials[i];
+        matWriter.WriteLine("newmtl " + FindSurfaceMadeByIndex(i));
+        matWriter.WriteLine($"Kd {mat.r} {mat.g} {mat.b}");
+        matWriter.WriteLine($"Ks 1 1 1");//Fully white shines. Gives glassy look, but inaccurate for metals
+        matWriter.WriteLine($"Ns {Math.Pow(1000, mat.roughness * 2) / 1000f}");//specular exponent. between 0.001 and 1000
+        matWriter.WriteLine($"d {mat.a}");//Transparency
+        matWriter.WriteLine($"Tr {1 - mat.a}");//Also transparency
+        matWriter.WriteLine($"Tf {mat.r} {mat.g} {mat.b}");//Transmitted light color
+        matWriter.WriteLine($"Ni {Math.Pow(1000, mat.refraction + 1) / 1000f}");//refraction. between 0.001 and 1000
+
+      }
+    }
 
     //Transform and index each vertex.
     // We index each normal after we add the vertices
@@ -872,6 +885,7 @@ public class Crystal
           if (vertexDict.ContainsKey(tv) == false)
             vertexDict.Add(tv, vertexIndex++);
         }
+        newFace.Reverse();//obj files use other direction for normals
         transformedFaces.Add(newFace);
       }
       transformedFaceGroups.Add(transformedFaces);
@@ -889,20 +903,37 @@ public class Crystal
       }
     }
 
-    fileName = fileName.Split("/").Last();
-    writer.WriteLine("o " + fileName.Substring(0, fileName.Length - 4));//Object name & trim out .obj tag
+    //https://en.wikipedia.org/wiki/Wavefront_.obj_file
+    /*
+    mtllib (material file name).mtl
+    o (name)
+    v x y z <- referenced as 1 (vertices)
+    v x y z <- referenced as 2
+    n x y z <- referenced as 1 (normals)
+    s 0 <- no smooth shading on these faces
+    f v1 v2 v3 v4... 
+    f v1/uv1/n1 v2/uv2/n2 v3/uv3/n3... <- v, uv, and n are not in the file, just here for readability
+    f v1//n1 v2//n2 v3//n3... <- we use normals but not UVs so we leave the UV slot empty
+    */
+    using System.IO.StreamWriter objWriter = new System.IO.StreamWriter(fileName + ".obj");
 
+    if (materials != null)
+      objWriter.WriteLine($"mtllib {fileName}.mtl");
+
+    objWriter.WriteLine("o " + fileName);//Object name
     //Create list of vertices and normals in file
     foreach (Vector3d v in vertexDict.Keys)
-      writer.WriteLine($"v {v.X} {v.Y} {v.Z} #v{vertexDict[v]}");
+      objWriter.WriteLine($"v {v.X} {v.Y} {v.Z} #v{vertexDict[v]}");
     foreach (Vector3d n in normalDict.Keys)
-      writer.WriteLine($"vn {n.X} {n.Y} {n.Z} #v{normalDict[n]}");
+      objWriter.WriteLine($"vn {n.X} {n.Y} {n.Z} #v{normalDict[n]}");
 
-    writer.WriteLine("s " + 0);//No smooth shading
-    int groupNum = 1;
+    objWriter.WriteLine("s " + 0);//No smooth shading
+    int groupNum = 0;
     foreach (List<List<Vector3d>> faceGroup in transformedFaceGroups)
     {
-      writer.WriteLine("g " + groupNum++);
+      if (materials != null)
+        objWriter.WriteLine($"usemtl {groupNum}");
+      objWriter.WriteLine($"g {groupNum}");
 
       foreach (List<Vector3d> face in faceGroup)
       {
@@ -916,13 +947,20 @@ public class Crystal
         string str = "f";
         for (int i = 0; i < face.Count; i++)//Add vertex and normal for each vertex on face
           str += $" {vertexDict[face[i]]}//{n}";//The leading space is intentional
-        writer.WriteLine(str);
+        objWriter.WriteLine(str);
       }
+      groupNum++;
     }
   }
   #endregion exports
 
   #region classes
+
+  public struct CrystalMaterial
+  {
+    //All values between 0 and 1 except refraction which is -1 to 1
+    public float r, g, b, a, roughness, refraction;
+  }
   /// <summary>
   /// The vertex of a crystal. Stores position and adjacent faces for determining edges.
   /// </summary>
