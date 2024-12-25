@@ -285,7 +285,7 @@ public class Crystal
   /// <param name="planeGroups">The planes to find the intersection points of.</param>
   /// <param name="pointGroup">The point group to use for quick vertex generation of previously verified points.</param>
   /// <returns>A list of vertices with position and list of planes that intersect at that point. Can be more than three planes.</returns>
-  private static List<Vertex> GenerateVertices(List<List<Planed>> planeGroups)
+  private static List<Vertex> GenerateVertices(List<List<Planed>> planeGroups, bool allowParallel = true)
   {
     List<Planed> planes = planeGroups.SelectMany(plane => plane).ToList<Planed>();//Easier to iterate over
 
@@ -311,10 +311,19 @@ public class Crystal
         //We know the vertex is valid at this point
         faceVertices.TryAdd(vertexToVerify.point, vertexToVerify);
       }
-
     }
-    // triplets = triplets.AsParallel().Select(triplet => Planed.Intersect3(triplet.Item1, triplet.Item2, triplet.Item3) != null);
-    Parallel.ForEach(GetUniqueTriplets(planes), triplet => GenerateVertex(triplet));
+
+    if (allowParallel && planes.Count > 30)//Only use parallel on cases where it would really help
+    {
+      Parallel.ForEach(GetUniqueTriplets(planes), triplet => GenerateVertex(triplet));
+    }
+    else
+    {
+      foreach (Tuple<Planed, Planed, Planed> triplet in GetUniqueTriplets(planes))
+      {
+        GenerateVertex(triplet);
+      }
+    }
 
     return faceVertices.Values.ToList();
   }
