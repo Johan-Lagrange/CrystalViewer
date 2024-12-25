@@ -782,6 +782,8 @@ public class Crystal
 
     m ??= Vector3d.BasisIdentity;
 
+    if (fileName.EndsWith(".stl") == false && fileName.EndsWith("stl"))
+      fileName = fileName.Substr(0, fileName.Length - 3);//The dialog adds an extra stl for some reason
     if (fileName.EndsWith(".stl") == false)
       fileName += ".stl";
 
@@ -801,7 +803,7 @@ public class Crystal
     for (int i = 0; i < transformedFaces.Count; i++)
       transformedFaces[i] = m * transformedFaces[i];
 
-
+    fileName = fileName.Split("/").Last();//Trim directories from filename for internal name
     writer.WriteLine("solid " + fileName.Substring(0, fileName.Length - 4));//Trim out .stl tag
     for (int i = 0; i < transformedFaces.Count - 1; i += 3)
     {
@@ -843,6 +845,8 @@ public class Crystal
 
     m ??= Vector3d.BasisIdentity;//can't set it to basis in params
 
+    if (fileName.EndsWith(".obj") == false && fileName.EndsWith("obj"))
+      fileName = fileName.Substr(0, fileName.Length - 3);//The dialog adds an extra stl for some reason
     if (fileName.EndsWith(".obj") == false)
       fileName += ".obj";
 
@@ -885,6 +889,7 @@ public class Crystal
       }
     }
 
+    fileName = fileName.Split("/").Last();
     writer.WriteLine("o " + fileName.Substring(0, fileName.Length - 4));//Object name & trim out .obj tag
 
     //Create list of vertices and normals in file
