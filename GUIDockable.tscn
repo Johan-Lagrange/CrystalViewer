@@ -44,6 +44,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("10_rb28j")
 script = ExtResource("1_h6x1x")
 baseMaterial = ExtResource("2_aj0bt")
 dataText = NodePath("HBoxContainer/DockableContainer/Stats/ScrollContainer/VBoxContainer/DataText")
@@ -104,7 +105,6 @@ layout = SubResource("Resource_57lpa")
 [node name="Crystal Settings" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
 visible = false
 layout_mode = 2
-theme = ExtResource("10_rb28j")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Crystal Settings"]
 layout_mode = 2
@@ -272,7 +272,6 @@ _container = NodePath("../../../../..")
 [node name="Camera" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
 visible = false
 layout_mode = 2
-theme = ExtResource("10_rb28j")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Camera"]
 layout_mode = 2
@@ -394,7 +393,6 @@ text = "abc"
 visible = false
 layout_mode = 2
 size_flags_vertical = 4
-theme = ExtResource("10_rb28j")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Stats"]
 layout_mode = 2
@@ -413,13 +411,11 @@ Number of surfaces:"
 
 [node name="Axes" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
 layout_mode = 2
-theme = ExtResource("10_rb28j")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Axes"]
 z_index = 1
 z_as_relative = false
 layout_mode = 2
-theme = ExtResource("10_rb28j")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer"]
 layout_mode = 2
@@ -576,7 +572,7 @@ text = "c (z)"
 [node name="A" type="SpinBox" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "Length of the x/a axis"
+tooltip_text = "Length of the x or a axis"
 min_value = 0.01
 max_value = 2.0
 step = 0.01
@@ -586,7 +582,7 @@ select_all_on_focus = true
 [node name="B" type="SpinBox" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "Length of the y axis"
+tooltip_text = "Length of the y or b axis"
 min_value = 0.01
 max_value = 2.0
 step = 0.01
@@ -595,7 +591,7 @@ value = 1.0
 [node name="C" type="SpinBox" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "Length of the z axis"
+tooltip_text = "Length of the z or c axis (generally vertical except in trigonal, where abc is vertical)"
 min_value = 0.01
 max_value = 2.0
 step = 0.01
@@ -656,7 +652,6 @@ select_all_on_focus = true
 
 [node name="Normals" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
 layout_mode = 2
-theme = ExtResource("10_rb28j")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Normals"]
 layout_mode = 2
