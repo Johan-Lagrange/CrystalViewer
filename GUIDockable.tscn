@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bfrik23x564mp"]
+[gd_scene load_steps=15 format=3 uid="uid://bfrik23x564mp"]
 
 [ext_resource type="Script" path="res://Scripts/GemGUI.cs" id="1_h6x1x"]
 [ext_resource type="Material" uid="uid://2gdagefefm83" path="res://Assets/BaseSurfaceMaterial.tres" id="2_aj0bt"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout.gd" id="6_4vx5f"]
 [ext_resource type="Script" path="res://save_layout.gd" id="8_8vjc0"]
 [ext_resource type="Script" path="res://load_layout.gd" id="9_eqoey"]
+[ext_resource type="Theme" uid="uid://dtti7lh0rqtjo" path="res://Assets/Theme.tres" id="10_rb28j"]
 
 [sub_resource type="Resource" id="Resource_aqbdl"]
 resource_name = "Tabs"
@@ -103,6 +104,7 @@ layout = SubResource("Resource_57lpa")
 [node name="Crystal Settings" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
 visible = false
 layout_mode = 2
+theme = ExtResource("10_rb28j")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Crystal Settings"]
 layout_mode = 2
@@ -270,6 +272,7 @@ _container = NodePath("../../../../..")
 [node name="Camera" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
 visible = false
 layout_mode = 2
+theme = ExtResource("10_rb28j")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Camera"]
 layout_mode = 2
@@ -391,6 +394,7 @@ text = "abc"
 visible = false
 layout_mode = 2
 size_flags_vertical = 4
+theme = ExtResource("10_rb28j")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Stats"]
 layout_mode = 2
@@ -409,9 +413,13 @@ Number of surfaces:"
 
 [node name="Axes" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
 layout_mode = 2
+theme = ExtResource("10_rb28j")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Axes"]
+z_index = 1
+z_as_relative = false
 layout_mode = 2
+theme = ExtResource("10_rb28j")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer"]
 layout_mode = 2
@@ -604,22 +612,22 @@ columns = 3
 [node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = " α (yz)"
+text = " α (bc or yz)"
 
 [node name="Label2" type="Label" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = " β (xz)"
+text = " β (ac or xz)"
 
 [node name="Label3" type="Label" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "γ (xy)"
+text = "γ (ab or xy)"
 
 [node name="Alpha" type="SpinBox" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "Angle between the y and z axes"
+tooltip_text = "alpha: Angle between the y and z axes"
 min_value = 1.0
 max_value = 179.0
 value = 90.0
@@ -629,7 +637,7 @@ select_all_on_focus = true
 [node name="Beta" type="SpinBox" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "Angle between the x and z axes"
+tooltip_text = "beta: Angle between the x and z axes"
 min_value = 1.0
 max_value = 179.0
 value = 90.0
@@ -639,7 +647,7 @@ select_all_on_focus = true
 [node name="Gamma" type="SpinBox" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "Angle between the x and y axes"
+tooltip_text = "gamma: Angle between the x and y axes"
 min_value = 1.0
 max_value = 179.0
 value = 60.0
@@ -648,6 +656,7 @@ select_all_on_focus = true
 
 [node name="Normals" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
 layout_mode = 2
+theme = ExtResource("10_rb28j")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Normals"]
 layout_mode = 2
@@ -658,7 +667,7 @@ size_flags_horizontal = 3
 
 [node name="Label" type="Label" parent="HBoxContainer/DockableContainer/Normals/ScrollContainer/VBoxContainer"]
 layout_mode = 2
-text = "Face Normals:"
+text = "Face Normals / Miller Indices:"
 
 [node name="GridContainer" type="GridContainer" parent="HBoxContainer/DockableContainer/Normals/ScrollContainer/VBoxContainer"]
 layout_mode = 2

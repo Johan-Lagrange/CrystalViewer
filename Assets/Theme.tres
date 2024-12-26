@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=2 format=3 uid="uid://dtti7lh0rqtjo"]
+[gd_resource type="Theme" load_steps=3 format=3 uid="uid://dtti7lh0rqtjo"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wgl8a"]
 content_margin_left = 10.0
@@ -8,5 +8,12 @@ content_margin_bottom = 10.0
 bg_color = Color(0.1, 0.1, 0.1, 0.6)
 corner_detail = 1
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y7wnr"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+
 [resource]
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_wgl8a")
+ScrollContainer/styles/panel = SubResource("StyleBoxEmpty_y7wnr")
