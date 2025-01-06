@@ -56,13 +56,13 @@ public partial class GemGUI : Control
 		crystalSystem.Select(22);//-3rhomb
 		SetCrystalSystem(22);
 		crystal.OnGenerationFinished += FirstUpdate;
-		crystal.OnGenerationFinished += UpdateCrystalData;
+		crystal.OnGenerationFinished += UpdateCrystalStatistics;
 		crystal.CallDeferred("StartMeshUpdate");
 
 		void FirstUpdate()
 		{
 			crystal.OnGenerationFinished -= FirstUpdate;
-			UpdateCrystalData(true);
+			UpdateCrystalStatistics(skipWidgetVisibleCheck: true);
 			crystal.UpdateFromParameters();
 		}
 	}
@@ -76,13 +76,23 @@ public partial class GemGUI : Control
 		updatedNormsThisFrame = false;
 	}
 
-	public void ExportSTL(string output)
+	public void SaveCrystal(string path)
 	{
-		crystal.ExportSTL(output);
+
 	}
-	public void ExportOBJ(string output)
+
+	public void LoadCrystal(string path)
 	{
-		crystal.ExportOBJ(output);
+
+	}
+
+	public void ExportSTL(string path)
+	{
+		crystal.ExportSTL(path);
+	}
+	public void ExportOBJ(string path)
+	{
+		crystal.ExportOBJ(path);
 	}
 	public void GetDragInput(InputEvent @event)
 	{
@@ -234,10 +244,10 @@ public partial class GemGUI : Control
 		{
 		}
 	}
-	public void UpdateCrystalData() => UpdateCrystalData(false);//For easier signal calling
-	public void UpdateCrystalData(bool skipCheck = false)
+	public void UpdateCrystalStatistics() => UpdateCrystalStatistics(skipWidgetVisibleCheck: false);//For easier signal calling
+	public void UpdateCrystalStatistics(bool skipWidgetVisibleCheck = false)
 	{
-		if (dataText.IsVisibleInTree() == false && skipCheck == false)//These calculations can be expensive so we don't do it if we don't need to.
+		if (dataText.IsVisibleInTree() == false && skipWidgetVisibleCheck == false)//These calculations can be expensive so we don't do it if we don't need to.
 		{
 			return;//We call this method manually when the data tab is switched onto so that the data is always fresh when visible. After that we auto update.
 		}
@@ -371,4 +381,5 @@ public partial class GemGUI : Control
 
 		CheckNormUpdate();
 	}
+
 }

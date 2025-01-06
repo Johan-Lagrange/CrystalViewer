@@ -956,6 +956,14 @@ public class Crystal
 
   #region classes
 
+  //TODO integrate with UI and add constructor methods
+  public class CrystalSerialize
+  {
+    public string name;
+    public Vector3d[] normals;
+    public double[] distances;
+    public CrystalMaterial[] materials;
+  }
   public struct CrystalMaterial
   {
     //All values between 0 and 1 except refraction which is -1 to 1
