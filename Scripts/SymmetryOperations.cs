@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 public static class SymmetryOperations
 {
 	public enum PointGroup
@@ -45,8 +46,72 @@ public static class SymmetryOperations
 
 	public static string GetNameOfSymmetryClass(PointGroup group)
 	{
-		//Point group index corresponds with name index here
-		string[] names = new string[] {     
+		return names[(int)group];
+	}
+
+	/// <summary>
+	/// Takes an enum index and returns the name of the point group enum
+	/// </summary>
+	public static readonly string[] groupNames = new string[] {
+		"None",//This is just done as good practice.
+		"One", "BarOne", //Triclinic indices 1-2
+		"Two", "M", "TwoSlashM", //Monoclinic indices 3-5
+		"TwoTwoTwo", "MMTwo", "MMM", //Orthorhombic indices 6-8
+		"Four", "BarFour", "FourSlashM", "FourTwoTwo", "FourMM", "BarFourTwoM", "FourSlashMMM", //Tetragonal indices 9-15
+		"ThreeRhombohedral", "BarThreeRhombohedral", "ThreeTwoRhombohedral", "ThreeMRhombohedral", "BarThreeMRhombohedral",//Rhombohedral indices 16-20
+		"ThreeHexagonal", "BarThreeHexagonal", "ThreeOneTwoHexagonal", "ThreeTwoOneHexagonal", "ThreeMOneHexagonal", "ThreeOneMHexagonal", "BarThreeOneMHexagonal", "BarThreeMOneHexagonal", //Trigonal? indices 21-28
+		"Six", "BarSix", "SixSlashM", "SixTwoTwo", "SixMM", "BarSixMTwo", "SixSlashMMM", //Hexagonal indices 29-35
+		"TwoThree", "MBarThree", "FourThreeTwo", "BarFourThreeM", "MBarThreeM" //Cubic indices 36-40
+
+	};
+
+	public static readonly ReadOnlyDictionary<string, PointGroup> nameToGroup = new ReadOnlyDictionary<string, PointGroup>(new Dictionary<string, PointGroup>
+	{
+		["None"] = PointGroup.None,
+		["One"] = PointGroup.One,
+		["BarOne"] = PointGroup.BarOne,
+		["Two"] = PointGroup.Two,
+		["M"] = PointGroup.M,
+		["TwoSlashM"] = PointGroup.TwoSlashM,
+		["TwoTwoTwo"] = PointGroup.TwoTwoTwo,
+		["MMTwo"] = PointGroup.MMTwo,
+		["MMM"] = PointGroup.MMM,
+		["Four"] = PointGroup.Four,
+		["BarFour"] = PointGroup.BarFour,
+		["FourSlashM"] = PointGroup.FourSlashM,
+		["FourTwoTwo"] = PointGroup.FourTwoTwo,
+		["FourMM"] = PointGroup.FourMM,
+		["BarFourTwoM"] = PointGroup.BarFourTwoM,
+		["FourSlashMMM"] = PointGroup.FourSlashMMM,
+		["ThreeRhombohedral"] = PointGroup.ThreeRhombohedral,
+		["BarThreeRhombohedral"] = PointGroup.BarThreeRhombohedral,
+		["ThreeTwoRhombohedral"] = PointGroup.ThreeTwoRhombohedral,
+		["ThreeMRhombohedral"] = PointGroup.ThreeMRhombohedral,
+		["BarThreeMRhombohedral"] = PointGroup.BarThreeMRhombohedral,
+		["ThreeHexagonal"] = PointGroup.ThreeHexagonal,
+		["BarThreeHexagonal"] = PointGroup.BarThreeHexagonal,
+		["ThreeOneTwoHexagonal"] = PointGroup.ThreeOneTwoHexagonal,
+		["ThreeTwoOneHexagonal"] = PointGroup.ThreeTwoOneHexagonal,
+		["ThreeMOneHexagonal"] = PointGroup.ThreeMOneHexagonal,
+		["ThreeOneMHexagonal"] = PointGroup.ThreeOneMHexagonal,
+		["BarThreeOneMHexagonal"] = PointGroup.BarThreeOneMHexagonal,
+		["BarThreeMOneHexagonal"] = PointGroup.BarThreeMOneHexagonal,
+		["Six"] = PointGroup.Six,
+		["BarSix"] = PointGroup.BarSix,
+		["SixSlashM"] = PointGroup.SixSlashM,
+		["SixTwoTwo"] = PointGroup.SixTwoTwo,
+		["SixMM"] = PointGroup.SixMM,
+		["BarSixMTwo"] = PointGroup.BarSixMTwo,
+		["SixSlashMMM"] = PointGroup.SixSlashMMM,
+		["TwoThree"] = PointGroup.TwoThree,
+		["MBarThree"] = PointGroup.MBarThree,
+		["FourThreeTwo"] = PointGroup.FourThreeTwo,
+		["BarFourThreeM"] = PointGroup.BarFourThreeM,
+		["MBarThreeM"] = PointGroup.MBarThreeM
+	});
+
+	//Point group index corresponds with name index here
+	public static readonly string[] names = new string[] {     
 		//Just good practice
 		"Pedial",//None
 
@@ -106,9 +171,6 @@ public static class SymmetryOperations
 		 "Hextetrahedral",//BarFourThreeM
 		 "Hexoctahedral",//MBarThreeM
 		};
-
-		return names[(int)group];
-	}
 
 	/// <summary>
 	/// The list of EVERY POSSIBLE OPERATION within a point group that will yield the same shape back.

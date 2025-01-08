@@ -13,6 +13,7 @@ public class Crystal
 {
   public static readonly double threshold = 0.0000000001;
 
+  public readonly SymmetryOperations.PointGroup pointGroup;
   public readonly List<Vector3d> initialNormals;
   public readonly List<double> initialDistances;
 
@@ -72,6 +73,7 @@ public class Crystal
     if (distances.Count != initialNormals.Count)
       throw new ArgumentException("Every initial face must be given a distance!");
 
+    this.pointGroup = pointGroup;
     this.initialNormals = initialNormals;
     this.initialDistances = distances;
 
@@ -764,6 +766,20 @@ public class Crystal
   #endregion math
 
   #region exports
+
+  public void SaveCrystal(string path)
+  {
+    CrystalSerialize exportInfo = new();
+    exportInfo.name = path;//TODO extract name part.
+    exportInfo.spaceGroup = SymmetryOperations.names[(int)this.pointGroup];
+    exportInfo.normals = initialNormals.ToArray();
+    exportInfo.distances = initialDistances.ToArray();
+  }
+
+  public Crystal LoadCrystal(string path)
+  {
+    throw new NotImplementedException();
+  }
   /// <summary>
   /// Saves the mesh as an STL
   /// </summary>
@@ -960,6 +976,7 @@ public class Crystal
   public class CrystalSerialize
   {
     public string name;
+    public string spaceGroup;
     public Vector3d[] normals;
     public double[] distances;
     public CrystalMaterial[] materials;
