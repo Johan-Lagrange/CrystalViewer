@@ -2,6 +2,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Godot;
 
@@ -769,16 +771,69 @@ public class Crystal
 
   public void SaveCrystal(string path)
   {
+    if (path.EndsWith(".json"))
+      path = path.Substr(0, path.Length - 4);//We add it later and need the default name
+    if (path.EndsWith(".json"))
+      path = path.Substr(0, path.Length - 4);//We add it later and need the default name
+    if (path.EndsWith("json"))
+      path = path.Substr(0, path.Length - 3);//The dialog adds an extra stl for some reason
+
     CrystalSerialize exportInfo = new();
-    exportInfo.name = path;//TODO extract name part.
-    exportInfo.spaceGroup = SymmetryOperations.names[(int)this.pointGroup];
-    exportInfo.normals = initialNormals.ToArray();
-    exportInfo.distances = initialDistances.ToArray();
+    exportInfo.Name = path.Split("/").Last();
+    exportInfo.SpaceGroup = SymmetryOperations.names[(int)this.pointGroup];
+    exportInfo.Normals = initialNormals.ToArray();
+    exportInfo.Distances = initialDistances.ToArray();
+    string jsonString = JsonSerializer.Serialize(exportInfo);
+    using System.IO.StreamWriter writer = new System.IO.StreamWriter(path + ".json");
+    writer.Write(jsonString);
+  }
+  public void SaveCrystal(string path, CrystalMaterial[] materials, Vector3d axisAngles, Vector3d axisLengths)
+  {
+    GD.Print(path);
+    if (path.EndsWith(".json"))
+    {
+      GD.Print("HELLO");
+      path = path.Substr(0, path.Length - 5);//We add it later and need the default name}
+    }
+    if (path.EndsWith(".json"))
+      path = path.Substr(0, path.Length - 5);//We add it later and need the default name
+    if (path.EndsWith("json"))
+      path = path.Substr(0, path.Length - 4);//The dialog adds an extra stl for some reason
+    GD.Print(path);
+
+    CrystalSerialize exportInfo = new();
+    exportInfo.Name = path.Split("/").Last();
+    GD.Print(exportInfo.Name);
+    exportInfo.SpaceGroup = SymmetryOperations.groupNames[(int)this.pointGroup];
+    exportInfo.Materials = materials;
+    exportInfo.Normals = initialNormals.ToArray();
+    exportInfo.Distances = initialDistances.ToArray();
+    exportInfo.AxisAngles = axisAngles;
+    exportInfo.AxisLengths = axisLengths;
+    string jsonString = JsonSerializer.Serialize(exportInfo);
+    GD.Print(jsonString);
+    using System.IO.StreamWriter writer = new System.IO.StreamWriter(path + ".json");
+    writer.Write(jsonString);
   }
 
-  public Crystal LoadCrystal(string path)
+
+  public static Crystal LoadCrystal(string path)
   {
-    throw new NotImplementedException();
+    using System.IO.StreamReader reader = new System.IO.StreamReader(path);
+    string jsonString = reader.ReadLine();
+    CrystalSerialize importInfo = JsonSerializer.Deserialize<CrystalSerialize>(jsonString);
+    Crystal crystal = new Crystal(importInfo.Normals.ToList(), importInfo.Distances.ToList(), SymmetryOperations.nameToGroup[importInfo.SpaceGroup]);
+    return crystal;
+  }
+
+  public static Crystal LoadCrystal(string path, out CrystalSerialize data)
+  {
+    using System.IO.StreamReader reader = new System.IO.StreamReader(path);
+    string jsonString = reader.ReadLine();
+    data = JsonSerializer.Deserialize<CrystalSerialize>(jsonString);
+
+    Crystal crystal = new Crystal(data.Normals.ToList(), data.Distances.ToList(), SymmetryOperations.nameToGroup[data.SpaceGroup]);
+    return crystal;
   }
   /// <summary>
   /// Saves the mesh as an STL
@@ -801,6 +856,8 @@ public class Crystal
 
     m ??= Vector3d.BasisIdentity;
 
+    if (fileName.EndsWith(".stl"))
+      fileName = fileName.Substr(0, fileName.Length - 4);//We add it later and 
     if (fileName.EndsWith(".stl"))
       fileName = fileName.Substr(0, fileName.Length - 4);//We add it later and need the default name
     if (fileName.EndsWith("stl"))
@@ -870,13 +927,13 @@ public class Crystal
       {
         CrystalMaterial mat = materials[i];
         matWriter.WriteLine("newmtl " + FindSurfaceMadeByIndex(i));
-        matWriter.WriteLine($"Kd {mat.r} {mat.g} {mat.b}");
+        matWriter.WriteLine($"Kd {mat.R} {mat.G} {mat.B}");
         matWriter.WriteLine($"Ks 1 1 1");//Fully white shines. Gives glassy look, but inaccurate for metals
-        matWriter.WriteLine($"Ns {Math.Pow(1000, mat.roughness * 2) / 1000f}");//specular exponent. between 0.001 and 1000
-        matWriter.WriteLine($"d {mat.a}");//Transparency
-        matWriter.WriteLine($"Tr {1 - mat.a}");//Also transparency
-        matWriter.WriteLine($"Tf {mat.r} {mat.g} {mat.b}");//Transmitted light color
-        matWriter.WriteLine($"Ni {Math.Pow(1000, mat.refraction + 1) / 1000f}");//refraction. between 0.001 and 1000
+        matWriter.WriteLine($"Ns {Math.Pow(1000, mat.Roughness * 2) / 1000f}");//specular exponent. between 0.001 and 1000
+        matWriter.WriteLine($"d {mat.A}");//Transparency
+        matWriter.WriteLine($"Tr {1 - mat.A}");//Also transparency
+        matWriter.WriteLine($"Tf {mat.R} {mat.G} {mat.B}");//Transmitted light color
+        matWriter.WriteLine($"Ni {Math.Pow(1000, mat.Refraction + 1) / 1000f}");//refraction. between 0.001 and 1000
 
       }
     }
@@ -972,19 +1029,25 @@ public class Crystal
 
   #region classes
 
-  //TODO integrate with UI and add constructor methods
   public class CrystalSerialize
   {
-    public string name;
-    public string spaceGroup;
-    public Vector3d[] normals;
-    public double[] distances;
-    public CrystalMaterial[] materials;
+    public string Name { get; set; }
+    public string SpaceGroup { get; set; }
+    public Vector3d[] Normals { get; set; }
+    public double[] Distances { get; set; }
+    public CrystalMaterial[] Materials { get; set; }
+    public Vector3d AxisAngles { get; set; }
+    public Vector3d AxisLengths { get; set; }
   }
   public struct CrystalMaterial
   {
     //All values between 0 and 1 except refraction which is -1 to 1
-    public float r, g, b, a, roughness, refraction;
+    public float R { get; set; }
+    public float G { get; set; }
+    public float B { get; set; }
+    public float A { get; set; }
+    public float Roughness { get; set; }
+    public float Refraction { get; set; }
   }
   /// <summary>
   /// The vertex of a crystal. Stores position and adjacent faces for determining edges.

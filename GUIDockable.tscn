@@ -15,7 +15,7 @@
 resource_name = "Tabs"
 script = ExtResource("5_8ggax")
 names = PackedStringArray("Axes", "Crystal Settings", "Stats", "Camera")
-current_tab = 0
+current_tab = 1
 
 [sub_resource type="Resource" id="Resource_mv3pw"]
 resource_name = "Tabs"
@@ -82,6 +82,28 @@ access = 2
 filters = PackedStringArray(".stl")
 use_native_dialog = true
 
+[node name="CrystalSaveDialog" type="FileDialog" parent="."]
+auto_translate_mode = 1
+title = "Save crystal as a .json file"
+initial_position = 1
+size = Vector2i(743, 600)
+min_size = Vector2i(500, 500)
+access = 2
+filters = PackedStringArray(".json")
+use_native_dialog = true
+
+[node name="CrystalLoadDialog" type="FileDialog" parent="."]
+auto_translate_mode = 1
+title = "Open a File"
+initial_position = 1
+size = Vector2i(743, 600)
+min_size = Vector2i(500, 500)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray(".json")
+use_native_dialog = true
+
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -103,7 +125,6 @@ script = ExtResource("4_yvhcf")
 layout = SubResource("Resource_57lpa")
 
 [node name="Crystal Settings" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
-visible = false
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Crystal Settings"]
@@ -219,12 +240,10 @@ size_flags_horizontal = 8
 alignment = 1
 
 [node name="Save" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport"]
-visible = false
 layout_mode = 2
 text = "Save"
 
 [node name="Load" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport"]
-visible = false
 layout_mode = 2
 text = "Load"
 
@@ -410,6 +429,7 @@ Surface Area:
 Number of surfaces:"
 
 [node name="Axes" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
+visible = false
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/DockableContainer/Axes"]
@@ -701,12 +721,16 @@ text = "+"
 [connection signal="file_selected" from="BackgroundDialog" to="." method="SetBackgroundImage"]
 [connection signal="file_selected" from="ObjExportDialog" to="." method="ExportOBJ"]
 [connection signal="file_selected" from="StlExportDialog" to="." method="ExportSTL"]
+[connection signal="file_selected" from="CrystalSaveDialog" to="." method="SaveCrystal"]
+[connection signal="file_selected" from="CrystalLoadDialog" to="." method="LoadCrystal"]
 [connection signal="gui_input" from="HBoxContainer/DragArea" to="." method="GetDragInput"]
 [connection signal="toggled" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Update/CheckBox" to="." method="SetAutoUpdate"]
 [connection signal="color_changed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Color/ColorPickerButton" to="." method="SetColor" binds= [-1]]
 [connection signal="value_changed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Refraction/HSlider" to="." method="SetRefraction" binds= [-1]]
 [connection signal="value_changed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Roughness/HSlider" to="." method="SetRoughness" binds= [-1]]
 [connection signal="toggled" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/CullMode/CheckBox" to="." method="SetCullBackface"]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport/Save" to="CrystalSaveDialog" method="popup"]
+[connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport/Load" to="CrystalLoadDialog" method="popup"]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport/ExportStl" to="StlExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport/ExportObj" to="ObjExportDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/Background/SetBG" to="BackgroundDialog" method="popup" binds= [Rect2i(0, 0, 20, 20)]]
@@ -722,7 +746,6 @@ text = "+"
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/B" to="." method="SetCameraRotation" binds= ["b"]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/C" to="." method="SetCameraRotation" binds= ["c"]]
 [connection signal="pressed" from="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View/ABC" to="." method="SetCameraRotation" binds= ["abc"]]
-[connection signal="visibility_changed" from="HBoxContainer/DockableContainer/Stats" to="." method="UpdateCrystalData" binds= [true]]
 [connection signal="item_selected" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/SymmetryType/OptionButton" to="." method="SetCrystalSystem"]
 [connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/A" to="." method="SetA"]
 [connection signal="value_changed" from="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/GridContainer/B" to="." method="SetB"]

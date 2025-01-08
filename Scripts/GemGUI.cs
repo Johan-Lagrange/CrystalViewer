@@ -78,12 +78,22 @@ public partial class GemGUI : Control
 
 	public void SaveCrystal(string path)
 	{
-
+		crystal.SaveCrystal(path);
 	}
 
 	public void LoadCrystal(string path)
 	{
-
+		Crystal loadedCrystal = crystal.LoadCrystal(path);
+		RemoveAllNormals();
+		for (int i = 0; i < loadedCrystal.initialNormals.Count; i++)
+		{
+			AddNewNormal();
+			Vector3 normal = GodotCompatability.DoubleToGD(loadedCrystal.initialNormals[i]);
+			float distance = (float)loadedCrystal.initialDistances[i];
+			SetNormals(i, normal, distance);
+			listItems[i].colorButton.Color = crystal.materialList[i].AlbedoColor;
+		}
+		crystalSystem.Select((int)loadedCrystal.pointGroup * 10);
 	}
 
 	public void ExportSTL(string path)
@@ -380,6 +390,12 @@ public partial class GemGUI : Control
 		crystal.materialList.RemoveAt(idx);
 
 		CheckNormUpdate();
+	}
+
+	public void RemoveAllNormals()
+	{
+		while (listItems.Count > 0)
+			RemoveNormals(0);
 	}
 
 }
