@@ -21,6 +21,8 @@ public partial class GemGUI : Control
 	SpinBox[] crystalParams = new SpinBox[6];
 	[Export]
 	Range scaleSlider;
+	private Crystal loadedCrystal;
+
 	private Color baseColor;
 	private bool rotate = false;
 	private bool autoUpdate = true;
@@ -63,7 +65,7 @@ public partial class GemGUI : Control
 		{
 			crystal.OnGenerationFinished -= FirstUpdate;
 			UpdateCrystalStatistics(skipWidgetVisibleCheck: true);
-			crystal.UpdateFromParameters();
+			//crystal.UpdateFromParameters();
 		}
 	}
 
@@ -81,19 +83,46 @@ public partial class GemGUI : Control
 		crystal.SaveCrystal(path);
 	}
 
+	/// <summary>
+	/// Loads a crystal in json format into the viewer
+	/// </summary>
+	/// <param name="path">The file path of the .json crystal to load</param>
 	public void LoadCrystal(string path)
 	{
-		Crystal loadedCrystal = crystal.LoadCrystal(path);
+		//Make sure we don't prematurely update
+		updatedNormsThisFrame = true;
+		updatedParamsThisFrame = true;
+
+		//Do all the initial loading and generate crystal
+		loadedCrystal = crystal.LoadCrystal(path);
+		//Duplicate the loaded material list as the crystal's one will be overwritten
+		List<StandardMaterial3D> loadedMaterialList = new List<StandardMaterial3D>(crystal.materialList);
+
+		//Remove old normals
 		RemoveAllNormals();
+		//Replace old normals with new ones
 		for (int i = 0; i < loadedCrystal.initialNormals.Count; i++)
 		{
-			AddNewNormal();
-			Vector3 normal = GodotCompatability.DoubleToGD(loadedCrystal.initialNormals[i]);
+			Vector3 normal = GodotCompatability.DoubleToGD(loadedCrystal.
+				initialNormals[i]);
+			GD.Print("Loaded Normal: " + normal);
 			float distance = (float)loadedCrystal.initialDistances[i];
-			SetNormals(i, normal, distance);
-			listItems[i].colorButton.Color = crystal.materialList[i].AlbedoColor;
+			GD.Print("MatlistLoadCrystal " + loadedMaterialList.Count);
+			AddNewNormal(normal, distance, loadedMaterialList[i].AlbedoColor);
+			crystal.Normals[i] = normal;
+			crystal.Distances[i] = distance;
+
 		}
-		crystalSystem.Select((int)loadedCrystal.pointGroup * 10);
+		crystal.materialList = loadedMaterialList;
+		void UpdateAfterLoad()
+		{
+			crystal.OnGenerationFinished -= UpdateAfterLoad;
+			UpdateCrystalStatistics(skipWidgetVisibleCheck: true);
+		}
+		crystalSystem.Select(SpaceGroupToSpinnerIndex(loadedCrystal.pointGroup));
+		SetCrystalSystem(SpaceGroupToSpinnerIndex(loadedCrystal.pointGroup));
+		//^ this is the line that actually updates the crystal
+		crystal.OnGenerationFinished += UpdateAfterLoad;
 	}
 
 	public void ExportSTL(string path)
@@ -295,7 +324,23 @@ public partial class GemGUI : Control
 	public void SetAlpha(float alpha) { crystal.alpha = alpha; CheckParamUpdate(); }
 	public void SetBeta(float beta) { crystal.beta = beta; CheckParamUpdate(); }
 	public void SetGamma(float gamma) { crystal.gamma = gamma; CheckParamUpdate(); }
+
+	/// <summary>
+	/// Creates a new normal with default values
+	/// </summary>
 	public void AddNewNormal()
+	{
+		AddNewNormal(Vector3.One, 1, baseColor);
+	}
+
+	/// <summary>
+	/// Creates a new normal and sets values after creation 
+	/// without triggering any signals
+	/// </summary>
+	/// <param name="normal">Direction of the normal</param>
+	/// <param name="distance">Distance of the normal from the center</param>
+	/// <param name="color">Color of this normal and all reflected faces</param>
+	public void AddNewNormal(Vector3 normal, float distance, Color color)
 	{
 		VectorListItem listItem = new VectorListItem();
 		listItem.index = listItems.Count;
@@ -318,14 +363,12 @@ public partial class GemGUI : Control
 		listItem.colorButton = c;
 		listItem.button = x;
 
-		Color color = baseColor;
-
 		//Material already exists and may hold color we added previously
 		//We want to reflect that in the GUI so we set the color of the element we add to that color instead of the default color.
 		if (listItem.index < crystal.materialList.Count)
 			color = crystal.materialList[listItem.index].AlbedoColor;
 
-		listItem.SetValues(Vector3.One, 1, color);
+		listItem.SetValues(normal, distance, color);
 
 		SetNormals(listItem.index, listItem.vector, listItem.distance);
 
@@ -348,6 +391,13 @@ public partial class GemGUI : Control
 		vectorList.AddChild(c);
 		vectorList.AddChild(x);
 	}
+
+	/// <summary>
+	/// Sets the values of a face
+	/// </summary>
+	/// <param name="idx">Index of the normal to set</param>
+	/// <param name="normal">Direction the normal is facing</param>
+	/// <param name="distance">Distance of the face from the center</param>
 	public void SetNormals(int idx, Vector3 normal, float distance)
 	{
 		if (normal.IsZeroApprox() || distance == 0)
@@ -366,6 +416,11 @@ public partial class GemGUI : Control
 		crystal.Distances[idx] = distance;
 		CheckNormUpdate();
 	}
+
+	/// <summary>
+	/// Remove a normal from the list. Shift all later normals back one.
+	/// </summary>
+	/// <param name="idx">Index of the normal to remove</param>
 	public void RemoveNormals(int idx)
 	{
 		listItems[idx].boxes[0].QueueFree();
@@ -387,15 +442,51 @@ public partial class GemGUI : Control
 		crystal.Normals = normals.ToArray();
 		crystal.Distances = distances.ToArray();
 
-		crystal.materialList.RemoveAt(idx);
+		if (crystal.materialList.Count > idx)
+			crystal.materialList.RemoveAt(idx);
 
 		CheckNormUpdate();
 	}
 
+	/// <summary>
+	/// Removes all normals from the list of faces
+	/// </summary>
 	public void RemoveAllNormals()
 	{
 		while (listItems.Count > 0)
-			RemoveNormals(0);
+			RemoveNormals(listItems.Count - 1);
 	}
 
+	/// <summary>
+	/// Converts between space group numbers to its corresponding spot in the UI spinner, which has gaps for the names of each group.
+	/// </summary>
+	/// <param name="group">Initial group enum</param>
+	/// <returns>The group's index in the UI spinner</returns>
+	private int SpaceGroupToSpinnerIndex(SymmetryOperations.PointGroup group)
+	{
+		int number = (int)group;
+		switch (number)
+		{
+			case 0:
+				return number;
+			case 1 or 2:
+				return number + 1;//Triclinic
+			case 3 or 4 or 5:
+				return number + 2;//Monoclinic. Again monoclinic has b as the wacky axis
+			case 6 or 7 or 8:
+				return number + 3;//Orthorhombic
+			case >= 9 and <= 15:
+				return number + 4; //Tetragonal
+			case >= 16 and <= 20:
+				return number + 5;
+			case >= 21 and <= 28:
+				return number + 6; //Trigonal
+			case >= 29 and <= 35:
+				return number + 7; //Hexagonal
+			case >= 36 and <= 40:
+				return number + 8;
+			default:
+				return number;
+		}
+	}
 }

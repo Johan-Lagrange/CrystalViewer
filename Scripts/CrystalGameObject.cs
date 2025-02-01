@@ -119,7 +119,10 @@ public partial class CrystalGameObject : MeshInstance3D
 	private void UpdateLatticeVectors()
 	{
 		if (usingLatticeVectors)
+		{
 			Basis = new Basis(aVector, bVector, cVector);
+			crystal.UnitCell = GodotCompatability.BasisToMatrix(this.Basis);
+		}
 		else
 			Basis = new Basis(Vector3.Right, Vector3.Up, Vector3.Forward);
 	}
@@ -135,18 +138,25 @@ public partial class CrystalGameObject : MeshInstance3D
 	{
 		Crystal.CrystalSerialize importMaterials;
 		crystal = Crystal.LoadCrystal(path, out importMaterials);
-		materialList = importMaterials.Materials.Select(mat => CrystalMaterialToGodotMaterial(mat)).ToList();
+
+		materialList = new List<StandardMaterial3D>();
+		foreach (Crystal.CrystalMaterial mat in importMaterials.Materials)
+		{
+			materialList.Add(CrystalMaterialToGodotMaterial(mat));
+		}
+		// materialList = importMaterials.Materials.Select(mat => CrystalMaterialToGodotMaterial(mat)).ToList();
+		GD.Print(materialList.Count);
 		return crystal;
 	}
 
 	public void ExportSTL(string filename)
 	{
-		crystal.ExportSTL(filename, GodotCompatability.BasisToMatrix(this.Basis));
+		crystal.ExportSTL(filename);
 	}
 	public void ExportOBJ(string filename)
 	{
 		Crystal.CrystalMaterial[] exportMaterials = materialList.Select(mat => GodotMaterialToCrystalMaterial(mat)).ToArray();
-		crystal.ExportOBJ(filename, exportMaterials.ToArray(), GodotCompatability.BasisToMatrix(this.Basis));
+		crystal.ExportOBJ(filename, exportMaterials.ToArray());
 	}
 
 	public Crystal.CrystalMaterial GodotMaterialToCrystalMaterial(StandardMaterial3D mat)
@@ -163,10 +173,9 @@ public partial class CrystalGameObject : MeshInstance3D
 	public StandardMaterial3D CrystalMaterialToGodotMaterial(Crystal.CrystalMaterial mat)
 	{
 		StandardMaterial3D output = (StandardMaterial3D)baseMaterial.Duplicate(true);
-		Crystal.CrystalMaterial crystalMaterial = new Crystal.CrystalMaterial();
-		output.AlbedoColor = new Color(crystalMaterial.R, crystalMaterial.G, crystalMaterial.B, crystalMaterial.A);
-		output.Roughness = crystalMaterial.Roughness;
-		output.RefractionScale = crystalMaterial.Refraction;
+		output.AlbedoColor = new Color(mat.R, mat.G, mat.B, mat.A);
+		output.Roughness = mat.Roughness;
+		output.RefractionScale = mat.Refraction;
 		return output;
 	}
 

@@ -40,6 +40,24 @@ public class Crystal
   /// </summary>
   public readonly List<List<List<Vector3d>>> faceGroups;
 
+  private Vector3d[] unitCell;
+  /// <summary>
+  /// 3x3 Linear transformation that determines how crystals are displayed.
+  /// Some crystals take more space to repeat in one direction
+  /// compared to another, or grow at an angle compared to another direction,
+  /// so transforming them allows us to use the same miller indices
+  ///  to describe crystals that are stretched and skewed.
+  /// </summary>
+  public Vector3d[] UnitCell
+  {
+    get { return unitCell; }
+    set
+    {
+      if (value.Length != 3) throw new ArgumentException("Unit cell parameters must be 3x3");
+      else unitCell = value;
+    }
+  }
+
   /// <summary>
   /// Generates a mesh from a list of face normals and distances that will be duplicated according to symmetry. Generates a convex hull using halfspaces
   /// </summary>
@@ -70,7 +88,8 @@ public class Crystal
   public Crystal(
       List<Vector3d> initialNormals,
       List<double> distances,
-      SymmetryOperations.PointGroup pointGroup)
+      SymmetryOperations.PointGroup pointGroup,
+      Vector3d[] unitCell = null)
   {
     if (distances.Count != initialNormals.Count)
       throw new ArgumentException("Every initial face must be given a distance!");
@@ -78,6 +97,8 @@ public class Crystal
     this.pointGroup = pointGroup;
     this.initialNormals = initialNormals;
     this.initialDistances = distances;
+    unitCell ??= Vector3d.BasisIdentity;
+    this.UnitCell = unitCell;
 
     Vector3d.ResetDebugLists();
     for (int i = 0; i < initialNormals.Count; i++)
@@ -317,7 +338,7 @@ public class Crystal
       }
     }
 
-    if (allowParallel && planes.Count > 30)//Only use parallel on cases where it would really help
+    if (allowParallel && planes.Count > 40)//Only use parallel on cases where it would really help
     {
       Parallel.ForEach(GetUniqueTriplets(planes), triplet => GenerateVertex(triplet));
     }
@@ -831,6 +852,7 @@ public class Crystal
     using System.IO.StreamReader reader = new System.IO.StreamReader(path);
     string jsonString = reader.ReadLine();
     data = JsonSerializer.Deserialize<CrystalSerialize>(jsonString);
+    GD.Print(JsonSerializer.Serialize(data));
 
     Crystal crystal = new Crystal(data.Normals.ToList(), data.Distances.ToList(), SymmetryOperations.nameToGroup[data.SpaceGroup]);
     return crystal;
@@ -840,8 +862,7 @@ public class Crystal
   /// </summary>
   /// <param name="fileName">Name of the file to save to</param>
   /// <param name="mesh">Crystal mesh, not transformed by any crystal parameters</param>
-  /// <param name="m">3x3 transformation matrix/Crystal parameters to transform the mesh by</param>
-  public void ExportSTL(string fileName, Vector3d[] m = null)
+  public void ExportSTL(string fileName)
   {
     /*
     solid [name]
@@ -854,7 +875,7 @@ public class Crystal
     endfacet
     endsolid [name]*/
 
-    m ??= Vector3d.BasisIdentity;
+    UnitCell ??= Vector3d.BasisIdentity;
 
     if (fileName.EndsWith(".stl"))
       fileName = fileName.Substr(0, fileName.Length - 4);//We add it later and 
@@ -877,7 +898,7 @@ public class Crystal
       }
     }
     for (int i = 0; i < transformedFaces.Count; i++)
-      transformedFaces[i] = m * transformedFaces[i];
+      transformedFaces[i] = UnitCell * transformedFaces[i];
 
     fileName = fileName.Split("/").Last();//Trim directories from filename for internal name
     writer.WriteLine("solid " + fileName);
@@ -905,11 +926,10 @@ public class Crystal
   /// </summary>
   /// <param name="fileName">Name of the file to save to</param>
   /// <param name="mesh">Crystal mesh, not transformed by any crystal parameters</param>
-  /// <param name="m">3x3 transformation matrix/Crystal parameters to transform the mesh by</param>
-  public void ExportOBJ(string fileName, CrystalMaterial[] materials = null, Vector3d[] m = null)
+  public void ExportOBJ(string fileName, CrystalMaterial[] materials = null)
   {
 
-    m ??= Vector3d.BasisIdentity;//can't set it to basis in params
+    UnitCell ??= Vector3d.BasisIdentity;//can't set it to basis in params
 
     if (fileName.EndsWith(".obj"))
       fileName = fileName.Substr(0, fileName.Length - 4);
@@ -953,7 +973,7 @@ public class Crystal
         List<Vector3d> newFace = new List<Vector3d>();
         foreach (Vector3d v in face)
         {
-          Vector3d tv = m * v;
+          Vector3d tv = UnitCell * v;
           newFace.Add(tv);//Apply matrix transform while adding
           if (vertexDict.ContainsKey(tv) == false)
             vertexDict.Add(tv, vertexIndex++);
