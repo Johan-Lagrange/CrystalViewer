@@ -1,7 +1,6 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 
@@ -91,7 +90,7 @@ public partial class CrystalGameObject : MeshInstance3D
 	public float GetSurfaceCount() => crystal.faces.Count;
 	public float GetSurfaceArea()
 	{
-		return (float)Crystal.CalculateTotalSurfaceArea(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
+		return (float)CrystalMath.CalculateTotalSurfaceArea(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
 	}
 	public double[] GetSurfaceAreaGroups()
 	{
@@ -102,13 +101,13 @@ public partial class CrystalGameObject : MeshInstance3D
 			if (faceGroupIndex == -1)
 				areas[i] = 0;
 			else
-				areas[i] = Crystal.CalculateTotalSurfaceArea(crystal.faceGroups[faceGroupIndex], GodotCompatability.BasisToMatrix(Basis));
+				areas[i] = CrystalMath.CalculateTotalSurfaceArea(crystal.faceGroups[faceGroupIndex], GodotCompatability.BasisToMatrix(Basis));
 		}
 		return areas;
 	}
 	public float GetVolume()
 	{
-		return (float)Crystal.CalculateVolume(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
+		return (float)CrystalMath.CalculateVolume(crystal.faces, GodotCompatability.BasisToMatrix(Basis));
 	}
 
 	public int FindSurfaceMadeByIndex(int initialIndex)
