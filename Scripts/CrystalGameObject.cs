@@ -143,6 +143,14 @@ public partial class CrystalGameObject : MeshInstance3D
 		{
 			materialList.Add(CrystalMaterialToGodotMaterial(mat));
 		}
+		Vector3 angles = GodotCompatability.DoubleToGD(importMaterials.AxisAngles);
+		alpha = angles.X;
+		beta = angles.Y;
+		gamma = angles.Z;
+		Vector3 lengths = GodotCompatability.DoubleToGD(importMaterials.AxisLengths);
+		aLength = lengths.X;
+		bLength = lengths.Y;
+		cLength = lengths.Z;
 		// materialList = importMaterials.Materials.Select(mat => CrystalMaterialToGodotMaterial(mat)).ToList();
 		GD.Print(materialList.Count);
 		return crystal;
@@ -281,8 +289,6 @@ public partial class CrystalGameObject : MeshInstance3D
 	{
 		EmitSignal("OnGenerationFinished");
 
-		UpdateAxes(_pointGroup);
-
 		ArrayMesh mesh = CreateArrayMeshFromCrystal(crystal);
 		Mesh = mesh;
 
@@ -345,7 +351,7 @@ public partial class CrystalGameObject : MeshInstance3D
 		sinGamma = Mathf.Sin(Mathf.DegToRad(gamma));
 		cosGamma = Mathf.Cos(Mathf.DegToRad(gamma));
 	}
-	private void UpdateAxes(SymmetryOperations.PointGroup pointGroup)
+	public void UpdateAxes(SymmetryOperations.PointGroup pointGroup)
 	{
 		float[] axes = SymmetryOperations.GetParametersForPointGroup(pointGroup);
 		aLength = axes[0];

@@ -18,7 +18,7 @@ public partial class GemGUI : Control
 	[Export]
 	OptionButton crystalSystem;
 	[Export]
-	SpinBox[] crystalParams = new SpinBox[6];
+	SpinBox[] crystalParams = new SpinBox[6];//a, b, c lengths, alpha, beta, gamma in degrees
 	[Export]
 	Range scaleSlider;
 	private Crystal loadedCrystal;
@@ -64,8 +64,8 @@ public partial class GemGUI : Control
 		void FirstUpdate()
 		{
 			crystal.OnGenerationFinished -= FirstUpdate;
+			crystal.UpdateAxes(crystal.PointGroup);
 			UpdateCrystalStatistics(skipWidgetVisibleCheck: true);
-			//crystal.UpdateFromParameters();
 		}
 	}
 
@@ -89,6 +89,12 @@ public partial class GemGUI : Control
 	/// <param name="path">The file path of the .json crystal to load</param>
 	public void LoadCrystal(string path)
 	{
+		void UpdateAfterLoad()
+		{
+			crystal.OnGenerationFinished -= UpdateAfterLoad;
+			crystal.UpdateFromParameters();//Reapply unit cell transformation in case it is different
+			UpdateCrystalStatistics(skipWidgetVisibleCheck: true);
+		}
 		//Make sure we don't prematurely update
 		updatedNormsThisFrame = true;
 		updatedParamsThisFrame = true;
@@ -105,25 +111,29 @@ public partial class GemGUI : Control
 		{
 			Vector3 normal = GodotCompatability.DoubleToGD(loadedCrystal.
 				initialNormals[i]);
-			GD.Print("Loaded Normal: " + normal);
+			//GD.Print("Loaded Normal: " + normal);
 			float distance = (float)loadedCrystal.initialDistances[i];
-			GD.Print("MatlistLoadCrystal " + loadedMaterialList.Count);
+			//GD.Print("MatlistLoadCrystal " + loadedMaterialList.Count);
 			AddNewNormal(normal, distance, loadedMaterialList[i].AlbedoColor);
 			crystal.Normals[i] = normal;
 			crystal.Distances[i] = distance;
 
 		}
 		crystal.materialList = loadedMaterialList;
-		void UpdateAfterLoad()
-		{
-			crystal.OnGenerationFinished -= UpdateAfterLoad;
-			UpdateCrystalStatistics(skipWidgetVisibleCheck: true);
-		}
+		crystal.PointGroup = loadedCrystal.pointGroup;
 		crystalSystem.Select(SpaceGroupToSpinnerIndex(loadedCrystal.pointGroup));
-		SetCrystalSystem(SpaceGroupToSpinnerIndex(loadedCrystal.pointGroup));
-		//^ this is the line that actually updates the crystal
+		crystalParams[0].SetValueNoSignal(crystal.aLength);
+		crystalParams[1].SetValueNoSignal(crystal.bLength);
+		crystalParams[2].SetValueNoSignal(crystal.cLength);
+		crystalParams[3].SetValueNoSignal(crystal.alpha);
+		crystalParams[4].SetValueNoSignal(crystal.beta);
+		crystalParams[5].SetValueNoSignal(crystal.gamma);
+
 		crystal.OnGenerationFinished += UpdateAfterLoad;
+		crystal.StartMeshUpdate();
+		//^ this is the line that actually updates the crystal
 	}
+
 
 	public void ExportSTL(string path)
 	{
@@ -202,13 +212,16 @@ public partial class GemGUI : Control
 	public void SetAxisScale(float scale) { axes.Scale = Vector3.One * scale; }
 	public void SetCrystalSystem(int num)
 	{
+		//Because group separators take an index, we go by 10s
 		crystal.PointGroup = (SymmetryOperations.PointGroup)(crystalSystem.GetItemId(num) / 10);
+
 		float[] parameters = SymmetryOperations.GetParametersForPointGroup(crystal.PointGroup);
 		for (int i = 0; i < 6; i++)
 			crystalParams[i].SetValueNoSignal(parameters[i]);
 		void UpdateParamsOnce()
 		{
 			crystal.OnGenerationFinished -= UpdateParamsOnce;
+			crystal.UpdateAxes(crystal.PointGroup);
 			CheckParamUpdate();
 		}
 		crystal.OnGenerationFinished += UpdateParamsOnce;
