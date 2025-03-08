@@ -7,8 +7,8 @@
 [ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout_panel.gd" id="5_8ggax"]
 [ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout_split.gd" id="6_0n1is"]
 [ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout.gd" id="6_4vx5f"]
-[ext_resource type="Script" path="res://save_layout.gd" id="8_8vjc0"]
-[ext_resource type="Script" path="res://load_layout.gd" id="9_eqoey"]
+[ext_resource type="Script" path="res://Scenes/save_layout.gd" id="8_8vjc0"]
+[ext_resource type="Script" path="res://Scripts/load_layout.gd" id="9_eqoey"]
 [ext_resource type="Theme" uid="uid://dtti7lh0rqtjo" path="res://Assets/Theme.tres" id="10_rb28j"]
 
 [sub_resource type="Resource" id="Resource_aqbdl"]
