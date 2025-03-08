@@ -1,0 +1,10 @@
+[gd_resource type="StyleBoxTexture" load_steps=2 format=3 uid="uid://be1y3qx8k7fdv"]
+
+[ext_resource type="Texture2D" uid="uid://dmsn5kpyspasj" path="res://Assets/UI Materials/ButtonGradientActive.tres" id="1_4m6k8"]
+
+[resource]
+content_margin_left = 3.0
+content_margin_top = 1.0
+content_margin_right = 3.0
+content_margin_bottom = 1.0
+texture = ExtResource("1_4m6k8")
