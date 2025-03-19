@@ -17,7 +17,7 @@ public static class CrystalGeneration
   public static List<List<Vector3d>> GenerateSymmetryGroups(IEnumerable<Vector3d> initialFaces, SymmetryOperations.PointGroup pointGroup)
   {
     List<List<Vector3d>> normalGroups = new List<List<Vector3d>>();//List of normals for each initial face that was duplicated by the symmetry group
-                                                                   //Reflect every given face along the given symmetry group
+    //Reflect every given face along the given symmetry group
     HashSet<Vector3d> vectorHashes = new() { };//For quick "does this exist" lookup. We don't want to add duplicate faces.
     foreach (Vector3d v in initialFaces)
     {
@@ -49,21 +49,6 @@ public static class CrystalGeneration
       ApplyOperation(vectorList, vectorHashes, Operation);
     }
 
-    // /*Hexagonal crystals don't render correctly unless we do this.
-    // I think it has to do with -Z being forward in Godot. 
-    // It's strange that no other shape groups have this issue though,
-    // May be because this is the only one that includes X and Y in one component.
-    // Messing around with the function and swapping variables didn't fix it.*/
-    if ((int)group >= 21 && (int)group <= 35)//Point groups that use the hexagonal method.
-    {
-      LinkedListNode<Vector3d> current = vectorList.First;
-      while (current != null)
-      {
-        Vector3d v2 = current.Value;
-        current.Value = new Vector3d(v2.x, -v2.y, v2.z);
-        current = current.Next;
-      }
-    }
     return vectorList.ToList<Vector3d>();
   }
 
