@@ -36,7 +36,7 @@ public static class SymmetryOperations
 			case >= 16 and <= 20:
 				return new float[] { 1, 1, 1, 60, 60, 60 };
 			case >= 21 and <= 35:
-				return new float[] { 1, 1, 1.5f, 90, 90, 90 }; //Trigonal and Hexagonal
+				return new float[] { 1, 1, 1.5f, 90, 90, 90 }; //Trigonal and Hexagonal (normally gamma=120 but that is broken on this)
 			case >= 36 and <= 40:
 				return new float[] { 1, 1, 1, 90, 90, 90 };
 			default:
@@ -266,22 +266,25 @@ public static class SymmetryOperations
 		new[] {TriXYZPos, TriXYZNeg, MirX_Y},//19 ThreeM Rhombohedral
 		new[] {TriXYZPos, TriXYZNeg, DiX_Y, Inv},//20 BarThreeM Rhombohedral
 
-		new[] {TriZPos90, TriZPos90}, //21 Three Hexagonal
-		new[] {TriZPos90, TriZPos90, Inv}, //22 BarThree Hexagonal
-		new[] {TriZPos90, TriZPos90, DiX_Y}, //23 ThreeOneTwo Hexagonal
-		new[] {TriZPos90, TriZPos90, DiXY}, //24 ThreeTwoOne Hexagonal
-		new[] {TriZPos90, TriZPos90, MirXY},//25 ThreeMOne Hexagonal
-		new[] {TriZPos90, TriZPos90, MirX_Y},//26 ThreeOneM Hexagonal
-		new[] {TriZPos90, TriZPos90, DiX_Y, Inv},//27 BarThreeOneM Hexagonal
-		new[] {TriZPos90, TriZPos90, DiXY, Inv},//28 BarThreeMOne Hexagonal
+		//These are broken and unused currently
+		//trizpos doesn't keep the same magnitude which breaks calculations
+		//and trizpos90 is incompatible with the other functions.
+		new[] {TriZPos, TriZNeg}, //21 Three Hexagonal
+		new[] {TriZPos, TriZNeg, Inv}, //22 BarThree Hexagonal
+		new[] {TriZPos, TriZNeg, DiX_Y}, //23 ThreeOneTwo Hexagonal
+		new[] {TriZPos, TriZNeg, DiXY}, //24 ThreeTwoOne Hexagonal
+		new[] {TriZPos, TriZNeg, MirXY},//25 ThreeMOne Hexagonal
+		new[] {TriZPos, TriZNeg, MirX_Y},//26 ThreeOneM Hexagonal
+		new[] {TriZPos, TriZNeg, DiX_Y, Inv},//27 BarThreeOneM Hexagonal
+		new[] {TriZPos, TriZNeg, DiXY, Inv},//28 BarThreeMOne Hexagonal
 
-		new[] {TriZPos90, TriZPos90, DiZ}, //29 Six
-		new[] {TriZPos90, TriZPos90, MirZ}, //30 BarSix
-		new[] {TriZPos90, TriZPos90, DiZ, Inv}, //31 SixSlashM
-		new[] {TriZPos90, TriZPos90, DiZ, DiXY}, //32 SixTwoTwo
-		new[] {TriZPos90, TriZPos90, DiZ, MirXY}, //33 SixMM
-		new[] {TriZPos90, TriZPos90, MirZ, MirXY}, //34 BarSixMTwo
-		new[] {TriZPos90, TriZPos90, DiZ, DiXY, Inv}, //35 SixSlashMMM
+		new[] {TriZPos90, TriZNeg90, DiZ}, //29 Six
+		new[] {TriZPos90, TriZNeg90, MirZ}, //30 BarSix
+		new[] {TriZPos90, TriZNeg90, DiZ, Inv}, //31 SixSlashM
+		new[] {TriZPos90, TriZNeg90, DiZ, DiXY}, //32 SixTwoTwo
+		new[] {TriZPos90, TriZNeg90, DiZ, MirXY}, //33 SixMM
+		new[] {TriZPos90, TriZNeg90, MirZ, MirXY}, //34 BarSixMTwo
+		new[] {TriZPos90, TriZNeg90, DiZ, DiXY, Inv}, //35 SixSlashMMM
 
 		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg}, //36 TwoThree
 		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg, Inv}, //37 MBarThree

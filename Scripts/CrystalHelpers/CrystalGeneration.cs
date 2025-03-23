@@ -125,7 +125,15 @@ public static class CrystalGeneration
 
       //Found to be a valid face
       if (valid == true)
-        planeGroups.AddLast(normals[faceGroup].Select(v => new Planed(v, distances[faceGroup])).ToList<Planed>());
+      {
+        List<Planed> planeGroup = new();
+        foreach (Vector3d v in normals[faceGroup])
+        {
+          planeGroup.Add(new Planed(v, distances[faceGroup]));
+        }
+        planeGroups.AddLast(planeGroup);
+      }
+      // planeGroups.AddLast(normals[faceGroup].Select(v => new Planed(v, distances[faceGroup])).ToList<Planed>()); /faster but less readable way of doing this
     }
     return planeGroups.ToList<List<Planed>>();
   }
