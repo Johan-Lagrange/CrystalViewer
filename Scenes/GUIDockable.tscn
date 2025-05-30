@@ -7,8 +7,8 @@
 [ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout_panel.gd" id="5_8ggax"]
 [ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout_split.gd" id="6_0n1is"]
 [ext_resource type="Script" path="res://godot-dockable-container-main/addons/dockable_container/layout.gd" id="6_4vx5f"]
-[ext_resource type="Script" path="res://save_layout.gd" id="8_8vjc0"]
-[ext_resource type="Script" path="res://load_layout.gd" id="9_eqoey"]
+[ext_resource type="Script" path="res://Scenes/save_layout.gd" id="8_8vjc0"]
+[ext_resource type="Script" path="res://Scripts/load_layout.gd" id="9_eqoey"]
 [ext_resource type="Theme" uid="uid://dtti7lh0rqtjo" path="res://Assets/Theme.tres" id="10_rb28j"]
 
 [sub_resource type="Resource" id="Resource_aqbdl"]
@@ -136,6 +136,7 @@ size_flags_horizontal = 6
 size_flags_vertical = 3
 
 [node name="Update" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 8
 alignment = 1
@@ -241,10 +242,14 @@ alignment = 1
 
 [node name="Save" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport"]
 layout_mode = 2
+tooltip_text = "Save the crystal as a .json file that can be shared and loaded.
+Face groups, symmetry type, colors, roughness, and axes are all saved and loadable."
 text = "Save"
 
 [node name="Load" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport"]
 layout_mode = 2
+tooltip_text = "Load the crystal from a .json file.
+Face groups, symmetry type, colors, roughness, and axes are all loadable."
 text = "Load"
 
 [node name="ExportStl" type="Button" parent="HBoxContainer/DockableContainer/Crystal Settings/ScrollContainer/File_Material/SaveLoadExport"]
@@ -340,6 +345,7 @@ text = "Show Axes:
 
 [node name="CheckBox" type="CheckBox" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/Show Axes"]
 layout_mode = 2
+tooltip_text = "Show the A, B, and C axes of the crystal."
 button_pressed = true
 
 [node name="AxisScale" type="HBoxContainer" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer"]
@@ -355,6 +361,7 @@ text = "Size of Axes:"
 [node name="HSlider" type="HSlider" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/AxisScale"]
 custom_minimum_size = Vector2(160.195, 0)
 layout_mode = 2
+tooltip_text = "How large the A, B, and C axes should show up as"
 min_value = 0.2
 max_value = 4.0
 step = 0.01
@@ -394,18 +401,26 @@ text = "View Along:"
 
 [node name="A" type="Button" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View"]
 layout_mode = 2
+tooltip_text = "View along the A axis of the crystal.
+Doesn't work well with orthogonal view."
 text = "a"
 
 [node name="B" type="Button" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View"]
 layout_mode = 2
+tooltip_text = "View along the B axis of the crystal.
+Doesn't work well with orthogonal view."
 text = "b"
 
 [node name="C" type="Button" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View"]
 layout_mode = 2
+tooltip_text = "View along the C axis of the crystal.
+Doesn't work well with orthogonal view."
 text = "c"
 
 [node name="ABC" type="Button" parent="HBoxContainer/DockableContainer/Camera/ScrollContainer/VBoxContainer/View"]
 layout_mode = 2
+tooltip_text = "View along the diagonal of the crystal.
+Doesn't work well with orthogonal view."
 text = "abc"
 
 [node name="Stats" type="PanelContainer" parent="HBoxContainer/DockableContainer"]
@@ -454,7 +469,9 @@ text = "Symmetry Type:"
 
 [node name="OptionButton" type="OptionButton" parent="HBoxContainer/DockableContainer/Axes/ScrollContainer/VBoxContainer/SymmetryType"]
 layout_mode = 2
-tooltip_text = "The list of symmetry operations to apply to the given faces"
+tooltip_text = "The space group of the crystal. 
+Each space group defines a list of symmetry operations that are applied to the given faces, which builds the crystal.
+Hexagonal is kinda buggy."
 action_mode = 1
 selected = 22
 fit_to_longest_item = false

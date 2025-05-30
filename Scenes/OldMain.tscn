@@ -1,8 +1,8 @@
-[gd_scene load_steps=26 format=4 uid="uid://b4fneptdt3hq3"]
+[gd_scene load_steps=26 format=4 uid="uid://c3p5r6pbvro7d"]
 
-[ext_resource type="PackedScene" uid="uid://bfrik23x564mp" path="res://GUIDockable.tscn" id="1_jtou2"]
-[ext_resource type="PackedScene" uid="uid://b226ro6gyacgx" path="res://Prefabs/CrystalGameObject.tscn" id="1_m7r4q"]
-[ext_resource type="Environment" uid="uid://7nfjkebtyooe" path="res://Prefabs/Environment.tres" id="2_s2r1g"]
+[ext_resource type="PackedScene" uid="uid://cfiw5qxv3027y" path="res://Scenes/GUI.tscn" id="1_j4g74"]
+[ext_resource type="Environment" uid="uid://7nfjkebtyooe" path="res://Prefabs/Environment.tres" id="2_1ae3u"]
+[ext_resource type="PackedScene" uid="uid://b226ro6gyacgx" path="res://Prefabs/CrystalGameObject.tscn" id="3_f1acs"]
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_0odm4"]
 _surfaces = [{
@@ -126,7 +126,7 @@ detail_albedo = SubResource("NoiseTexture2D_640kf")
 
 [node name="Main" type="Node"]
 
-[node name="GUIDockable" parent="." node_paths=PackedStringArray("environment", "camera", "crystalParent", "axes", "crystal") instance=ExtResource("1_jtou2")]
+[node name="GUI" parent="." node_paths=PackedStringArray("environment", "camera", "crystalParent", "axes", "crystal") instance=ExtResource("1_j4g74")]
 environment = NodePath("../WorldEnvironment")
 camera = NodePath("../Camera3D")
 crystalParent = NodePath("../CrystalParent")
@@ -134,21 +134,21 @@ axes = NodePath("../CrystalParent/Crystal/Axes")
 crystal = NodePath("../CrystalParent/Crystal")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = ExtResource("2_s2r1g")
+environment = ExtResource("2_1ae3u")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.899733, -0.338339, 0.275694, 0.0386735, 0.567397, 0.822536, -0.434724, 0.750725, -0.497421, 3.82342, 3.17909, -0.267141)
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(-0.984808, 0, 0.173648, 0, 1, 0, -0.173648, 0, -0.984808, 0, 0, -4)
-environment = ExtResource("2_s2r1g")
+environment = ExtResource("2_1ae3u")
 fov = 44.5157
 size = 6.576
 near = 0.001
 
 [node name="CrystalParent" type="Node3D" parent="."]
 
-[node name="Crystal" parent="CrystalParent" instance=ExtResource("1_m7r4q")]
+[node name="Crystal" parent="CrystalParent" instance=ExtResource("3_f1acs")]
 mesh = SubResource("ArrayMesh_0odm4")
 surface_material_override/0 = SubResource("StandardMaterial3D_px5o7")
 surface_material_override/1 = SubResource("StandardMaterial3D_cbtwg")

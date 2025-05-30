@@ -36,7 +36,7 @@ public static class SymmetryOperations
 			case >= 16 and <= 20:
 				return new float[] { 1, 1, 1, 60, 60, 60 };
 			case >= 21 and <= 35:
-				return new float[] { 1, 1, 1.5f, 90, 90, 120 }; //Trigonal and Hexagonal
+				return new float[] { 1, 1, 1.5f, 90, 90, 90 }; //Trigonal and Hexagonal (normally gamma=120 but that is broken on this)
 			case >= 36 and <= 40:
 				return new float[] { 1, 1, 1, 90, 90, 90 };
 			default:
@@ -266,22 +266,25 @@ public static class SymmetryOperations
 		new[] {TriXYZPos, TriXYZNeg, MirX_Y},//19 ThreeM Rhombohedral
 		new[] {TriXYZPos, TriXYZNeg, DiX_Y, Inv},//20 BarThreeM Rhombohedral
 
-		new[] {TriZPos, TriZNeg}, //21 Three Hexagonal
-		new[] {TriZPos, TriZNeg, Inv}, //22 BarThree Hexagonal
-		new[] {TriZPos, TriZNeg, DiX_Y}, //23 ThreeOneTwo Hexagonal
-		new[] {TriZPos, TriZNeg, DiXY}, //24 ThreeTwoOne Hexagonal
-		new[] {TriZPos, TriZNeg, MirXY},//25 ThreeMOne Hexagonal
-		new[] {TriZPos, TriZNeg, MirX_Y},//26 ThreeOneM Hexagonal
-		new[] {TriZPos, TriZNeg, DiX_Y, Inv},//27 BarThreeOneM Hexagonal
-		new[] {TriZPos, TriZNeg, DiXY, Inv},//28 BarThreeMOne Hexagonal
+		//These are broken and unused currently
+		//trizpos doesn't keep the same magnitude which breaks calculations
+		//and trizpos90 is incompatible with the other functions.
+		new[] {TriZPos90, TriZNeg90}, //21 Three Hexagonal
+		new[] {Inv, TriZPos90, TriZNeg90}, //22 BarThree Hexagonal
+		new[] {DiX_Y, TriZPos90, TriZNeg90}, //23 ThreeOneTwo Hexagonal
+		new[] {DiXY, TriZPos90, TriZNeg90}, //24 ThreeTwoOne Hexagonal
+		new[] {MirXY, TriZPos90, TriZNeg90},//25 ThreeMOne Hexagonal
+		new[] {MirX_Y, TriZPos90, TriZNeg90},//26 ThreeOneM Hexagonal
+		new[] {DiX_Y, Inv, TriZPos90, TriZNeg90},//27 BarThreeOneM Hexagonal
+		new[] {DiXY, Inv, TriZPos90, TriZNeg90},//28 BarThreeMOne Hexagonal
 
-		new[] {TriZPos, TriZNeg, DiZ}, //29 Six
-		new[] {TriZPos, TriZNeg, MirZ}, //30 BarSix
-		new[] {TriZPos, TriZNeg, DiZ, Inv}, //31 SixSlashM
-		new[] {TriZPos, TriZNeg, DiZ, DiXY}, //32 SixTwoTwo
-		new[] {TriZPos, TriZNeg, DiZ, MirXY}, //33 SixMM
-		new[] {TriZPos, TriZNeg, MirZ, MirXY}, //34 BarSixMTwo
-		new[] {TriZPos, TriZNeg, DiZ, DiXY, Inv}, //35 SixSlashMMM
+		new[] {DiZ, TriZPos90, TriZNeg90}, //29 Six
+		new[] {MirZ, TriZPos90, TriZNeg90}, //30 BarSix
+		new[] {DiZ, Inv, TriZPos90, TriZNeg90}, //31 SixSlashM
+		new[] {DiZ, DiXY, TriZPos90, TriZNeg90}, //32 SixTwoTwo
+		new[] {DiZ, MirXY, TriZPos90, TriZNeg90}, //33 SixMM
+		new[] {MirZ, MirXY, TriZPos90, TriZNeg90}, //34 BarSixMTwo
+		new[] {DiZ, DiXY, Inv, TriZPos90, TriZNeg90}, //35 SixSlashMMM
 
 		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg}, //36 TwoThree
 		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg, Inv}, //37 MBarThree
@@ -312,13 +315,24 @@ public static class SymmetryOperations
 	public static Vector3d TriYNeg(Vector3d v) => new(-v.X, v.Y, -v.X + v.Y);
 
 	//These commented methods use a rotation matrix, but is that much better? It only works with gamma=90 but our target is gamma=120. However the supplied versions don't seem to keep magnitude, whereas these do. These create perfectly hexagonal crystals, however.
-	// Math.Cos(2 * Math.PI / 3) //= -.5
-	// Math.Sin(2 * Math.PI / 3) //= sqrt3/2 = 0.8660254037844387	
-	// public static Vector3d TriZPos(Vector3d v) => new(v.X * 0.8660254037844387 + v.Y * -.5, v.X * -.5 + v.Y * -0.8660254037844387, v.Z);
-	// public static Vector3d TriZNeg(Vector3d v) => new(v.X * -0.8660254037844387 + v.Y * -.5, v.X * -.5 + v.Y * 0.8660254037844387, v.Z);
-	public static Vector3d TriZPos(Vector3d v) => new(-v.Y, v.X - v.Y, v.Z);
-	public static Vector3d TriZNeg(Vector3d v) => new(-v.X + v.Y, -v.X, v.Z);
+	// Cos(120) = Cos(240) = -.5
+	// Sin(120) =-Sin(240) = sqrt3/2 = 0.8660254037844387	
 
+
+	// These formulas work when y is transformed to -1, 1, with a magnitude of sqrt(2)
+	// but since we normalize all our faces, some faces will end up closer than intended,
+	// creating asymmetry. 
+	public static Vector3d TriZPos(Vector3d v) => new(-v.Y, -v.X + v.Y, v.Z);
+	public static Vector3d TriZNeg(Vector3d v) => new(-v.X + v.Y, v.X, v.Z);
+
+	// public static Vector3d TriZPos(Vector3d v) => new(-v.Y, v.X - v.Y, v.Z);
+	// public static Vector3d TriZNeg(Vector3d v) => new(-v.X + v.Y, -v.X, v.Z);
+
+	//So instead we use formulas that keep magnitude in a cubic system
+	// ..which does mean that we can't use the correct gamma value, unfortunately.
+	// Some other generators might depend on the first formula, and lead to an incorrect crystal.
+	public static Vector3d TriZPos90(Vector3d v) => new(v.X * -.5 - v.Y * 0.8660254037844387, v.X * 0.8660254037844387 + v.Y * -.5, v.Z);
+	public static Vector3d TriZNeg90(Vector3d v) => new(v.X * -.5 - v.Y * -0.8660254037844387, v.X * -0.8660254037844387 + v.Y * -.5, v.Z);
 	public static Vector3d TriXYZPos(Vector3d v) => new(v.Z, v.X, v.Y);//Tri along 1, 1, 1
 	public static Vector3d TriXYZNeg(Vector3d v) => new(v.Y, v.Z, v.X);
 
