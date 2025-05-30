@@ -118,7 +118,7 @@ public partial class Crystal
     {
       Vector3d normalizedNormal = initialNormal.Normalized();
       normalizedNormals.Add(normalizedNormal);
-      originalNormals.Add(normalizedNormal, initialNormal);
+      originalNormals.TryAdd(normalizedNormal, initialNormal);
     }
 
     normalGroups = CrystalGeneration.GenerateSymmetryGroups(normalizedNormals, pointGroup);
