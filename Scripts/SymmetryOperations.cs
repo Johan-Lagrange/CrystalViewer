@@ -269,22 +269,22 @@ public static class SymmetryOperations
 		//These are broken and unused currently
 		//trizpos doesn't keep the same magnitude which breaks calculations
 		//and trizpos90 is incompatible with the other functions.
-		new[] {TriZPos, TriZNeg}, //21 Three Hexagonal
-		new[] {TriZPos, TriZNeg, Inv}, //22 BarThree Hexagonal
-		new[] {TriZPos, TriZNeg, DiX_Y}, //23 ThreeOneTwo Hexagonal
-		new[] {TriZPos, TriZNeg, DiXY}, //24 ThreeTwoOne Hexagonal
-		new[] {TriZPos, TriZNeg, MirXY},//25 ThreeMOne Hexagonal
-		new[] {TriZPos, TriZNeg, MirX_Y},//26 ThreeOneM Hexagonal
-		new[] {TriZPos, TriZNeg, DiX_Y, Inv},//27 BarThreeOneM Hexagonal
-		new[] {TriZPos, TriZNeg, DiXY, Inv},//28 BarThreeMOne Hexagonal
+		new[] {TriZPos90, TriZNeg90}, //21 Three Hexagonal
+		new[] {Inv, TriZPos90, TriZNeg90}, //22 BarThree Hexagonal
+		new[] {DiX_Y, TriZPos90, TriZNeg90}, //23 ThreeOneTwo Hexagonal
+		new[] {DiXY, TriZPos90, TriZNeg90}, //24 ThreeTwoOne Hexagonal
+		new[] {MirXY, TriZPos90, TriZNeg90},//25 ThreeMOne Hexagonal
+		new[] {MirX_Y, TriZPos90, TriZNeg90},//26 ThreeOneM Hexagonal
+		new[] {DiX_Y, Inv, TriZPos90, TriZNeg90},//27 BarThreeOneM Hexagonal
+		new[] {DiXY, Inv, TriZPos90, TriZNeg90},//28 BarThreeMOne Hexagonal
 
-		new[] {TriZPos90, TriZNeg90, DiZ}, //29 Six
-		new[] {TriZPos90, TriZNeg90, MirZ}, //30 BarSix
-		new[] {TriZPos90, TriZNeg90, DiZ, Inv}, //31 SixSlashM
-		new[] {TriZPos90, TriZNeg90, DiZ, DiXY}, //32 SixTwoTwo
-		new[] {TriZPos90, TriZNeg90, DiZ, MirXY}, //33 SixMM
-		new[] {TriZPos90, TriZNeg90, MirZ, MirXY}, //34 BarSixMTwo
-		new[] {TriZPos90, TriZNeg90, DiZ, DiXY, Inv}, //35 SixSlashMMM
+		new[] {DiZ, TriZPos90, TriZNeg90}, //29 Six
+		new[] {MirZ, TriZPos90, TriZNeg90}, //30 BarSix
+		new[] {DiZ, Inv, TriZPos90, TriZNeg90}, //31 SixSlashM
+		new[] {DiZ, DiXY, TriZPos90, TriZNeg90}, //32 SixTwoTwo
+		new[] {DiZ, MirXY, TriZPos90, TriZNeg90}, //33 SixMM
+		new[] {MirZ, MirXY, TriZPos90, TriZNeg90}, //34 BarSixMTwo
+		new[] {DiZ, DiXY, Inv, TriZPos90, TriZNeg90}, //35 SixSlashMMM
 
 		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg}, //36 TwoThree
 		new[] {DiZ, DiY, TriXYZPos, TriXYZNeg, Inv}, //37 MBarThree
@@ -324,6 +324,9 @@ public static class SymmetryOperations
 	// creating asymmetry. 
 	public static Vector3d TriZPos(Vector3d v) => new(-v.Y, -v.X + v.Y, v.Z);
 	public static Vector3d TriZNeg(Vector3d v) => new(-v.X + v.Y, v.X, v.Z);
+
+	// public static Vector3d TriZPos(Vector3d v) => new(-v.Y, v.X - v.Y, v.Z);
+	// public static Vector3d TriZNeg(Vector3d v) => new(-v.X + v.Y, -v.X, v.Z);
 
 	//So instead we use formulas that keep magnitude in a cubic system
 	// ..which does mean that we can't use the correct gamma value, unfortunately.

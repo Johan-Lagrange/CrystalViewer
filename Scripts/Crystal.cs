@@ -21,6 +21,8 @@ public partial class Crystal
   /// </summary>
   public readonly List<List<Vector3d>> normalGroups;
 
+  public readonly Dictionary<Vector3d, Vector3d> originalNormals;
+
   /// <summary>
   /// Every plane group that makes up the crystal, grouped based on which original plane generated them.
   /// </summary>
@@ -107,7 +109,19 @@ public partial class Crystal
         i--;//We would skip over the next one if we didn't do this.
       }
     }
-    normalGroups = CrystalGeneration.GenerateSymmetryGroups(initialNormals, pointGroup);
+
+    //Some normals may be of a length != 1, so we set their lengths to 1 while
+    //keeping track of which correspond to what.
+    originalNormals = new();
+    List<Vector3d> normalizedNormals = new List<Vector3d>();
+    foreach (Vector3d initialNormal in initialNormals)
+    {
+      Vector3d normalizedNormal = initialNormal.Normalized();
+      normalizedNormals.Add(normalizedNormal);
+      originalNormals.Add(normalizedNormal, initialNormal);
+    }
+
+    normalGroups = CrystalGeneration.GenerateSymmetryGroups(normalizedNormals, pointGroup);
 
     planeGroups = CrystalGeneration.GeneratePlanes(normalGroups, distances);//Create a plane with distance from center for every generated normal
 

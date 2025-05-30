@@ -129,7 +129,14 @@ public static class CrystalGeneration
         List<Planed> planeGroup = new();
         foreach (Vector3d v in normals[faceGroup])
         {
-          planeGroup.Add(new Planed(v, distances[faceGroup]));
+          //Special case for hexagonal crystals, which are skewed and require normals of different lengths before skewing.
+          if (v.LengthSquared() > 1.3)
+          {
+            Godot.GD.Print(v.Length());
+            planeGroup.Add(new Planed(v.Normalized(), distances[faceGroup] * v.Length()));
+          }
+          else
+            planeGroup.Add(new Planed(v, distances[faceGroup]));
         }
         planeGroups.AddLast(planeGroup);
       }
