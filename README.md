@@ -1,3 +1,4 @@
+[CrystalDemo.webm](https://github.com/user-attachments/assets/6013d570-60f9-47f9-a02f-a5b8c565d9a9)
 # What is this?
 Crystal viewer is a program to generate models of crystals from a few parameters: Namely symmetry group, axial lengths and angles, and miller indices.  
 For information on what those are, look futher ahead in this readme.  
@@ -63,7 +64,7 @@ Below are all the symmetry operations in each crystal class:
 		MMTwo: DiZ, MirY, MirX
 		MMM: DiZ, DiY, DiX, Inv, MirZ, MirY, MirX
 
-  Tetragonal
+  	Tetragonal
 	Tetragonal's unit cell is like a tall cube, square on the bottom
 		Four: DiZ, TetZPos, TetZNeg
 		BarFour: DiZ, InvTetZPos, InvTetZNeg
@@ -110,22 +111,22 @@ Below are all the symmetry operations in each crystal class:
 [The list of operations are from this link](https://www.cryst.ehu.es/cryst/get_point_genpos.html)
 
 ## Miller indices
-Because crystals grow in different shapes as their unit cells are different shapes, (being longer along one or two axes, or skewed), we need a notation to describe faces that accounts for that. 
-This application uses miller indices for that. 
-A 2D miller index has 2 numbers. A 3d miller index has 3 numbers.
-For a basic explanation, I'll be using 2d miller indices.
-The number in a miller index describes reciprocal of the axis intercept.
-A miller index of (1 0) would be a vertical line that intersects x at 1, and does not intersect y.
-A miller index of (1 1) would intersect x and y at 1.
-A miller index of (2 1) would intersect x at 0.5, and y at 1.
-A miller index of (2 0) is the same as one of (1, 0), since they reduce like fractions. 
-Miller indices can also be negative, (-1 1) intersects x at -1 and y at +1.
-For negatives, we don't say "negative one", we say "bar one".
-For some crystals, like cubic, (1 0 0), (-1 0 0), (0 1 0), (0 -1 0), (0 0 1), (0 0 -1) are all functionally equivalent due to the crystal's symmetry.
-Because of that, {1 0 0} can be used to refer to all the different versions of (1 0 0).
-In fact, the only crystal system where this doesn't apply at all is in the triclinic system, which doesn't have any symmetry.
-If the axes are orthonormal (90 degrees and length 1), the miller index also describes the "normal" of the line, which is the line that is perpendicular to the index.
-In the program, we do the initial calculations with orthonormal axes, and then skew it after, so we just take the miller index as the normal for the planes we are building. It's pretty convenient.
+	Because crystals grow in different shapes as their unit cells are different shapes, (being longer along one or two axes, or skewed), we need a notation to describe faces that accounts for that. 
+	This application uses miller indices for that. 
+	A 2D miller index has 2 numbers. A 3d miller index has 3 numbers.
+	For a basic explanation, I'll be using 2d miller indices.
+	The number in a miller index describes reciprocal of the axis intercept.
+	A miller index of (1 0) would be a vertical line that intersects x at 1, and does not intersect y.
+	A miller index of (1 1) would intersect x and y at 1.
+	A miller index of (2 1) would intersect x at 0.5, and y at 1.
+	A miller index of (2 0) is the same as one of (1, 0), since they reduce like fractions. 
+	Miller indices can also be negative, (-1 1) intersects x at -1 and y at +1.
+	For negatives, we don't say "negative one", we say "bar one".
+	For some crystals, like cubic, (1 0 0), (-1 0 0), (0 1 0), (0 -1 0), (0 0 1), (0 0 -1) are all functionally equivalent 	due to the crystal's symmetry.
+	Because of that, {1 0 0} can be used to refer to all the different versions of (1 0 0).
+	In fact, the only crystal system where this doesn't apply at all is in the triclinic system, which doesn't have any 	symmetry.
+	If the axes are orthonormal (90 degrees and length 1), the miller index also describes the "normal" of the line, which is the line that is perpendicular to the index.
+	In the program, we do the initial calculations with orthonormal axes, and then skew it after, so we just take the miller index as the normal for the planes we are building. It's pretty convenient.
 
 ## How does this generate a crystal shape?
 The way this algorithm generates a crystal is:
